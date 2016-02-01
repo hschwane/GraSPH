@@ -138,6 +138,7 @@ void Log::open(LogPolicy policy, std::ostream *out, std::ostream *err)
 #ifdef __linux__
 void Log::open(LogPolicy policy, const std::string &sIdent, int iOption, int iFacility)
 {
+    // TODO: implement syslog logging
     // close in case it is already opened
     if(logPolicy != LogPolicy::none)
         close();
@@ -153,6 +154,7 @@ void Log::close()
             dynamic_cast<std::ofstream*>(outStream)->close();
             dynamic_cast<std::ofstream*>(errorStream)->close();
         case syslog: // for file and syslog delete streams
+            // TODO: implement syslog logging, check this
             if(outStream == errorStream)
             {
                 MPU_SAVE_DELETE(outStream);

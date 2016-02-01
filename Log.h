@@ -90,6 +90,7 @@ enum LogPolicy
 };
 extern const std::string LogPolicyToString[]; // loockup to transform LogPolicy to string
 
+// TODO: a new syslog stream class is needed for syslog logging
 
 //-------------------------------------------------------------------
 /**
