@@ -20,10 +20,10 @@
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
-#ifdef __linux__
-    #include "SyslogStream.h"
-#endif
 #include "mpUtils.h"
+#ifdef __linux__
+    #include "SyslogStreambuf.h"
+#endif
 //--------------------
 
 // defines
@@ -93,13 +93,13 @@ enum LogPolicy
 };
 extern const std::string LogPolicyToString[]; // loockup to transform LogPolicy to string
 
-// TODO: a new syslog stream class is needed for syslog logging
-
 //-------------------------------------------------------------------
 /**
  * class Log
  *
- * usage:
+ * @usage:
+ * TODO: add documentation of the Log class
+ * 
  */
 class Log : public std::ostringstream
 {
