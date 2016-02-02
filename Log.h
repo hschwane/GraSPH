@@ -21,7 +21,7 @@
 #include <sstream>
 #include <stdexcept>
 #ifdef __linux__
-    #include <syslog.h>
+    #include "SyslogStream.h"
 #endif
 #include "mpUtils.h"
 //--------------------
@@ -115,7 +115,7 @@ public:
 
     // open function to open/reopen the log
     void open(LogPolicy policy, const std::string &sFile = "", const std::string &sErrorFile = "");
-    void open(LogPolicy policy, std::ostream *out, std::ostream *err);
+    void open(LogPolicy policy, std::ostream *out, std::ostream *err = nullptr);
 #ifdef __linux__
     void open(LogPolicy policy, const std::string &sIdent, int iOption, int iFacility);
 #endif

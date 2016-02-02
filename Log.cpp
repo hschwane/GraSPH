@@ -130,7 +130,11 @@ void Log::open(LogPolicy policy, std::ostream *out, std::ostream *err)
         throw std::invalid_argument("Log: You called the wrong open function/constructor for your policy!");
 
     outStream = out;
-    errorStream = err;
+
+    if(err)
+        errorStream = err;
+    else
+        errorStream = out;
 
     logPolicy = policy;
 }
