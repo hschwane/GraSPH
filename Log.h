@@ -35,6 +35,8 @@
 #define MPU_FILEPOS  __FILE__ " in line: "  _mpu_mystr(__LINE__)  " in function " + std::string(__PRETTY_FUNCTION__) // ausgeben von datei und zeile und funktion
 
 // macros for simplified global logging
+#define logFATAL_ERROR if(mpu::Log::noGlobal() || mpu::Log::getGlobal().getLogLevel() < mpu::LogLvl::fatal_error) ; \
+                    else mpu::Log::getGlobal()(MPU_FILEPOS,mpu::LogLvl::error)
 #define logERROR if(mpu::Log::noGlobal() || mpu::Log::getGlobal().getLogLevel() < mpu::LogLvl::error) ; \
                     else mpu::Log::getGlobal()(MPU_FILEPOS,mpu::LogLvl::error)
 #define logWARNING if(mpu::Log::noGlobal() || mpu::Log::getGlobal().getLogLevel() < mpu::LogLvl::warning) ; \
@@ -63,13 +65,14 @@ namespace mpu {
 enum LogLvl // enum to specify log level
 {
     invalid = 9999, // invalid is very high, so invalid messages are never logged
-    all = 7,
-    debug2 = 6,
-    debug1 = 5,
-    debug = 4,
-    info = 3,
-    warning = 2,
-    error = 1,
+    all = 8,
+    debug2 = 7,
+    debug1 = 6,
+    debug = 5,
+    info = 4,
+    warning = 3,
+    error = 2,
+    fatal_error = 1,
     nolog = 0
 };
 extern const std::string LogLvlToString[]; // loockup to transform Loglvl to string
@@ -145,6 +148,7 @@ public:
     inline Log &operator<<(const LogLvl &level); // enable log level values to be used as manipulators
 
     // manipulators to set the level and flush then
+    inline static Log &FATAL_ERROR(Log &log);
     inline static Log &ERROR(Log &log);
     inline static Log &WARNING(Log &log);
     inline static Log &INFO(Log &log);
@@ -264,6 +268,13 @@ inline Log &Log::operator<<(_log_manip manip)
 inline Log &Log::operator<<(const LogLvl &level)
 {
     currentLvl = level; return *this;
+}
+
+inline Log &Log::FATAL_ERROR(Log &log)
+{
+    log.setLvl(LogLvl::fatal_error);
+    log.flush();
+    return log;
 }
 
 inline Log &Log::ERROR(Log &log)

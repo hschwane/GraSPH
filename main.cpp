@@ -24,13 +24,14 @@ int main()
     mpu::Log myLog(mpu::LogPolicy::console);
     myLog.setLogLevel(mpu::all);
 
-    myLog.open(mpu::file,"~/test.log");
+    myLog.open(mpu::file,"/home/hendrik/test.log");
 
     auto t1 = high_resolution_clock::now();
 
     // lets send onehundred thousand messages
     for (int i = 0; i < 1000000; ++i)
     {
+        logFATAL_ERROR << "This is a test debug Message. I is: " << i << " Lalalala" << endl;
         logERROR << "This is a test debug Message. I is: " << i << " Lalalala" << endl;
         logWARNING << "This is a test debug Message. I is: " << i << " Lalalala" << endl;
         logINFO << "This is a test debug Message. I is: " << i <<  " Lalalala" << endl;

@@ -23,7 +23,7 @@ namespace mpu
 //--------------------
 
 // Variables for logToString
-const std::string LogLvlToString[] = {"NOLOG", "ERROR", "WARNING", "INFO", "DEBUG", "DEBUG1", "DEBUG2", "ALL"};
+const std::string LogLvlToString[] = {"NOLOG", "FATAL_ERROR", "ERROR", "WARNING", "INFO", "DEBUG", "DEBUG1", "DEBUG2", "ALL"};
 const std::string LogLvlStringInvalid = "INVALID";
 const std::string LogPolicyToString[] = {"NONE", "CONSOLE", "FILE", "SYSLOG", "CUSTOM"};
 
