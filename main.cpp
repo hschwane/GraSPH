@@ -13,7 +13,6 @@
  */
 
 #include <iostream>
-#include <ostream>
 #include "Log.h"
 #include <chrono>
 using namespace std;
@@ -23,32 +22,17 @@ int main()
 {
     // test the log
     mpu::Log myLog(mpu::LogPolicy::console);
-    myLog.setLogLevel(mpu::info);
+    myLog.setLogLevel(mpu::debug);
     myLog.setTimeFormat("");
 
-    //myLog.open(mpu::file,"/home/hendrik/test.log");
-
-    mpu::SyslogStreambuf streambuf("HendriksTestApp", LOG_DAEMON, &myLog);
-    std::ostream ostream1(&streambuf);
-
-    myLog.open(mpu::LogPolicy::custom, &ostream1);
+    myLog.open(mpu::syslog,"myTestApp", LOG_DAEMON);
 
     auto t1 = high_resolution_clock::now();
 
-
-
-
-    logINFO << "This goes to syslog..." << endl;
-    logWARNING << "This goes to syslog..." << endl;
-    logINFO << "This goes to syslog..." << endl;
-    logWARNING << "This goes to syslog..." << endl;
-    logINFO << "This goes to syslog..." << endl;
-    logERROR << "This goes to syslog..." << endl;
-
-
-    /*
-    // lets send onehundred thousand messages
-    for (int i = 0; i < 1000000; ++i)
+    logERROR << "TEST" << endl;
+/*
+    // lets send some messages
+    for (int i = 0; i < 10; ++i)
     {
         logFATAL_ERROR << "This is a test debug Message. I is: " << i << " Lalalala" << endl;
         logERROR << "This is a test debug Message. I is: " << i << " Lalalala" << endl;
@@ -59,7 +43,6 @@ int main()
         logDEBUG2 << "This is a test debug Message. I is: " << i <<  " Lalalala" << endl;
     }
 */
-
 
     auto t2 = high_resolution_clock::now();
     std::cout << "It took me " <<  duration_cast<milliseconds>(t2 - t1).count() << " ms." << endl;

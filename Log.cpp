@@ -5,7 +5,7 @@
  * @author: Hendrik Schwanekamp
  * @mail:   hendrik.schwanekamp@gmx.net
  *
- * Implements the mpLog class, wich provides simple text file logging
+ * Implements the Log class, which provides logging to text files, syslog, or custom streams
  *
  * Copyright 2016 Hendrik Schwanekamp
  *
@@ -18,8 +18,7 @@
 
 // namespace
 //--------------------
-namespace mpu
-{
+namespace mpu {
 //--------------------
 
 // Variables for logToString
@@ -65,7 +64,7 @@ Log::Log(LogPolicy policy, std::ostream *out, std::ostream *err, LogLvl lvl)
 }
 
 #ifdef __linux__
-    Log::Log(LogPolicy policy, const std::string &sIdent, int iOption, int iFacility, LogLvl lvl)
+    Log::Log(LogPolicy policy, const std::string &sIdent, int iFacility, LogLvl lvl)
     {
         sTimeFormat = "%c";
         logLvl = lvl;
@@ -74,7 +73,7 @@ Log::Log(LogPolicy policy, std::ostream *out, std::ostream *err, LogLvl lvl)
         outStream = nullptr;
         errorStream = nullptr;
 
-        open(policy, sIdent, iOption, iFacility);
+        open(policy, sIdent, iFacility);
 
         // first log created is going to be global
         if(noGlobal())
@@ -140,12 +139,22 @@ void Log::open(LogPolicy policy, std::ostream *out, std::ostream *err)
 }
 
 #ifdef __linux__
-void Log::open(LogPolicy policy, const std::string &sIdent, int iOption, int iFacility)
+void Log::open(LogPolicy policy, const std::string &sIdent, int iFacility)
 {
-    // TODO: implement syslog logging
     // close in case it is already opened
     if(logPolicy != LogPolicy::none)
         close();
+
+    if(policy != LogPolicy::syslog)
+        throw std::invalid_argument("Log: You called the wrong open function/constructor for your policy!");
+
+    // use the an ostream with the syslog streambuffer
+    outStream = new std::ostream( new SyslogStreambuf(sIdent, iFacility, this));
+    errorStream = outStream;
+
+    // turn of timestamp, since syslog already provides a timestamp
+    setTimeFormat("");
+    logPolicy = policy;
 }
 #endif
 
@@ -157,8 +166,20 @@ void Log::close()
         case file:
             dynamic_cast<std::ofstream*>(outStream)->close();
             dynamic_cast<std::ofstream*>(errorStream)->close();
-        case syslog: // for file and syslog delete streams
-            // TODO: implement syslog logging, check this
+            if(outStream == errorStream)
+            {
+                MPU_SAVE_DELETE(outStream);
+                errorStream = nullptr;
+            }
+            else
+            {
+                MPU_SAVE_DELETE(outStream);
+                MPU_SAVE_DELETE(errorStream);
+            }
+            break;
+        case syslog:
+            // reset the timestamp string
+            setTimeFormat("%c");
             if(outStream == errorStream)
             {
                 MPU_SAVE_DELETE(outStream);

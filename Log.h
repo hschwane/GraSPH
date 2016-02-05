@@ -5,7 +5,7 @@
  * @author: Hendrik Schwanekamp
  * @mail:   hendrik.schwanekamp@gmx.net
  *
- * Implements the Log class, which provides simple text file logging
+ * Implements the Log class, which provides logging to text files, syslog, or custom streams
  *
  * Copyright 2016 Hendrik Schwanekamp
  *
@@ -96,9 +96,46 @@ extern const std::string LogPolicyToString[]; // loockup to transform LogPolicy 
 //-------------------------------------------------------------------
 /**
  * class Log
+ * provides flexible formatted logging to stdout, files, the syslog, or custom streams.
  *
  * @usage:
- * TODO: add documentation of the Log class
+ * To use the log create a object using one of the initialising constructors. you can also call the
+ * empty constructor and initialise the log using ne of the open(...) functions.
+ * Choose a log policy from the enum above and provide either file names, custom streams, or a
+ * Identity string and a facility if you want to use syslog. If you provide only one stream or one
+ * file, error and information will be send to the same output.
+ *
+ * You can set the global Log level with setLogLevel(). Only messages wih equal or hgher priority will
+ * be logged. To log a message you can use the "<<" operator. The message is formatted and
+ * written to the Log when the stream is flushed. You also need to set the message lvl for each message
+ * using setLvl() or streaming the lvl eg. "<< LogLvl::info" you could also youse one of the
+ * custom modifieres which add a level and then flush the stream.
+ *
+ * Note that redirecting anything to the Logs streambuffer will not work, since no Message lvl is
+ * provided by other streams, nor will the buffer be flushed correctly.
+ *
+ * additional options:
+ * You cn modify the timestamp format written to the file via setTimeFormat(string) where string is
+ * the std library configuration string used for strftime.
+ * If you want to output additional debug information you can add a string which is only outputted
+ * if the log level is debug or higher. Use the function bracked operator like this:
+ * myLog("@lineXY") << "hello" << DEBUG; to add a @lineXY. You can use the MPU_FILEPOS macro defined
+ * above to get the current file, line and function name.
+ *
+ * the Global log:
+ * there is one additional feature called the global log. you can make a log global using makeGLobal().
+ * Note that there can only be one global log at any time. You can use the makro definitions above
+ * to write message to the global log like logERROR << "An Error!" << endl
+ * The first log created is always made global automatically.
+ *
+ * Thread safety:
+ * Also streams a stread save on a per char basis, using the same Log from different files could result
+ * in unreadable messages. You could however create multiple Log classes that write there output
+ * to the same file.
+ *
+ * exceptions:
+ * If initialisation fails, the constructor or the open(...) function will throw a exception.
+ * No other exceptions are thrown.
  * 
  */
 class Log : public std::ostringstream
@@ -109,7 +146,7 @@ public:
     Log(LogPolicy policy = LogPolicy::none, const std::string &sFile = "", const std::string &sErrorFile = "", LogLvl lvl = LogLvl::info);
     Log(LogPolicy policy, std::ostream *out, std::ostream *err, LogLvl lvl = LogLvl::info);
 #ifdef __linux__
-    Log(LogPolicy policy, const std::string &sIdent, int iOption, int iFacility, LogLvl lvl = LogLvl::info);
+    Log(LogPolicy policy, const std::string &sIdent, int iFacility, LogLvl lvl = LogLvl::info);
 #endif
     ~Log(); // destructor
 
@@ -117,7 +154,7 @@ public:
     void open(LogPolicy policy, const std::string &sFile = "", const std::string &sErrorFile = "");
     void open(LogPolicy policy, std::ostream *out, std::ostream *err = nullptr);
 #ifdef __linux__
-    void open(LogPolicy policy, const std::string &sIdent, int iOption, int iFacility);
+    void open(LogPolicy policy, const std::string &sIdent, int iFacility);
 #endif
 
     void close(); // close the internal streams, is called automaticly before open and on destruction
@@ -147,7 +184,7 @@ public:
     inline Log &operator<<(_log_manip manip); // enable manipulators
     inline Log &operator<<(const LogLvl &level); // enable log level values to be used as manipulators
 
-    // manipulators to set the level and flush then
+    // manipulators to set the level and then flush
     inline static Log &FATAL_ERROR(Log &log);
     inline static Log &ERROR(Log &log);
     inline static Log &WARNING(Log &log);
@@ -214,7 +251,7 @@ inline void Log::flush()
 {
     if (currentLvl <= logLvl && logPolicy != LogPolicy::none )
     {
-        if (currentLvl == error)
+        if (currentLvl == error || currentLvl == fatal_error)
         {
             (*errorStream) << "[" << timestamp(sTimeFormat) << "] "
             << toString(currentLvl) << ": "
@@ -248,7 +285,7 @@ inline Log &Log::operator()(std::string s)
 inline Log &Log::operator()(std::string s, LogLvl lvl)
 {
     if (logLvl >= LogLvl::debug)
-        sCurrentLine = "\t\t@:" + s;
+        sCurrentLine = "        @:" + s;
     currentLvl = lvl;
     return *this;
 }
