@@ -15,29 +15,45 @@
 #include <iostream>
 #include "Log.h"
 #include <chrono>
+#include "CfgFile.h"
 using namespace std;
 using namespace std::chrono;
 
 int main()
 {
-    // test the log
-    mpu::Log myLog(mpu::LogPolicy::console);
-    myLog.setLogLevel(mpu::all);
-
-    myLog.open(mpu::file,"~/test.log");
+    // do some config test
+    mpu::CfgFile cfg("/home/hendrik/test.cfg");
 
     auto t1 = high_resolution_clock::now();
 
-    // lets send onehundred thousand messages
-    for (int i = 0; i < 1000000; ++i)
+    for(auto e : cfg.getConfigList())
     {
-        logERROR << "This is a test debug Message. I is: " << i << " Lalalala" << endl;
-        logWARNING << "This is a test debug Message. I is: " << i << " Lalalala" << endl;
-        logINFO << "This is a test debug Message. I is: " << i <<  " Lalalala" << endl;
-        logDEBUG << "This is a test debug Message. I is: " << i <<  " Lalalala" << endl;
-        logDEBUG1 << "This is a test debug Message. I is: " << i <<  " Lalalala" << endl;
-        logDEBUG2 << "This is a test debug Message. I is: " << i <<  " Lalalala" << endl;
+        cout << "[" << e.first << "]\n";
+        for (auto  a : e.second) {
+            cout << a.first << " = " << a.second << "\n";
+        }
     }
+
+    cout << "\n\n";
+
+    for( auto e : cfg.getBlockMap("blub") )
+    {
+        cout << e.first << " = " << e.second << "\n";
+    }
+
+    cout << "\n\n";
+
+    for( auto e : cfg.getBlockList() )
+    {
+        cout << e << "\n";
+    }
+
+    cout << "\n\n";
+
+    cout << cfg.getValue<int>("blub","val1") << "\n";
+    cout << cfg.getValue<string>("blub","valb") << "\n";
+    cout << cfg.getValue<bool>("otherBlock","valb") << "\n";
+    cout << cfg.getValue<float>("otherBlock","valc") << "\n";
 
     auto t2 = high_resolution_clock::now();
 
