@@ -21,8 +21,11 @@
 #include <sstream>
 #include <stdexcept>
 #include "mpUtils.h"
+
 #ifdef __linux__
-    #include "SyslogStreambuf.h"
+
+#include "SyslogStreambuf.h"
+
 #endif
 //--------------------
 
@@ -32,7 +35,7 @@
 // macro to print file position
 #define _mpu_mystr(x) _mpu_mystr2(x) //convert to string
 #define _mpu_mystr2(x) #x
-#define MPU_FILEPOS  __FILE__ " in line: "  _mpu_mystr(__LINE__)  " in function " + std::string(__PRETTY_FUNCTION__) // ausgeben von datei und zeile und funktion
+#define MPU_FILEPOS  __FILE__ " in line: "  _mpu_mystr(__LINE__)  " in function " + std::string(__PRETTY_FUNCTION__) // output file, line and function
 
 // macros for simplified global logging
 #define logFATAL_ERROR if(mpu::Log::noGlobal() || mpu::Log::getGlobal().getLogLevel() < mpu::LogLvl::fatal_error) ; \
@@ -75,7 +78,7 @@ enum LogLvl // enum to specify log level
     fatal_error = 1,
     nolog = 0
 };
-extern const std::string LogLvlToString[]; // loockup to transform Loglvl to string
+extern const std::string LogLvlToString[]; // lookup to transform Loglvl to string
 extern const std::string LogLvlStringInvalid; // lookup to transform Loglvl to string
 
 //-------------------------------------------------------------------
@@ -105,11 +108,11 @@ extern const std::string LogPolicyToString[]; // loockup to transform LogPolicy 
  * Identity string and a facility if you want to use syslog. If you provide only one stream or one
  * file, error and information will be send to the same output.
  *
- * You can set the global Log level with setLogLevel(). Only messages wih equal or hgher priority will
+ * You can set the global Log level with setLogLevel(). Only messages wih equal or higher priority will
  * be logged. To log a message you can use the "<<" operator. The message is formatted and
  * written to the Log when the stream is flushed. You also need to set the message lvl for each message
- * using setLvl() or streaming the lvl eg. "<< LogLvl::info" you could also youse one of the
- * custom modifieres which add a level and then flush the stream.
+ * using setLvl() or streaming the lvl eg. "<< LogLvl::info" you could also use one of the
+ * custom modifiers which add a level and then flush the stream.
  *
  * Note that redirecting anything to the Logs streambuffer will not work, since no Message lvl is
  * provided by other streams, nor will the buffer be flushed correctly.
@@ -118,18 +121,18 @@ extern const std::string LogPolicyToString[]; // loockup to transform LogPolicy 
  * You cn modify the timestamp format written to the file via setTimeFormat(string) where string is
  * the std library configuration string used for strftime.
  * If you want to output additional debug information you can add a string which is only outputted
- * if the log level is debug or higher. Use the function bracked operator like this:
+ * if the log level is debug or higher. Use the function bracket operator like this:
  * myLog("@lineXY") << "hello" << DEBUG; to add a @lineXY. You can use the MPU_FILEPOS macro defined
  * above to get the current file, line and function name.
  *
  * the Global log:
- * there is one additional feature called the global log. you can make a log global using makeGLobal().
- * Note that there can only be one global log at any time. You can use the makro definitions above
+ * there is one additional feature called the global log. you can make a log global using makeGlobal().
+ * Note that there can only be one global log at any time. You can use the macro definitions above
  * to write message to the global log like logERROR << "An Error!" << endl
  * The first log created is always made global automatically.
  *
  * Thread safety:
- * Also streams a stread save on a per char basis, using the same Log from different files could result
+ * Also streams are thread save on a per char basis, using the same Log from different files could result
  * in unreadable messages. You could however create multiple Log classes that write there output
  * to the same file.
  *
@@ -143,21 +146,31 @@ class Log : public std::ostringstream
 public:
 
     // constructors
-    Log(LogPolicy policy = LogPolicy::none, const std::string &sFile = "", const std::string &sErrorFile = "", LogLvl lvl = LogLvl::info);
+    Log(LogPolicy policy = LogPolicy::none, const std::string &sFile = "", const std::string &sErrorFile = "",
+        LogLvl lvl = LogLvl::info);
+
     Log(LogPolicy policy, std::ostream *out, std::ostream *err, LogLvl lvl = LogLvl::info);
+
 #ifdef __linux__
+
     Log(LogPolicy policy, const std::string &sIdent, int iFacility, LogLvl lvl = LogLvl::info);
+
 #endif
+
     ~Log(); // destructor
 
     // open function to open/reopen the log
     void open(LogPolicy policy, const std::string &sFile = "", const std::string &sErrorFile = "");
+
     void open(LogPolicy policy, std::ostream *out, std::ostream *err = nullptr);
+
 #ifdef __linux__
+
     void open(LogPolicy policy, const std::string &sIdent, int iFacility);
+
 #endif
 
-    void close(); // close the internal streams, is called automaticly before open and on destruction
+    void close(); // close the internal streams, is called automatically before open and on destruction
 
     inline void flush(); // a new flush function to format "log style"
 
@@ -175,7 +188,8 @@ public:
 
     // operators
     inline Log &operator()(std::string s); // use the () operator to specify the current line
-    inline Log &operator()(std::string s, LogLvl lvl); // use the () operator to specify the current line and current lvl
+    inline Log &operator()(std::string s,
+                           LogLvl lvl); // use the () operator to specify the current line and current lvl
     template<typename T>
     inline Log &operator<<(const T &t);  // inherit the << operator from ostringstream
 
@@ -186,11 +200,17 @@ public:
 
     // manipulators to set the level and then flush
     inline static Log &FATAL_ERROR(Log &log);
+
     inline static Log &ERROR(Log &log);
+
     inline static Log &WARNING(Log &log);
+
     inline static Log &INFO(Log &log);
+
     inline static Log &DEBUG(Log &log);
+
     inline static Log &DEBUG1(Log &log);
+
     inline static Log &DEBUG2(Log &log);
 
 private:
@@ -212,20 +232,20 @@ private:
 //--------------------
 
 // my own endl and flush
-inline Log & endl(mpu::Log & out)
+inline Log &endl(mpu::Log &out)
 {
     //out.put('\n'); \n is added automatically when flushing the stream
     out.flush();
     return out;
 }
 
-inline Log & flush(mpu::Log & out)
+inline Log &flush(mpu::Log &out)
 {
     out.flush();
     return out;
 }
 
-inline Log & ends(mpu::Log & out)
+inline Log &ends(mpu::Log &out)
 {
     out.put('\0');
     return out;
@@ -249,7 +269,7 @@ inline const std::string &toString(LogPolicy policy)
 
 inline void Log::flush()
 {
-    if (currentLvl <= logLvl && logPolicy != LogPolicy::none )
+    if (currentLvl <= logLvl && logPolicy != LogPolicy::none)
     {
         if (currentLvl == error || currentLvl == fatal_error)
         {
@@ -304,7 +324,8 @@ inline Log &Log::operator<<(_log_manip manip)
 
 inline Log &Log::operator<<(const LogLvl &level)
 {
-    currentLvl = level; return *this;
+    currentLvl = level;
+    return *this;
 }
 
 inline Log &Log::FATAL_ERROR(Log &log)
@@ -363,20 +384,20 @@ inline Log &Log::DEBUG2(Log &log)
 //--------------------
 namespace std {
 
-inline mpu::Log & endl(mpu::Log & out)
+inline mpu::Log &endl(mpu::Log &out)
 {
     //out.put('\n'); \n is added automatically when flushing the stream
     out.flush();
     return out;
 }
 
-inline mpu::Log & flush(mpu::Log & out)
+inline mpu::Log &flush(mpu::Log &out)
 {
     out.flush();
     return out;
 }
 
-inline mpu::Log & ends(mpu::Log & out)
+inline mpu::Log &ends(mpu::Log &out)
 {
     out.put('\0');
     return out;

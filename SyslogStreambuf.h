@@ -54,7 +54,7 @@ inline void __syslog(int iPriority, const std::string &sMessage);
 class SyslogStreambuf : public std::basic_streambuf<char, std::char_traits<char> >
 {
 public:
-    SyslogStreambuf(const std::string &sIdent, int facility, Log* pLog); // constructur
+    SyslogStreambuf(const std::string &sIdent, int facility, Log *pLog); // constructor
     ~SyslogStreambuf(); //destructor
 
 protected:
@@ -100,7 +100,7 @@ inline std::streamsize SyslogStreambuf::xsputn(const char *s, std::streamsize n)
 // define this inline function outside os the namespace to prevent "syslog" from conflicting with mpu::LogLvl::syslog
 inline void mpu::__syslog(int iPriority, const std::string &sMessage)
 {
-    syslog(iPriority,sMessage.c_str());
+    syslog(iPriority, sMessage.c_str());
 }
 
 #endif //MPUTILS_SYSLOGSTREAMBUF_H

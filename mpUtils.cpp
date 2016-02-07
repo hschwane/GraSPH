@@ -26,10 +26,10 @@ namespace mpu {
 std::string timestamp(std::string sFormat)
 {
     time_t timeRaw = time(NULL);
-    struct tm* timeStruct = localtime(&timeRaw);
+    struct tm *timeStruct = localtime(&timeRaw);
 
     char a_cResult[sFormat.length() + 100];
-    strftime( a_cResult, sFormat.length() + 100, sFormat.c_str(), timeStruct);
+    strftime(a_cResult, sFormat.length() + 100, sFormat.c_str(), timeStruct);
     return std::string(a_cResult);
 }
 

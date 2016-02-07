@@ -28,7 +28,7 @@ namespace mpu {
 
 // defines
 //--------------------
-// macro to savely delete stuff on the heap
+// macro to safely delete stuff on the heap
 #define MPU_SAVE_DELETE(x) if( x != nullptr) {delete x; x = nullptr;}
 //--------------------
 
