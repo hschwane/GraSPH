@@ -64,12 +64,14 @@ public:
 //    addComment();
 
  private:
-    std::string sFilename; // save the filename
+    std::string sFilename; // the filename
     std::ifstream cfgfile; // stream to access the config file
     std::unordered_map<std::string, std::streampos> blockPositionCache; // cache the block positions locally (the position after the block)
     std::string sCurrentBlock; // save the name of the block we are currently in to minimize block searching
 
     int findBlock(const std::string &sBlock); // set the file position pointer right after the block header returns 0 when the block was found
+    int getKeyValue(std::string &sLine,
+                    const size_t startPos = 0); // look for a key value in sLine if found the value is stored in sLine and 0 is returned. starting at start pos
 };
 
 // define all the inline and template functions of the class
@@ -102,7 +104,8 @@ T CfgFile::getValue(const std::string &sBlock, const std::string &sKey)
         if(sLine[nonEmpty] == '[')
         {
             if(findBlock(sBlock) != 0)
-                throw std::invalid_argument("The Block \""+sBlock+"\" does not exist in the Config File " + sFilename); // block is not there
+                throw std::invalid_argument("The Key \"" + sKey + "\" does not exist in the Config File " +
+                                            sFilename); // block is not there
             continue;
         }
 
@@ -117,55 +120,15 @@ T CfgFile::getValue(const std::string &sBlock, const std::string &sKey)
 
         if(sLine.substr(nonEmpty, endOfName-(nonEmpty)) == sKey)
         {
-            // we found the key now get the value
-            size_t valueBegin = sLine.find_first_not_of(" =\t", endOfName);
-            if(valueBegin == std::string::npos)
+            // get the value
+            if (getKeyValue(sLine, endOfName) != 0)
             {
-                logWARNING << "Syntax error in configuration file! File: " << sFilename <<" Block: "<<sBlock<<" Key: " << sLine;
-                continue; // syntax error, we ignore the block (comment or end of line)
+                logWARNING << "Syntax error in configuration file! File: " << sFilename << " Block: " << sBlock <<
+                           " Key: " << sLine;
+                continue; // syntax error, we ignore the key maby we find a second match that works
             }
 
-            size_t valueEnd = std::string::npos;
-            if(sLine[valueBegin] == '\"')
-            {
-                // find a second '"' which is not escaped and remove all '\' which are not escaped
-                valueBegin++;
-                size_t find = sLine.find_first_of("\"\\",valueBegin);
-                while (find != std::string::npos)
-                {
-                    if (sLine[find] == '\"')
-                    {
-                        valueEnd = find;
-                        break;
-                    }
-                    else
-                    {
-                        sLine.erase(find, 1);
-                        find += 2;
-                    }
-                    find = sLine.find_first_of("\"\\", find);
-                }
-
-                if(valueEnd == std::string::npos)
-                {
-                    logWARNING << "Syntax error in configuration file! File: " << sFilename <<" Block: "<<sBlock<<" Key: " << sLine;
-                    continue; // syntax error, we ignore the block (comment or end of line)
-                }
-                sLine = sLine.substr( valueBegin, valueEnd - valueBegin);
-            }
-            else
-            {
-                valueEnd = sLine.find_last_not_of(" \t");
-                if(valueEnd == std::string::npos)
-                {
-                    logWARNING << "Syntax error in configuration file! File: " << sFilename <<" Block: "<<sBlock<<" Key: " << sLine;
-                    continue; // syntax error, we ignore the block (comment or end of line)
-                }
-                valueEnd++;
-                sLine = sLine.substr( valueBegin, valueEnd - valueBegin);
-                removeWhite(sLine);
-            }
-
+            // return the value
             return valueFromString<T>(sLine);
         }
 

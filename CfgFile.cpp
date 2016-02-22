@@ -29,7 +29,6 @@ CfgFile::CfgFile(const std::string &sName)
     if(!sName.empty())
     {
         open(sName);
-        sFilename = sName;
     }
 }
 
@@ -191,8 +190,6 @@ CfgFile::blockMap CfgFile::getBlockMap(const std::string &sBlock)
     std::string sValue;
     size_t nonEmpty;
     size_t endOfName;
-    size_t valueBegin;
-    size_t valueEnd;
     blockMap resultMap;
 
     // then get all the keys and values
@@ -204,6 +201,7 @@ CfgFile::blockMap CfgFile::getBlockMap(const std::string &sBlock)
         cutAfterFirst(sLine, "#");
         // the first non whitespace char
         nonEmpty = sLine.find_first_not_of(" \t");
+
         if(nonEmpty == std::string::npos)
             continue; // ignore empty lines
         if(sLine[nonEmpty] == '[')
@@ -218,52 +216,15 @@ CfgFile::blockMap CfgFile::getBlockMap(const std::string &sBlock)
             continue; // syntax error, we ignore the block (comment or end of line)
         }
 
-        // see where the value is
-        valueBegin = sLine.find_first_not_of(" =\t", endOfName);
-        if(valueBegin == std::string::npos)
+        // get the value
+        sValue = sLine;
+        if (getKeyValue(sValue, endOfName) != 0)
         {
-            logWARNING << "Syntax error in configuration file! File: " << sFilename <<" Block: "<<sBlock<<" Key: " << sLine;
-            continue; // syntax error, we ignore the block (comment or end of line)
+            logWARNING << "Syntax error in configuration file! File: " << sFilename << " Block: " << sBlock <<
+                       " Key: " << sLine;
+            continue; // syntax error, we ignore the key
         }
 
-        valueEnd = std::string::npos;
-        if(sLine[valueBegin] == '\"')
-        {
-            // find a second '"' which is not escaped and remove all '\' which are not escaped
-            valueBegin++;
-            size_t find = sLine.find_first_of("\"\\",valueBegin);
-            while (find != std::string::npos)
-            {
-                if (sLine[find] == '\"')
-                {
-                    valueEnd = find;
-                    break;
-                }
-                else
-                {
-                    sLine.erase(find, 1);
-                    find += 2;
-                }
-                find = sLine.find_first_of("\"\\", find);
-            }
-            if(valueEnd == std::string::npos)
-            {
-                logWARNING << "Syntax error in configuration file! File: " << sFilename <<" Block: "<<sBlock<<" Key: " << sLine;
-                continue; // syntax error, we ignore the block (comment or end of line)
-            }
-            sValue = sLine.substr( valueBegin, valueEnd - valueBegin);
-        }
-        else
-        {
-            valueEnd = sLine.find_last_not_of(" \t")+1;
-            if(valueEnd == std::string::npos)
-            {
-                logWARNING << "Syntax error in configuration file! File: " << sFilename <<" Block: "<<sBlock<<" Key: " << sLine;
-                continue; // syntax error, we ignore the block (comment or end of line)
-            }
-            sValue = sLine.substr( valueBegin, valueEnd - valueBegin);
-            removeWhite(sValue);
-        }
 
         resultMap[sLine.substr(nonEmpty, endOfName-(nonEmpty))] = sValue;
     }
@@ -290,8 +251,6 @@ CfgFile::configList CfgFile::getConfigList()
     size_t nonEmpty;
     size_t closingBracket;
     size_t endOfName;
-    size_t valueBegin;
-    size_t valueEnd;
     configList resultVec;
     blockMap tmpMap;
 
@@ -334,59 +293,24 @@ CfgFile::configList CfgFile::getConfigList()
         else if( !sThisBlocksName.empty()) // a key (ignore keys before first block)
         {
             // add the key to tmpMap
+
+            // find the key name
             endOfName = sLine.find_first_of(" =\t", nonEmpty+1);
             if(endOfName == std::string::npos)
             {
                 logWARNING << "Syntax error in configuration file! File: " << sFilename <<" Block: " << sThisBlocksName << " Key: " << sLine;
-                continue; // syntax error, we ignore the block (comment or end of line)
+                continue; // syntax error, we ignore the key
             }
 
-            // see where the value is
-            valueBegin = sLine.find_first_not_of(" =\t", endOfName);
-            if(valueBegin == std::string::npos)
+            // get the value
+            sValue = sLine;
+            if (getKeyValue(sValue, endOfName) != 0)
             {
-                logWARNING << "Syntax error in configuration file! File: " << sFilename <<" Block: "<< sThisBlocksName <<" Key: " << sLine;
-                continue; // syntax error, we ignore the block (comment or end of line)
+                logWARNING << "Syntax error in configuration file! File: " << sFilename << " Block: " <<
+                           sThisBlocksName << " Key: " << sLine;
+                continue; // syntax error, we ignore the key
             }
 
-            valueEnd = std::string::npos;
-            if(sLine[valueBegin] == '\"')
-            {
-                // find a second '"' which is not escaped and remove all '\' which are not escaped
-                valueBegin++;
-                size_t find = sLine.find_first_of("\"\\",valueBegin);
-                while (find != std::string::npos)
-                {
-                    if (sLine[find] == '\"')
-                    {
-                        valueEnd = find;
-                        break;
-                    }
-                    else
-                    {
-                        sLine.erase(find, 1);
-                        find += 2;
-                    }
-                    find = sLine.find_first_of("\"\\", find);
-                }
-                if(valueEnd == std::string::npos)
-                {
-                    logWARNING << "Syntax error in configuration file! File: " << sFilename <<" Block: "<<sThisBlocksName<<" Key: " << sLine;
-                    continue; // syntax error, we ignore the block (comment or end of line)
-                }
-                sValue = sLine.substr( valueBegin, valueEnd - valueBegin);
-            }
-            else
-            {
-                valueEnd = sLine.find_last_not_of(" \t")+1;
-                if(valueEnd == std::string::npos)
-                {
-                    logWARNING << "Syntax error in configuration file! File: " << sFilename <<" Block: "<<sThisBlocksName<<" Key: " << sLine;
-                    continue; // syntax error, we ignore the block (comment or end of line)
-                }
-                sValue = sLine.substr( valueBegin, valueEnd - valueBegin);
-                removeWhite(sValue);
-            }
             tmpMap[sLine.substr(nonEmpty, endOfName-(nonEmpty))] = sValue;
         }
     }
@@ -402,6 +326,53 @@ CfgFile::configList CfgFile::getConfigList()
     sCurrentBlock = ""; // we are at 0, so in no block
 
     return resultVec;
+}
+
+int CfgFile::getKeyValue(std::string &sLine, const size_t startPos)
+{
+    // we found the key now get the value
+    size_t valueBegin = sLine.find_first_not_of(" =\t", startPos);
+    if (valueBegin == std::string::npos)
+        return 1; // syntax error, we ignore the block (comment or end of line)
+
+    size_t valueEnd = std::string::npos;
+    if (sLine[valueBegin] == '\"')
+    {
+        // find a second '"' which is not escaped and remove all '\' which are not escaped
+        valueBegin++;
+        size_t find = sLine.find_first_of("\"\\", valueBegin);
+        while (find != std::string::npos)
+        {
+            if (sLine[find] == '\"')
+            {
+                valueEnd = find;
+                break;
+            }
+            else
+            {
+                sLine.erase(find, 1);
+                find += 2;
+            }
+            find = sLine.find_first_of("\"\\", find);
+        }
+
+        if (valueEnd == std::string::npos)
+            return 1; // syntax error, we ignore the block (comment or end of line)
+
+        sLine = sLine.substr(valueBegin, valueEnd - valueBegin);
+    }
+    else
+    {
+        valueEnd = sLine.find_last_not_of(" \t");
+        if (valueEnd == std::string::npos)
+            return 1; // syntax error, we ignore the block (comment or end of line)
+
+        valueEnd++;
+        sLine = sLine.substr(valueBegin, valueEnd - valueBegin);
+        removeWhite(sLine);
+    }
+
+    return 0;
 }
 
 }
