@@ -26,38 +26,17 @@ int main()
 
     auto t1 = high_resolution_clock::now();
 
-    for(auto e : cfg.getConfigList())
-    {
-        cout << "[" << e.first << "]\n";
-        for (auto  a : e.second) {
-            cout << a.first << " = " << a.second << "\n";
-        }
-    }
-
-    cout << "\n\n";
-
-    for( auto e : cfg.getBlockMap("blub") )
-    {
-        cout << e.first << " = " << e.second << "\n";
-    }
-
-    cout << "\n\n";
-
-    for( auto e : cfg.getBlockList() )
-    {
-        cout << e << "\n";
-    }
-
-    cout << "\n\n";
-
-    cout << cfg.getValue<int>("blub","val1") << "\n";
-    cout << cfg.getValue<string>("blub","valb") << "\n";
-    cout << cfg.getValue<bool>("otherBlock","valb") << "\n";
-    cout << cfg.getValue<float>("otherBlock","valc") << "\n";
+    cfg.setValue("myBlock", "myKey1", 2.58610);
+    cfg.setValue("myBlock2", "myKey2", 25);
+    cfg.setValue("myBlock2", "myKey1", 80);
+    cfg.setValue("myBlock", "myKey2", 2564);
+    cfg.setValue("myBlock", "myKey3", "stuff");
+    cfg.setValue("myBlock", "myKey4", "stuff with spaces");
+    cfg.setValue("myBlock", "myKey5", "stuff with spaces and \\ and # and more");
 
     auto t2 = high_resolution_clock::now();
 
-    std::cout << "It took me " <<  duration_cast<milliseconds>(t2 - t1).count() << " ms." << endl;
+    std::cout << "It took me " << duration_cast<microseconds>(t2 - t1).count() << " us." << endl;
 
     return 0;
 }
