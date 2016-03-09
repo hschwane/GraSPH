@@ -34,6 +34,13 @@ int main()
     cfg.setValue("myBlock", "myKey4", "stuff with spaces");
     cfg.setValue("myBlock", "myKey5", "stuff with spaces and \\ and # and more");
 
+    mpu::CfgFile::blockMap bl;
+    bl["key"] = "value";
+    bl["key2"] = "value2";
+    bl["key3"] = "value3";
+
+    cfg.addBlock("newBlock", bl);
+
     auto t2 = high_resolution_clock::now();
 
     std::cout << "It took me " << duration_cast<microseconds>(t2 - t1).count() << " us." << endl;

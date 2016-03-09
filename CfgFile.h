@@ -38,6 +38,42 @@ namespace mpu
  *  This class manages "init style" configuration files
  *
  * usage:
+ * To open a existing config file you can pass the filename to the constructor or call the open function.
+ * If the file can't be opened (eg. it does not exist) a exception is thrown. You can then try to create a empty file
+ * using createAndOpen().
+ *
+ * the config file Format:
+ * The config file is grouped into different "Blocks" whose names must be unique in the entire file. Every block consists of
+ * variable number of "Keys" with associated values (a key name must be unique in its Block). The file is saved in text
+ * file format and can be read or edited manually.
+ * If editing manually keep in mind that '#' indicates a one line comment. To use the '#' character it needs to be escaped
+ * ('\#'). Therefore backslashes also needs to be escaped ('\\'). Whitespace in the file is ignored. If you want to save
+ * data that contains whitespaces you can surround the string by double quotes (' "hi space" '). Therefore double quotes
+ * also needs to be escaped. The functions of this class which provides write accesss to the  file will manage the
+ * escaping for you and detect spaces automatically. ;)
+ *
+ * function overview:
+ * Once a File is Opened individual Keys can be read and set using getValue() and setValue(). Every data type with a stream
+ * in and stream out operator (<</>>) defined can be stored and loaded to or from the config file. To get a whole Block from
+ * the file use getBlockMap(), while getBlockList() will return an std::vector containing all Block names found in the current
+ * File. getConfigList() is a combination of both and returns the content of the whole file as a vector of BlockMaps.
+ * You can also add a whole Block at once using addBlock() or call removeKey() and removeBlock() to remove Keys or Blocks.
+ *
+ * speed:
+ * Reading the file in order is quite fast. Due to internal caching reading in random order is also ok.
+ * When using setValue() or addBlock() adding to the end is ok while adding or overwriting something in the middle of the
+ * file is slow. (This is because the only way to delete something from a file is to create a new file and overwrite the old one)
+ * The same goes for removeBlock() and removeKey(), both need to copy the whole file.
+ *
+ * exceptions:
+ * If you try to operate on a Key or Block that does not exist a invalid_argument() exception is thrown.
+ * invalid_argument() is also thrown if you try to write a string to the file containing a new line character (\n \r).
+ * If your config file is totally broken you might get a logic_exception() when trying to edit it.
+ * A runtime_error() exception is thrown when a file cannot be opened or created.
+ *
+ * thread safety:
+ * This is not at all thread save. Most functions modify the internal fstream (and the file on the disk) and access from
+ * multiple threads will most likely create race conditions.
  *
  */
 class CfgFile
@@ -72,8 +108,10 @@ public:
                   const blockMap &block); // adds a Block to the file if it already exists it is overwritten
     void addComment(const std::string &s); // adds a comment at the end of the file
 
-    int removeBlock(std::string &sBlock); // removes a whole block from the file including the comments
-    int removeKey(std::string &sBlock, std::string &sKey); // removes a Key from the file including the comments
+    void removeBlock(
+            const std::string &sBlock); // removes a whole block from the file including the comments but leaves the header in the file
+    void removeKey(const std::string &sBlock,
+                   const std::string &sKey); // removes a Key from the file including the comments
 
  private:
     std::string sFilename; // the filename
@@ -188,10 +226,9 @@ void CfgFile::setValue(const std::string &sBlock, const std::string &sKey, T val
     if (sValue.find_first_of("\n\r") != std::string::npos)
         throw std::invalid_argument("I can't write a string containing a 'new line' to the config file!");
 
+    escapeString(sValue, "\"#", '\\');
     if (sValue.find_first_of(" \t") != std::string::npos)
-        sValue = "\"" + escapeString(sValue, "\"#", '\\') + "\"";
-    else
-        escapeString(sValue, "#", '\\');
+        sValue = "\"" + sValue + "\"";
 
     if (findBlock(sBlock) == 0)
     {

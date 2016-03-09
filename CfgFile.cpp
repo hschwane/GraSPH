@@ -29,9 +29,7 @@ CfgFile::CfgFile(const std::string &sName)
     biggestBlockPosition = cfgfile.beg;
 
     if(!sName.empty())
-    {
         open(sName);
-    }
 }
 
 CfgFile::~CfgFile()
@@ -296,24 +294,79 @@ void CfgFile::addBlock(const std::string &sBlock, const blockMap &block)
 {
     if (findBlock(sBlock) == 0)
     {
-        // TODO: overwrite block
+        std::ofstream f;
+        copyFirstPart(f, cfgfile.tellg());
+        for (auto item : block)
+        {
+            std::string sValue = item.second;
+
+            if (sValue.find_first_of("\n\r") != std::string::npos)
+                throw std::invalid_argument("I can't write a string containing a 'new line' to the config file!");
+
+            escapeString(sValue, "\"#", '\\');
+            if (sValue.find_first_of(" \t") != std::string::npos)
+                sValue = "\"" + sValue + "\"";
+
+            f << '\t' << item.first << " = " << sValue << "\n";
+        }
+        findKey("");
+        copySecondPart(f, cfgfile.tellg());
     }
     else
     {
-        // TODO: append block
+        cfgfile.seekg(biggestBlockPosition);
+
+        if (findKey("") != 2)
+            throw std::logic_error(
+                    "unhandled return value of findKey(). Or something is very wrong with your cfg file.");
+
+        // now we are at eof, but empty lines or comments at the end of the file do not matter
+        cfgfile.unget();
+        if (cfgfile.get() != '\n')
+            cfgfile << '\n';
+        cfgfile.clear();
+
+        cfgfile << "\n[" << sBlock << "]\n";
+        for (auto item : block)
+        {
+            std::string sValue = item.second;
+
+            if (sValue.find_first_of("\n\r") != std::string::npos)
+                throw std::invalid_argument("I can't write a string containing a 'new line' to the config file!");
+
+            escapeString(sValue, "\"#", '\\');
+            if (sValue.find_first_of(" \t") != std::string::npos)
+                sValue = "\"" + sValue + "\"";
+
+            cfgfile << '\t' << item.first << " = " << sValue << "\n";
+        }
+        cfgfile.flush();
     }
 }
 
-int CfgFile::removeBlock(std::string &sBlock)
+void CfgFile::removeBlock(const std::string &sBlock)
 {
-    // TODO: implement this
-    return 0;
+    if (findBlock(sBlock) != 0)
+        throw std::invalid_argument("The Block " + sBlock + " was not found in the config file " + sFilename);
+
+    std::ofstream f;
+    copyFirstPart(f, cfgfile.tellg());
+    findKey("");
+    copySecondPart(f, cfgfile.tellg());
 }
 
-int CfgFile::removeKey(std::string &sBlock, std::string &sKey)
+void CfgFile::removeKey(const std::string &sBlock, const std::string &sKey)
 {
-    // TODO: implement this
-    return 0;
+    if (findBlock(sBlock) != 0)
+        throw std::invalid_argument("The Block " + sBlock + " was not found in the config file " + sFilename);
+    if (findKey(sKey) != 0)
+        throw std::invalid_argument(
+                "The Key " + sKey + " in Block " + sBlock + " was not found in the config file " + sFilename);
+
+    std::ofstream f;
+    copyFirstPart(f, cfgfile.tellg());
+    cfgfile.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    copySecondPart(f, cfgfile.tellg());
 }
 
 int CfgFile::findBlock(const std::string &sBlock)
