@@ -3,5 +3,5 @@ project(mpUtils)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
-set(SOURCE_FILES main.cpp Log.cpp mpUtils.cpp SyslogStreambuf.cpp)
+set(SOURCE_FILES main.cpp mpUtils.cpp Log.cpp SyslogStreambuf.cpp  CfgFile.cpp)
 add_executable(mpUtils ${SOURCE_FILES})

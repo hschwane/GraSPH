@@ -25,6 +25,9 @@ namespace mpu {
 
 std::string timestamp(std::string sFormat)
 {
+    if (sFormat.empty())
+        return "";
+
     time_t timeRaw = time(NULL);
     struct tm *timeStruct = localtime(&timeRaw);
 
@@ -33,11 +36,69 @@ std::string timestamp(std::string sFormat)
     return std::string(a_cResult);
 }
 
-
 bool isDirectory(std::string sPath)
 {
     struct stat sb;
     return (stat(sPath.c_str(), &sb) == 0 && S_ISDIR(sb.st_mode));
+}
+
+std::string &cutAfterFirst(std::string &s, const std::string &c, const std::string &sEscape, size_t pos)
+{
+    std::string sSearch = c + sEscape;
+    size_t cut = s.find_first_of(sSearch, pos);
+    while (cut != std::string::npos)
+    {
+        if (c.find_first_of(s[cut]) != std::string::npos) // check if this is a cutting char
+        {
+            s.erase(cut);
+            break;
+        }
+        // if not it is the escape char, so we ignore the next char
+        cut = s.find_first_of(sSearch, cut + 2);
+    }
+
+    return s;
+}
+
+size_t findFirstNotEscapedOf(const std::string &s, const std::string &c, size_t pos, const std::string &sEscape)
+{
+    std::string sSearch = c + sEscape;
+    size_t search = s.find_first_of(sSearch, pos);
+    while (search != std::string::npos)
+    {
+        if (c.find_first_of(s[search]) != std::string::npos) // check if this is a cutting char
+            return search;
+        // if not it is the escape char, so we ignore the next char
+        search = s.find_first_of(sSearch, search + 2);
+    }
+
+    return std::string::npos;
+}
+
+std::string &escapeString(std::string &s, std::string sToEscape, const char cEscapeChar)
+{
+    sToEscape.push_back(cEscapeChar);
+    size_t pos = s.find_first_of(sToEscape);
+
+    while (pos != std::string::npos)
+    {
+        s.insert(pos, 1, cEscapeChar);
+        pos = s.find_first_of(sToEscape, pos + 2);
+    }
+
+    return s;
+}
+
+std::string &unescapeString(std::string &s, const char cEscapeChar)
+{
+    size_t pos = s.find(cEscapeChar);
+    while (pos != std::string::npos)
+    {
+        s.erase(pos, 1);
+        pos = s.find(cEscapeChar, pos + 1);
+    }
+
+    return s;
 }
 
 }
