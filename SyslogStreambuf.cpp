@@ -74,8 +74,7 @@ int SyslogStreambuf::sync()
 
     if (!sBuffer.empty())
     {
-        pAssociatedLog->getLvl();
-        __syslog(iPriority, sBuffer);
+        ::syslog(iPriority, sBuffer.c_str());
         sBuffer = "";
     }
     return 0;

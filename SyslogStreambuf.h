@@ -35,12 +35,6 @@ namespace mpu {
 class Log;
 //--------------------
 
-// global function declarations
-//--------------------
-// (define this inline function outside os the namespace to prevent "syslog" from conflicting with mpu::LogLvl::syslog)
-inline void __syslog(int iPriority, const std::string &sMessage);
-//--------------------
-
 /**
  * class SyslogStreambuf
  * a std::streambuffer which writes to syslog
@@ -95,12 +89,6 @@ inline std::streamsize SyslogStreambuf::xsputn(const char *s, std::streamsize n)
     return n;
 }
 
-}
-
-// define this inline function outside os the namespace to prevent "syslog" from conflicting with mpu::LogLvl::syslog
-inline void mpu::__syslog(int iPriority, const std::string &sMessage)
-{
-    syslog(iPriority, sMessage.c_str());
 }
 
 #endif //MPUTILS_SYSLOGSTREAMBUF_H
