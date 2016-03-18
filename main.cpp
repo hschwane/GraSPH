@@ -11,40 +11,52 @@
  * Copyright 2016 Hendrik Schwanekamp
  *
  */
-
+#include "Stopwatch.h"
 #include <iostream>
 #include "Log.h"
 #include <chrono>
 #include "CfgFile.h"
+#include <typeinfo>
+#include <ctime>
 
 using namespace std;
 using namespace std::chrono;
 
 int main()
 {
-    // do some config test
-    mpu::CfgFile cfg("/home/hendrik/test.cfg");
 
-    auto t1 = high_resolution_clock::now();
+    mpu::CpuStopwatch w1;
+    mpu::SimpleStopwatch w2;
 
-    cfg.setValue("myBlock", "myKey1", 2.58610);
-    cfg.setValue("myBlock2", "myKey2", 25);
-    cfg.setValue("myBlock2", "myKey1", 80);
-    cfg.setValue("myBlock", "myKey2", 2564);
-    cfg.setValue("myBlock", "myKey3", "stuff");
-    cfg.setValue("myBlock", "myKey4", "stuff with spaces");
-    cfg.setValue("myBlock", "myKey5", "stuff with spaces and \\ and # and more");
+    w1.start();
+    w2.pause();
 
-    mpu::CfgFile::blockMap bl;
-    bl["key"] = "value";
-    bl["key2"] = "value2";
-    bl["key3"] = "value3";
+    // do stuff
+    int a=0;
+    for (int i = 0; i < 100000; ++i)
+    {
+        a+=i;
+    }
 
-    cfg.addBlock("newBlock", bl);
+//    w.pause();
+//
+    // do more stuff
+    for (int i = 0; i < 100000; ++i)
+    {
+        a+=i;
+    }
 
-    auto t2 = high_resolution_clock::now();
+    //    w.resume();
 
-    std::cout << "It took me " << duration_cast<microseconds>(t2 - t1).count() << " us." << endl;
+    // do more stuff
+    for (int i = 0; i < 100000; ++i)
+    {
+        a+=i;
+    }
 
+    w1.pause();
+    w2.pause();
+    std::cout << "It took me " << w1.getSeconds() << " seconds" << endl;
+    std::cout << "It took me " << w2.getSeconds() << " seconds" << endl;
     return 0;
 }
