@@ -18,18 +18,14 @@
 #include "CfgFile.h"
 #include <typeinfo>
 #include <ctime>
+#include "DeltaTimer.h"
 
 using namespace std;
 using namespace std::chrono;
 
 int main()
 {
-
-    mpu::CpuStopwatch w1;
-    mpu::SimpleStopwatch w2;
-
-    w1.start();
-    w2.pause();
+    mpu::DeltaTimer timer;
 
     // do stuff
     int a=0;
@@ -37,26 +33,19 @@ int main()
     {
         a+=i;
     }
-
-//    w.pause();
-//
+    std::cout << "It took me " << timer.getDeltaTime() << " seconds" << endl;
+    // do more stuff
+    for (int i = 0; i < 100000; ++i)
+    {
+        a+=i;
+    }
+    std::cout << "It took me " << timer.getDeltaTime() << " seconds" << endl;
     // do more stuff
     for (int i = 0; i < 100000; ++i)
     {
         a+=i;
     }
 
-    //    w.resume();
-
-    // do more stuff
-    for (int i = 0; i < 100000; ++i)
-    {
-        a+=i;
-    }
-
-    w1.pause();
-    w2.pause();
-    std::cout << "It took me " << w1.getSeconds() << " seconds" << endl;
-    std::cout << "It took me " << w2.getSeconds() << " seconds" << endl;
+    std::cout << "It took me " << timer.getDeltaTime() << " seconds" << endl;
     return 0;
 }
