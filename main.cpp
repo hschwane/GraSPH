@@ -19,31 +19,26 @@
 #include <typeinfo>
 #include <ctime>
 #include "DeltaTimer.h"
+#include <thread>
+#include "Timer.h"
 
+
+using namespace mpu;
 using namespace std;
 using namespace std::chrono;
+
+
 
 int main()
 {
     mpu::DeltaTimer timer;
 
-    // do stuff
-    int a=0;
-    for (int i = 0; i < 100000; ++i)
+    mpu::SimpleTimer t(seconds(5), [](){cout << "timer finished!!"<<endl;});
+    t.start();
+
+    while(t.update())
     {
-        a+=i;
-    }
-    std::cout << "It took me " << timer.getDeltaTime() << " seconds" << endl;
-    // do more stuff
-    for (int i = 0; i < 100000; ++i)
-    {
-        a+=i;
-    }
-    std::cout << "It took me " << timer.getDeltaTime() << " seconds" << endl;
-    // do more stuff
-    for (int i = 0; i < 100000; ++i)
-    {
-        a+=i;
+;
     }
 
     std::cout << "It took me " << timer.getDeltaTime() << " seconds" << endl;

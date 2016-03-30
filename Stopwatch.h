@@ -58,9 +58,10 @@ public:
     inline void reset(); // resets the timer to zero
     inline void pause(); // pauses the timer
     inline void resume(); // resumes the timer
+    inline void togglePause(); // toggles the pause state
+
     inline double getSeconds(); // returnes the time from start() to now as a double in seconds
     inline duration_type getDuration(); // returns the time start() to now as a std::chrono::duration
-
 
 private:
 
@@ -120,6 +121,16 @@ void basic_Stopwatch<clock>::resume()
     startTime = clock_type::now();
     bPaused = false;
 }
+
+template <typename clock>
+void basic_Stopwatch<clock>::togglePause()
+{
+    if(bPaused)
+        resume();
+    else
+        pause();
+}
+
 
 //--------------------
 

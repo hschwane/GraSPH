@@ -37,8 +37,8 @@ namespace mpu {
 class DeltaTimer
 {
 public:
-    DeltaTimer();
-    ~DeltaTimer();
+    inline DeltaTimer();
+    inline ~DeltaTimer();
 
     inline double getDeltaTime(); // returns the time since the last call to this function in seconds
 
