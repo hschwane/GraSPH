@@ -216,7 +216,7 @@ bool basic_Timer<clock>::isRunning()
 }
 //--------------------
 
-// typedefs for the real stopwatch classes
+// typedefs for the real timer classes
 //--------------------
 typedef basic_Timer<std::chrono::steady_clock> SimpleTimer; // simple Stopwatch
 typedef basic_Timer<std::chrono::high_resolution_clock> HRTimer; // high resolution Stopwatch

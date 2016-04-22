@@ -35,6 +35,7 @@ namespace mpu {
 #define MPU_SAVE_DELETE(x) if( x != nullptr) {delete x; x = nullptr;}
 
 // macro to make the current thread sleep
+#define MPU_YIELD() std::this_thread::yield();
 #define MPU_SLEED_D(_DURATION_) std::this_thread::sleep_for(_DURATION_);
 #define MPU_SLEEP(_SECONDS_) MPU_SLEED_D(mpu::seconds(_SECONDS_));
 #define MPU_SLEEP_MS(_MILISECONDS_) MPU_SLEED_D(mpu::milliseconds(_MILISECONDS_));

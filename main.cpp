@@ -21,26 +21,35 @@
 #include "DeltaTimer.h"
 #include <thread>
 #include "Timer.h"
+#include "AsyncTimer.h"
+#include <thread>             // std::thread
+#include <mutex>              // std::mutex, std::unique_lock
+#include <condition_variable> // std::condition_variable
 
 
 using namespace mpu;
 using namespace std;
 using namespace std::chrono;
 
-
+void func()
+{
+    cout << "thread"<<endl;
+}
 
 int main()
 {
-    mpu::DeltaTimer timer;
+    SimpleStopwatch timer;
+    SimpleAsyncTimer at(seconds(2));
+    at.start();
 
-    mpu::SimpleTimer t(seconds(5), [](){cout << "timer finished!!"<<endl;});
-    t.start();
-
-    while(t.update())
+    int i=0;
+    while(at.isRunning())
     {
-;
+        i++;
     }
 
-    std::cout << "It took me " << timer.getDeltaTime() << " seconds" << endl;
+    timer.pause();
+    cout << "counted to: "<<i<<endl;
+    cout << "It took me " << timer.getSeconds() << " seconds" << endl;
     return 0;
 }
