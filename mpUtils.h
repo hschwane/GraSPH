@@ -19,8 +19,9 @@
 #include <string>
 #include <time.h>
 #include <algorithm>
-#include <sys/stat.h>
 #include <sstream>
+#include <thread>
+#include <chrono>
 //--------------------
 
 // namespace
@@ -32,6 +33,28 @@ namespace mpu {
 //--------------------
 // macro to safely delete stuff on the heap
 #define MPU_SAVE_DELETE(x) if( x != nullptr) {delete x; x = nullptr;}
+
+// macro to make the current thread sleep
+#define MPU_YIELD() std::this_thread::yield();
+#define MPU_SLEED_D(_DURATION_) std::this_thread::sleep_for(_DURATION_);
+#define MPU_SLEEP(_SECONDS_) MPU_SLEED_D(mpu::seconds(_SECONDS_));
+#define MPU_SLEEP_MS(_MILISECONDS_) MPU_SLEED_D(mpu::milliseconds(_MILISECONDS_));
+#define MPU_SLEEP_US(_MICROSECONDS_) MPU_SLEED_D(mpu::microseconds(_MICROSECONDS_));
+#define MPU_SLEEP_UNTIL(_TIMEPOINT_) MPU_SLEED_D(_TIMEPOINT_);
+//--------------------
+
+// typedefs
+//--------------------
+// make using timer, usw easier
+typedef std::chrono::duration<int,std::ratio<60*60*24*365>> years;
+typedef std::chrono::duration<int,std::ratio<60*60*24*7>> weeks;
+typedef std::chrono::duration<int,std::ratio<60*60*24>> days;
+typedef std::chrono::hours hours;
+typedef std::chrono::minutes minutes;
+typedef std::chrono::seconds seconds;
+typedef std::chrono::milliseconds milliseconds;
+typedef std::chrono::microseconds microseconds;
+typedef std::chrono::nanoseconds nanoseconds;
 //--------------------
 
 // some global functions
@@ -56,7 +79,6 @@ template<typename T>
 inline std::string toString(
         const T &v); // converts value to string, bool is extracted with std::boolalpha on, usable on any class with << / >> overload
 
-bool isDirectory(std::string sPath);    // test, if the directory exists
 //--------------------
 
 // global inline and template function definitions

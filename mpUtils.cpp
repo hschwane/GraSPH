@@ -36,12 +36,6 @@ std::string timestamp(std::string sFormat)
     return std::string(a_cResult);
 }
 
-bool isDirectory(std::string sPath)
-{
-    struct stat sb;
-    return (stat(sPath.c_str(), &sb) == 0 && S_ISDIR(sb.st_mode));
-}
-
 std::string &cutAfterFirst(std::string &s, const std::string &c, const std::string &sEscape, size_t pos)
 {
     std::string sSearch = c + sEscape;

@@ -11,40 +11,45 @@
  * Copyright 2016 Hendrik Schwanekamp
  *
  */
-
+#include "Stopwatch.h"
 #include <iostream>
 #include "Log.h"
 #include <chrono>
 #include "CfgFile.h"
+#include <typeinfo>
+#include <ctime>
+#include "DeltaTimer.h"
+#include <thread>
+#include "Timer.h"
+#include "AsyncTimer.h"
+#include <thread>             // std::thread
+#include <mutex>              // std::mutex, std::unique_lock
+#include <condition_variable> // std::condition_variable
 
+
+using namespace mpu;
 using namespace std;
 using namespace std::chrono;
 
+void func()
+{
+    cout << "thread"<<endl;
+}
+
 int main()
 {
-    // do some config test
-    mpu::CfgFile cfg("/home/hendrik/test.cfg");
+    SimpleStopwatch timer;
+    SimpleAsyncTimer at(seconds(2));
+    at.start();
 
-    auto t1 = high_resolution_clock::now();
+    int i=0;
+    while(at.isRunning())
+    {
+        i++;
+    }
 
-    cfg.setValue("myBlock", "myKey1", 2.58610);
-    cfg.setValue("myBlock2", "myKey2", 25);
-    cfg.setValue("myBlock2", "myKey1", 80);
-    cfg.setValue("myBlock", "myKey2", 2564);
-    cfg.setValue("myBlock", "myKey3", "stuff");
-    cfg.setValue("myBlock", "myKey4", "stuff with spaces");
-    cfg.setValue("myBlock", "myKey5", "stuff with spaces and \\ and # and more");
-
-    mpu::CfgFile::blockMap bl;
-    bl["key"] = "value";
-    bl["key2"] = "value2";
-    bl["key3"] = "value3";
-
-    cfg.addBlock("newBlock", bl);
-
-    auto t2 = high_resolution_clock::now();
-
-    std::cout << "It took me " << duration_cast<microseconds>(t2 - t1).count() << " us." << endl;
-
+    timer.pause();
+    cout << "counted to: "<<i<<endl;
+    cout << "It took me " << timer.getSeconds() << " seconds" << endl;
     return 0;
 }
