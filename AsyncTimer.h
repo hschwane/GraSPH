@@ -183,7 +183,7 @@ void basic_AsyncTimer<clock>::start()
         bRunning = false;
         cv.notify_one();
     }
-    lck.unlock(); // not sure if needed
+    lck.unlock();
     if(timerThread.joinable())
         timerThread.join();
     lck.lock();

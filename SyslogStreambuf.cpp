@@ -45,23 +45,22 @@ SyslogStreambuf::~SyslogStreambuf()
 int SyslogStreambuf::sync()
 {
     int iPriority;
-    switch (pAssociatedLog->getLvl())
+    switch (pAssociatedLog->getLastLvl())
     {
-    case LogLvl::fatal_error:
+    case LogLvl::FATAL_ERROR:
         iPriority = LOG_CRIT;
         break;
-    case LogLvl::error:
+    case LogLvl::ERROR:
         iPriority = LOG_ERR;
         break;
-    case LogLvl::warning:
+    case LogLvl::WARNING:
         iPriority = LOG_WARNING;
         break;
-    case LogLvl::info :
+    case LogLvl::INFO :
         iPriority = LOG_INFO;
         break;
-    case LogLvl::debug :
-    case LogLvl::debug1:
-    case LogLvl::debug2:
+    case LogLvl::DEBUG :
+    case LogLvl::DEBUG2:
         iPriority = LOG_DEBUG;
         break;
     default:

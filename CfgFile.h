@@ -191,7 +191,7 @@ T CfgFile::getValue(const std::string &sBlock, const std::string &sKey)
         endOfName = sLine.find_first_of(" =\t", nonEmpty+1);
         if(endOfName == std::string::npos)
         {
-            logWARNING << "Syntax error in configuration file! File: " << sFilename <<" Block: " << sBlock << " Key: " << sLine;
+            logWARNING("CfgFile") << "Syntax error in configuration file! File: " << sFilename <<" Block: " << sBlock << " Key: " << sLine;
             continue; // syntax error, we ignore the block (comment or end of line)
         }
 
@@ -200,7 +200,7 @@ T CfgFile::getValue(const std::string &sBlock, const std::string &sKey)
             // get the value
             if (getKeyValue(sLine, endOfName) != 0)
             {
-                logWARNING << "Syntax error in configuration file! File: " << sFilename << " Block: " << sBlock <<
+                logWARNING("CfgFile") << "Syntax error in configuration file! File: " << sFilename << " Block: " << sBlock <<
                            " Key: " << sLine;
                 continue; // syntax error, we ignore the key maby we find a second match that works
             }

@@ -22,7 +22,7 @@ namespace mpu {
 //--------------------
 
 // Variables for logToString
-const std::string LogLvlToString[] = {"NOLOG", "FATAL_ERROR", "ERROR", "WARNING", "INFO", "DEBUG", "DEBUG1", "DEBUG2",
+const std::string LogLvlToString[] = {"NOLOG", "FATAL_ERROR", "ERROR", "WARNING", "INFO", "DEBUG", "DEBUG2",
                                       "ALL"};
 const std::string LogLvlStringInvalid = "INVALID";
 const std::string LogPolicyToString[] = {"NONE", "CONSOLE", "FILE", "SYSLOG", "CUSTOM"};
@@ -31,33 +31,31 @@ const std::string LogPolicyToString[] = {"NONE", "CONSOLE", "FILE", "SYSLOG", "C
 // functions of the Log class
 //-------------------------------------------------------------------
 
-Log::Log(LogPolicy policy, const std::string &sFile, const std::string &sErrorFile, LogLvl lvl)
+Log::Log(LogPolicy policy, const std::string &sFile, LogLvl lvl)
 {
     sTimeFormat = "%c";
     logLvl = lvl;
-    currentLvl = LogLvl::invalid;
-    logPolicy = LogPolicy::none;
+    logPolicy = LogPolicy::NONE;
     outStream = nullptr;
-    errorStream = nullptr;
+    bShouldLoggerRun = false;
 
-    if (policy != LogPolicy::none)
-        open(policy, sFile, sErrorFile);
+    if (policy != LogPolicy::NONE)
+        open(policy, sFile);
 
     // first log created is going to be global
     if (noGlobal())
         makeGlobal();
 }
 
-Log::Log(LogPolicy policy, std::ostream *out, std::ostream *err, LogLvl lvl)
+Log::Log(LogPolicy policy, std::ostream *out, LogLvl lvl)
 {
     sTimeFormat = "%c";
     logLvl = lvl;
-    currentLvl = LogLvl::invalid;
-    logPolicy = LogPolicy::none;
+    logPolicy = LogPolicy::NONE;
     outStream = nullptr;
-    errorStream = nullptr;
+    bShouldLoggerRun = false;
 
-    open(policy, out, err);
+    open(policy, out);
 
     // first log created is going to be global
     if (noGlobal())
@@ -70,10 +68,9 @@ Log::Log(LogPolicy policy, const std::string &sIdent, int iFacility, LogLvl lvl)
 {
     sTimeFormat = "%c";
     logLvl = lvl;
-    currentLvl = LogLvl::invalid;
-    logPolicy = LogPolicy::none;
+    logPolicy = LogPolicy::NONE;
     outStream = nullptr;
-    errorStream = nullptr;
+    bShouldLoggerRun = false;
 
     open(policy, sIdent, iFacility);
 
@@ -89,29 +86,22 @@ Log::~Log()
     close();
 }
 
-void Log::open(LogPolicy policy, const std::string &sFile, const std::string &sErrorFile)
+void Log::open(LogPolicy policy, const std::string &sFile)
 {
     // close in case it is already opened
-    if (logPolicy != LogPolicy::none)
+    if (logPolicy != LogPolicy::NONE)
         close();
 
     switch (policy)
     {
-    case console:
+    case CONSOLE:
         outStream = &std::cout;
-        errorStream = &std::cerr;
         break;
 
-    case file:
+    case FILE:
         outStream = new std::ofstream(sFile, std::ofstream::out | std::ofstream::app);
-        if (sErrorFile.empty())
-            errorStream = outStream;
-        else
-            errorStream = new std::ofstream(sErrorFile, std::ofstream::out | std::ofstream::app);
 
         if (!outStream || !dynamic_cast<std::ofstream *>(outStream)->is_open())
-            throw std::runtime_error("Log: Could not open output file stream!");
-        if (!errorStream || !dynamic_cast<std::ofstream *>(errorStream)->is_open())
             throw std::runtime_error("Log: Could not open output file stream!");
         break;
 
@@ -120,25 +110,25 @@ void Log::open(LogPolicy policy, const std::string &sFile, const std::string &sE
     }
 
     logPolicy = policy;
+
+    bShouldLoggerRun = true;
+    loggerMainThread = std::thread( &Log::loggerMainfunc, this);
 }
 
-void Log::open(LogPolicy policy, std::ostream *out, std::ostream *err)
+void Log::open(LogPolicy policy, std::ostream *out)
 {
     // close in case it is already opened
-    if (logPolicy != LogPolicy::none)
+    if (logPolicy != LogPolicy::NONE)
         close();
 
-    if (policy != LogPolicy::custom)
+    if (policy != LogPolicy::CUSTOM)
         throw std::invalid_argument("Log: You called the wrong open function/constructor for your policy!");
 
     outStream = out;
-
-    if (err)
-        errorStream = err;
-    else
-        errorStream = out;
-
     logPolicy = policy;
+
+    bShouldLoggerRun = true;
+    loggerMainThread = std::thread( &Log::loggerMainfunc, this);
 }
 
 #ifdef __linux__
@@ -146,68 +136,121 @@ void Log::open(LogPolicy policy, std::ostream *out, std::ostream *err)
 void Log::open(LogPolicy policy, const std::string &sIdent, int iFacility)
 {
     // close in case it is already opened
-    if (logPolicy != LogPolicy::none)
+    if (logPolicy != LogPolicy::NONE)
         close();
 
-    if (policy != LogPolicy::syslog)
+    if (policy != LogPolicy::SYSLOG)
         throw std::invalid_argument("Log: You called the wrong open function/constructor for your policy!");
 
     // use the an ostream with the syslog streambuffer
     outStream = new std::ostream(new SyslogStreambuf(sIdent, iFacility, this));
-    errorStream = outStream;
 
     // turn of timestamp, since syslog already provides a timestamp
     setTimeFormat("");
     logPolicy = policy;
+
+    bShouldLoggerRun = true;
+    loggerMainThread = std::thread( &Log::loggerMainfunc, this);
 }
 
 #endif
 
 void Log::close()
 {
-    flush();
+    logPolicy = LogPolicy::NONE; // accept no more messages
+
+    // wait for the logger to print all queued messages and join the thread
+    std::unique_lock<std::mutex> lck(loggerMtx);
+    //std::cout << messageQueue.size();
+    if(bShouldLoggerRun)
+    {
+        bShouldLoggerRun = false;
+        loggerCv.notify_one();
+    }
+    lck.unlock();
+    if(loggerMainThread.joinable())
+        loggerMainThread.join();
+    lck.lock();
+
+    // close the out stream
     switch (logPolicy)
     {
-    case file:
+    case FILE:
         dynamic_cast<std::ofstream *>(outStream)->close();
-        dynamic_cast<std::ofstream *>(errorStream)->close();
-        if (outStream == errorStream)
-        {
-            MPU_SAVE_DELETE(outStream);
-            errorStream = nullptr;
-        }
-        else
-        {
-            MPU_SAVE_DELETE(outStream);
-            MPU_SAVE_DELETE(errorStream);
-        }
+        MPU_SAVE_DELETE(outStream);
         break;
-    case syslog:
+    case SYSLOG:
         // reset the timestamp string
         setTimeFormat("%c");
-        if (outStream == errorStream)
-        {
-            MPU_SAVE_DELETE(outStream);
-            errorStream = nullptr;
-        }
-        else
-        {
-            MPU_SAVE_DELETE(outStream);
-            MPU_SAVE_DELETE(errorStream);
-        }
+        MPU_SAVE_DELETE(outStream);
         break;
-    case console:
-    case custom:
+    case CONSOLE:
+    case CUSTOM:
         outStream = nullptr;
-        errorStream = nullptr;
         break;
     default:
         break;
     }
-    logPolicy = LogPolicy::none;
+}
+
+void Log::logMessage(const std::string &sMessage, LogLvl lvl)
+{
+    if(logPolicy != LogPolicy::NONE && lvl <= logLvl)
+    {
+        std::lock_guard<std::mutex> lck(queueMtx);
+        messageQueue.emplace( sMessage, lvl);
+        loggerCv.notify_one();
+    }
+}
+
+LogStream Log::operator()(LogLvl lvl, std::string sFilepos, std::string sModule)
+{
+    std::lock_guard<std::mutex> lck(timeFormatMtx);
+    return LogStream( (*this), timestamp(sTimeFormat), sModule, lvl, sFilepos);
+}
+
+void Log::loggerMainfunc()
+{
+    std::unique_lock<std::mutex> lck(loggerMtx);
+
+    // make sure all pending messages are printed if we stop the logger
+    // before this thread actual gets cpu time for the first time
+    if(!bShouldLoggerRun)
+    {
+        std::unique_lock<std::mutex> queuLck(queueMtx);
+        while(!messageQueue.empty())
+        {
+            auto msg= messageQueue.front();
+            messageQueue.pop();
+            queuLck.unlock();
+
+            lastLvl = msg.second;
+            *outStream << msg.first << std::endl;
+
+            queuLck.lock();
+        }
+    }
+
+    while(bShouldLoggerRun)
+    {
+        loggerCv.wait(lck);
+
+        std::unique_lock<std::mutex> queuLck(queueMtx);
+        while(!messageQueue.empty())
+        {
+            auto msg= messageQueue.front();
+            messageQueue.pop();
+            queuLck.unlock();
+
+            lastLvl = msg.second;
+            *outStream << msg.first << std::endl;
+
+            queuLck.lock();
+        }
+    }
 }
 
 // static variables
-Log *Log::globalLog = nullptr;
+Log* Log::globalLog = nullptr;
 
 }

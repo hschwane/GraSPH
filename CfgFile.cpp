@@ -96,7 +96,7 @@ CfgFile::blockList CfgFile::getBlockList()
             closingBracket = sLine.find_first_of("]# ");
             if( sLine[closingBracket] != ']')
             {
-                logWARNING << "Syntax error in configuration file! File: " << sFilename <<" Block: " << sLine;
+                logWARNING("CfgFile") << "Syntax error in configuration file! File: " << sFilename <<" Block: " << sLine;
                 continue; // syntax error, we ignore the block (comment or end of line)
             }
 
@@ -153,7 +153,7 @@ CfgFile::blockMap CfgFile::getBlockMap(const std::string &sBlock)
         endOfName = sLine.find_first_of(" =\t", nonEmpty+1);
         if(endOfName == std::string::npos)
         {
-            logWARNING << "Syntax error in configuration file! File: " << sFilename <<" Block: " << sBlock << " Key: " << sLine;
+            logWARNING("CfgFile") << "Syntax error in configuration file! File: " << sFilename <<" Block: " << sBlock << " Key: " << sLine;
             continue; // syntax error, we ignore the block (comment or end of line)
         }
 
@@ -161,7 +161,7 @@ CfgFile::blockMap CfgFile::getBlockMap(const std::string &sBlock)
         sValue = sLine;
         if (getKeyValue(sValue, endOfName) != 0)
         {
-            logWARNING << "Syntax error in configuration file! File: " << sFilename << " Block: " << sBlock <<
+            logWARNING("CfgFile") << "Syntax error in configuration file! File: " << sFilename << " Block: " << sBlock <<
                        " Key: " << sLine;
             continue; // syntax error, we ignore the key
         }
@@ -216,7 +216,7 @@ CfgFile::configList CfgFile::getConfigList()
             closingBracket = sLine.find("]");
             if( closingBracket == std::string::npos)
             {
-                logWARNING << "Syntax error in configuration file! File: " << sFilename <<" Block: " << sLine;
+                logWARNING("CfgFile") << "Syntax error in configuration file! File: " << sFilename <<" Block: " << sLine;
                 continue; // syntax error, we ignore the block (comment or end of line)
             }
 
@@ -240,7 +240,7 @@ CfgFile::configList CfgFile::getConfigList()
             endOfName = sLine.find_first_of(" =\t", nonEmpty+1);
             if(endOfName == std::string::npos)
             {
-                logWARNING << "Syntax error in configuration file! File: " << sFilename <<" Block: " << sThisBlocksName << " Key: " << sLine;
+                logWARNING("CfgFile") << "Syntax error in configuration file! File: " << sFilename <<" Block: " << sThisBlocksName << " Key: " << sLine;
                 continue; // syntax error, we ignore the key
             }
 
@@ -248,7 +248,7 @@ CfgFile::configList CfgFile::getConfigList()
             sValue = sLine;
             if (getKeyValue(sValue, endOfName) != 0)
             {
-                logWARNING << "Syntax error in configuration file! File: " << sFilename << " Block: " <<
+                logWARNING("CfgFile") << "Syntax error in configuration file! File: " << sFilename << " Block: " <<
                            sThisBlocksName << " Key: " << sLine;
                 continue; // syntax error, we ignore the key
             }
@@ -410,7 +410,7 @@ int CfgFile::findBlock(const std::string &sBlock)
             closingBracket = sLine.find_first_of("]# ");
             if (sLine[closingBracket] != ']')
             {
-                logWARNING << "Syntax error in configuration file! File: " << sFilename << " Block: " << sLine;
+                logWARNING("CfgFile") << "Syntax error in configuration file! File: " << sFilename << " Block: " << sLine;
                 continue; // syntax error, we ignore the block (comment or end of line)
             }
 
@@ -521,7 +521,7 @@ int CfgFile::findKey(const std::string &sKey)
         endOfName = sLine.find_first_of(" =\t", nonEmpty + 1);
         if (endOfName == std::string::npos)
         {
-            logWARNING << "Syntax error in configuration file! File: " << sFilename << " Key: " << sLine;
+            logWARNING("CfgFile") << "Syntax error in configuration file! File: " << sFilename << " Key: " << sLine;
             continue; // syntax error, we ignore the line
         }
 

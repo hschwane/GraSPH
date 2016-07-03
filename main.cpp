@@ -31,25 +31,23 @@ using namespace mpu;
 using namespace std;
 using namespace std::chrono;
 
-void func()
-{
-    cout << "thread"<<endl;
-}
 
 int main()
 {
     SimpleStopwatch timer;
-    SimpleAsyncTimer at(seconds(2));
-    at.start();
 
-    int i=0;
-    while(at.isRunning())
-    {
-        i++;
-    }
+    //Log myLog( LogPolicy::FILE, "/home/hendrik/test.log");
+    Log myLog( LogPolicy::CONSOLE);
 
+    myLog(LogLvl::INFO, MPU_FILEPOS, "TEST") << "Hi, " << "this is " << "a log";
+    logWARNING("TEST") << "Some log warning";
+    
+   logERROR("MODULE_TEST") << "some stuff has happend";
+
+
+
+    myLog.close();
     timer.pause();
-    cout << "counted to: "<<i<<endl;
     cout << "It took me " << timer.getSeconds() << " seconds" << endl;
     return 0;
 }
