@@ -32,7 +32,7 @@ namespace mpu {
  * class LogStream
  * 
  * usage:
- * The constructor is usually called from the log class. Than you can log using <<. After the ";" the Logstream is
+ * The constructor is usually called from the "Log" class. Then you can log using <<. After the ";" the Logstream is
  * destroyed. It writes its message to the log in its destructor.
  *
  */
