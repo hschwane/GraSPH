@@ -31,6 +31,22 @@ const std::string LogPolicyToString[] = {"NONE", "CONSOLE", "FILE", "SYSLOG", "C
 // functions of the Log class
 //-------------------------------------------------------------------
 
+Log::Log(LogPolicy policy, LogLvl lvl)
+{
+    sTimeFormat = "%c";
+    logLvl = lvl;
+    logPolicy = LogPolicy::NONE;
+    outStream = nullptr;
+    bShouldLoggerRun = false;
+
+    if (policy != LogPolicy::NONE)
+        open(policy, "");
+
+    // first log created is going to be global
+    if (noGlobal())
+        makeGlobal();
+}
+
 Log::Log(LogPolicy policy, const std::string &sFile, LogLvl lvl)
 {
     sTimeFormat = "%c";

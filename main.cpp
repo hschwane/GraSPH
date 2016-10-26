@@ -11,6 +11,7 @@
  * Copyright 2016 Hendrik Schwanekamp
  *
  */
+
 #include "Stopwatch.h"
 #include <iostream>
 #include "Log.h"
@@ -37,16 +38,19 @@ int main()
     SimpleStopwatch timer;
 
     //Log myLog( LogPolicy::FILE, "/home/hendrik/test.log");
-    Log myLog( LogPolicy::CONSOLE);
+    Log myLog( LogPolicy::CONSOLE, LogLvl::NOLOG);
 
     myLog(LogLvl::INFO, MPU_FILEPOS, "TEST") << "Hi, " << "this is " << "a log";
     logWARNING("TEST") << "Some log warning";
     
-   logERROR("MODULE_TEST") << "some stuff has happend";
+    logERROR("MODULE_TEST") << "some stuff has happend";
 
+    logDEBUG("some stuff") << "some stuff is debugging stuff";
+    logDEBUG2("some stuff") << "more debugging stuff";
 
 
     myLog.close();
+
     timer.pause();
     cout << "It took me " << timer.getSeconds() << " seconds" << endl;
     return 0;

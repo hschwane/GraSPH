@@ -50,10 +50,20 @@
                     else mpu::Log::getGlobal()(mpu::LogLvl::WARNING, MPU_FILEPOS, MODULE)
 #define logINFO(MODULE) if(mpu::Log::noGlobal() || mpu::Log::getGlobal().getLogLevel() < mpu::LogLvl::INFO) ; \
                     else mpu::Log::getGlobal()(mpu::LogLvl::INFO, MPU_FILEPOS, MODULE)
-#define logDEBUG(MODULE) if(mpu::Log::noGlobal() || mpu::Log::getGlobal().getLogLevel() < mpu::LogLvl::DEBUG) ; \
-                    else mpu::Log::getGlobal()(mpu::LogLvl::DEBUG, MPU_FILEPOS, MODULE)
-#define logDEBUG2(MODULE) if(mpu::Log::noGlobal() || mpu::Log::getGlobal().getLogLevel() < mpu::LogLvl::DEBUG2) ; \
-                    else mpu::Log::getGlobal()(mpu::LogLvl::DEBUG2, MPU_FILEPOS, MODULE)
+
+// debug is disabled on release build
+#ifdef NDEBUG
+
+    #define logDEBUG(MODULE) if(false) mpu::Log::getGlobal()(mpu::LogLvl::DEBUG, MPU_FILEPOS, MODULE)
+    #define logDEBUG2(MODULE) if(false) mpu::Log::getGlobal()(mpu::LogLvl::DEBUG2, MPU_FILEPOS, MODULE)
+
+#else
+
+    #define logDEBUG(MODULE) if(mpu::Log::noGlobal() || mpu::Log::getGlobal().getLogLevel() < mpu::LogLvl::DEBUG) ; \
+                        else mpu::Log::getGlobal()(mpu::LogLvl::DEBUG, MPU_FILEPOS, MODULE)
+    #define logDEBUG2(MODULE) if(mpu::Log::noGlobal() || mpu::Log::getGlobal().getLogLevel() < mpu::LogLvl::DEBUG2) ; \
+                        else mpu::Log::getGlobal()(mpu::LogLvl::DEBUG2, MPU_FILEPOS, MODULE)
+#endif
 //--------------------
 
 // namespace
@@ -151,6 +161,7 @@ class Log
 public:
 
     // constructors
+    Log(LogPolicy policy, LogLvl lvl);
     Log(LogPolicy policy = LogPolicy::NONE, const std::string &sFile = "", LogLvl lvl = LogLvl::INFO);
     Log(LogPolicy policy, std::ostream *out, LogLvl lvl = LogLvl::INFO);
 
@@ -208,7 +219,6 @@ private:
     std::thread loggerMainThread;
 
     void loggerMainfunc(); // the mainfunc of the second thread
-    void startLogger(); // start the logger thread
 };
 
 // global functions
