@@ -100,6 +100,8 @@ Log::Log(LogPolicy policy, const std::string &sIdent, int iFacility, LogLvl lvl)
 Log::~Log()
 {
     close();
+    if(globalLog == this)
+        globalLog = nullptr;
 }
 
 void Log::open(LogPolicy policy, const std::string &sFile)
