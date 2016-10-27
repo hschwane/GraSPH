@@ -73,7 +73,7 @@ int SyslogStreambuf::sync()
 
     if (!sBuffer.empty())
     {
-        ::syslog(iPriority, sBuffer.c_str());
+        ::syslog(iPriority, "%s",sBuffer.c_str());
         sBuffer = "";
     }
     return 0;

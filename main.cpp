@@ -38,7 +38,7 @@ int main()
     SimpleStopwatch timer;
 
     //Log myLog( LogPolicy::FILE, "/home/hendrik/test.log");
-    Log myLog( LogPolicy::CONSOLE, LogLvl::NOLOG);
+    Log myLog( LogPolicy::CONSOLE, LogLvl::ALL);
 
     myLog(LogLvl::INFO, MPU_FILEPOS, "TEST") << "Hi, " << "this is " << "a log";
     logWARNING("TEST") << "Some log warning";

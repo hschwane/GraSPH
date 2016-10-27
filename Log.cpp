@@ -117,7 +117,8 @@ void Log::open(LogPolicy policy, const std::string &sFile)
         break;
 
     case FILE:
-        outStream = new std::ofstream(sFile, std::ofstream::out | std::ofstream::app);
+        ownedStream.reset( new std::ofstream(sFile, std::ofstream::out | std::ofstream::app));
+        outStream = ownedStream.get();
 
         if (!outStream || !dynamic_cast<std::ofstream *>(outStream)->is_open())
             throw std::runtime_error("Log: Could not open output file stream!");
@@ -161,7 +162,9 @@ void Log::open(LogPolicy policy, const std::string &sIdent, int iFacility)
         throw std::invalid_argument("Log: You called the wrong open function/constructor for your policy!");
 
     // use the an ostream with the syslog streambuffer
-    outStream = new std::ostream(new SyslogStreambuf(sIdent, iFacility, this));
+    ownedStreambuff.reset(new SyslogStreambuf(sIdent, iFacility, this));
+    ownedStream.reset( new std::ostream( ownedStreambuff.get()));
+    outStream = ownedStream.get();
 
     // turn of timestamp, since syslog already provides a timestamp
     setTimeFormat("");
@@ -190,25 +193,11 @@ void Log::close()
         loggerMainThread.join();
     lck.lock();
 
-    // close the out stream
-    switch (logPolicy)
-    {
-    case FILE:
-        dynamic_cast<std::ofstream *>(outStream)->close();
-        MPU_SAVE_DELETE(outStream);
-        break;
-    case SYSLOG:
-        // reset the timestamp string
-        setTimeFormat("%c");
-        MPU_SAVE_DELETE(outStream);
-        break;
-    case CONSOLE:
-    case CUSTOM:
-        outStream = nullptr;
-        break;
-    default:
-        break;
-    }
+    outStream = nullptr; // we probably don't own it so don't delete it
+    ownedStream = nullptr; // deletes the owned stream
+    ownedStreambuff = nullptr; // delte custom streambuffers
+
+    setTimeFormat("%c");
 }
 
 void Log::logMessage(const std::string &sMessage, LogLvl lvl)

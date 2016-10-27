@@ -25,6 +25,7 @@
 #include <condition_variable>
 #include <queue>
 #include <atomic>
+#include <memory>
 #include "mpUtils.h"
 
 #ifdef __linux__
@@ -205,7 +206,9 @@ private:
     std::mutex timeFormatMtx;
 
     std::atomic<LogPolicy> logPolicy; // the log policy
-    std::ostream *outStream; // the stream we print our log on
+    std::ostream *outStream; // ponits to the stream we print our log on
+    std::unique_ptr<std::ostream> ownedStream; // here we put a stream if we own it
+    std::unique_ptr<std::streambuf> ownedStreambuff; // here we put a custom streambuffer
 
     static Log* globalLog; // point this to the global log
 
