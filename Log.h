@@ -54,10 +54,8 @@
 
 // debug is disabled on release build
 #ifdef NDEBUG
-
     #define logDEBUG(MODULE) if(false) mpu::Log::getGlobal()(mpu::LogLvl::DEBUG, MPU_FILEPOS, MODULE)
     #define logDEBUG2(MODULE) if(false) mpu::Log::getGlobal()(mpu::LogLvl::DEBUG2, MPU_FILEPOS, MODULE)
-
 #else
 
     #define logDEBUG(MODULE) if(mpu::Log::noGlobal() || mpu::Log::getGlobal().getLogLevel() < mpu::LogLvl::DEBUG) ; \
@@ -114,53 +112,55 @@ extern const std::string LogPolicyToString[]; // loockup to transform LogPolicy 
 
 //-------------------------------------------------------------------
 /**
- * class Log
+ * @class Log
  * provides flexible formatted logging to stdout, files, the syslog, or custom streams.
  *
  * @usage:
- * To use the log create a object using one of the initialising constructors. you can also call the
- * empty constructor and initialise the log using ne of the open(...) functions.
- * Choose a log policy from the enum above and provide either file names, custom streams, or a
- * Identity string and a facility if you want to use syslog. If you provide only one stream or one
- * file, error and information will be send to the same output.
+ * To use the log create an object using one of the initialising constructors. you can also call the
+ * empty constructor and initialise the log using one of the open(...) functions.
+ * Choose a log policy from the enum above and provide either a file name, a custom stream, or a
+ * Identity string and a facility if you want to use syslog on linux. (When using LogPolicy::CONSOLE
+ * you do not have to provide anything else)
  *
  * You can set the global Log level with setLogLevel(). Only messages wih equal or higher priority will
- * be logged. To log a message you can use the "<<" operator. The message is formatted and
- * written to the Log when the stream is flushed. You also need to set the message lvl for each message
- * using setLvl() or streaming the lvl eg. "<< LogLvl::info" you could also use one of the
- * custom modifiers which add a level and then flush the stream.
+ * be logged. To log a message you can use the "( ... )" function call operator and provide additional
+ * parameters like the LogLevel of the mesage and then input text to the message using the "<<" operator.
+ * The message is formatted and written to the Log automatically in a different thread.
  *
- * Note that redirecting anything to the Logs streambuffer will not work, since no Message lvl is
- * provided by other streams, nor will the buffer be flushed correctly.
+ * You can also use the logMessage(...) function to write unformatted strings to the log.
+ * The logLevel Parameter n this case is not printed  to the log, but used to check if the Message
+ * should be printed at all.
  *
  * additional options:
- * You cn modify the timestamp format written to the file via setTimeFormat(string) where string is
+ * You can modify the timestamp format written to the file via setTimeFormat(string) where string is
  * the std library configuration string used for strftime.
- * If you want to output additional debug information you can add a string which is only outputted
- * if the log level is debug or higher. Use the function bracket operator like this:
- * myLog("@lineXY") << "hello" << DEBUG; to add a @lineXY. You can use the MPU_FILEPOS macro defined
- * above to get the current file, line and function name.
+ * You can give the "( .. )" - operator a second parameter which will be displayed at the end of a
+ * message seperated by "@" e.g. You can use the MPU_FILEPOS macro defined above to get the current
+ * file, line and function name.
+ * You can also give a Module name as a third argument which is included in the message, this way
+ * you can later grep for [MODULE_NAME] to filter the log by module.
  *
  * the Global log:
- * there is one additional feature called the global log. you can make a log global using makeGlobal().
+ * There is one additional feature called the global log. you can make a log global using makeGlobal().
  * Note that there can only be one global log at any time. You can use the macro definitions above
  * to write message to the global log like logERROR << "An Error!" << endl
  * The first log created is always made global automatically.
+ * All other classes of the mpu library will use the global log to output error messages.
  *
  * Thread safety:
- * Also streams are thread save on a per char basis, using the same Log from different files could result
- * in unreadable messages. You could however create multiple Log classes that write there output
- * to the same file.
+ * The class was developed with the goal to allow logging from all threads at the same time, as a
+ * result the class is totally thread save. Messages from different threads are printed line after line.
+ * Also all parameters can safely be changed from different threads.
  *
  * exceptions:
- * If initialisation fails, the constructor or the open(...) function will throw a exception.
+ * If initialisation fails, the constructor or the open(...) function will throw an exception.
+ * The default constructor will never throw.
  * No other exceptions are thrown.
- * 
+ *
  */
 class Log
 {
 public:
-
     // constructors
     Log(LogPolicy policy, LogLvl lvl);
     Log(LogPolicy policy = LogPolicy::NONE, const std::string &sFile = "", LogLvl lvl = LogLvl::INFO);
@@ -187,7 +187,7 @@ public:
     // getter and setter
     void setLogLevel(LogLvl lvl) {logLvl = lvl;} // set the current log level
     LogLvl getLogLevel() const {return logLvl;} // get the current log level
-    void setTimeFormat(const std::string &sFormat) {std::lock_guard<std::mutex> lck(timeFormatMtx); sTimeFormat = sFormat;} // set the timestamp format (like strftime)
+    void setTimeFormat(const std::string sFormat) {std::lock_guard<std::mutex> lck(timeFormatMtx); sTimeFormat = sFormat;} // set the timestamp format (like strftime)
     std::string getTimeFormat() {std::lock_guard<std::mutex> lck(timeFormatMtx); return sTimeFormat;} // get the timestamp format
     LogPolicy getCurrentPolicy() const {return logPolicy;} // get the log policy
     void makeGlobal() {globalLog = this;}   // makes the current log global
@@ -198,12 +198,17 @@ public:
     // operators
     LogStream operator()(LogLvl lvl, std::string sFilepos ="", std::string sModule="");
 
-private:
+    // make noncopyable and nonmoveable
+    Log(const Log& that) = delete;
+    Log& operator=(const Log& that) = delete;
+    Log(Log &&that) = delete;
+    Log& operator=(const Log&& that) = delete;
 
+private:
     std::atomic<LogLvl> logLvl; // the log level
     std::atomic<LogLvl> lastLvl; // the log level of the message that is currently written
     std::string sTimeFormat; // format of the timestamp
-    std::mutex timeFormatMtx;
+
 
     std::atomic<LogPolicy> logPolicy; // the log policy
     std::ostream *outStream; // ponits to the stream we print our log on
@@ -213,14 +218,15 @@ private:
     static Log* globalLog; // point this to the global log
 
     std::queue< std::pair<std::string,LogLvl>> messageQueue; // queue to collect messages from all threads
+
+    // thread management
+    std::mutex timeFormatMtx; // mutex to protect the time format
     std::mutex queueMtx;  // mutex to protect the queue
-
-    bool bShouldLoggerRun; // controle if the logger thread is running
-    std::condition_variable loggerCv; // cv to notify the logger when new messages arrive
     std::mutex loggerMtx; // protect the logging operation
+    std::condition_variable loggerCv; // cv to notify the logger when new messages arrive
+    bool bShouldLoggerRun; // controle if the logger thread is running
 
-    std::thread loggerMainThread;
-
+    std::thread loggerMainThread; // the logger main thread
     void loggerMainfunc(); // the mainfunc of the second thread
 };
 

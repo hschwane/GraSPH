@@ -30,7 +30,6 @@ const std::string LogPolicyToString[] = {"NONE", "CONSOLE", "FILE", "SYSLOG", "C
 
 // functions of the Log class
 //-------------------------------------------------------------------
-
 Log::Log(LogPolicy policy, LogLvl lvl)
 {
     sTimeFormat = "%c";
@@ -259,5 +258,4 @@ void Log::loggerMainfunc()
 
 // static variables
 Log* Log::globalLog = nullptr;
-
 }
