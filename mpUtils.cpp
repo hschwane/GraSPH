@@ -36,7 +36,13 @@ std::string timestamp(std::string sFormat)
     return std::string(a_cResult);
 }
 
-std::string &cutAfterFirst(std::string &s, const std::string &c, const std::string &sEscape, size_t pos)
+std::string &removeWhite(std::string &s)
+{
+    s.erase(std::remove_if( s.begin(), s.end(), [](char c){ return (c =='\r' || c =='\t' || c == ' ' || c == '\n');}), s.end() );
+    return s;
+}
+
+std::string &cutAfterFirst(std::string &s, const std::string &c, const std::string &sEscape, std::size_t pos)
 {
     std::string sSearch = c + sEscape;
     size_t cut = s.find_first_of(sSearch, pos);
@@ -54,7 +60,7 @@ std::string &cutAfterFirst(std::string &s, const std::string &c, const std::stri
     return s;
 }
 
-size_t findFirstNotEscapedOf(const std::string &s, const std::string &c, size_t pos, const std::string &sEscape)
+std::size_t findFirstNotEscapedOf(const std::string &s, const std::string &c, std::size_t pos, const std::string &sEscape)
 {
     std::string sSearch = c + sEscape;
     size_t search = s.find_first_of(sSearch, pos);
