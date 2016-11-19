@@ -32,11 +32,6 @@ CfgFile::CfgFile(const std::string &sName)
         open(sName);
 }
 
-CfgFile::~CfgFile()
-{
-    // file will autoclose in its destructor
-}
-
 void CfgFile::open(const std::string &sName)
 {
     cfgfile.open(sName, std::fstream::in | std::fstream::out);

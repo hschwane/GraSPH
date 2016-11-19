@@ -34,10 +34,10 @@ namespace mpu
 
 //-------------------------------------------------------------------
 /**
- * class CfgFile
- *  This class manages "init style" configuration files
+ * @class CfgFile
+ * This class manages "init style" configuration files
  *
- * usage:
+ * @usage:
  * To open a existing config file you can pass the filename to the constructor or call the open function.
  * If the file can't be opened (eg. it does not exist) a exception is thrown. You can then try to create a empty file
  * using createAndOpen().
@@ -80,11 +80,9 @@ class CfgFile
 {
 public:
     CfgFile(const std::string &sName = ""); // constructor
-    ~CfgFile(); // destructor
 
     void open(const std::string &sName); // open config file
-    void createAndOpen(
-            const std::string &sName); // creates and then opens s new empty config file, if the file already exists its content is overwritten
+    void createAndOpen(const std::string &sName); // creates and then opens s new empty config file, if the file already exists its content is overwritten
     void close();
 
     // typedefs for the listing functions
@@ -112,6 +110,10 @@ public:
             const std::string &sBlock); // removes a whole block from the file including the comments but leaves the header in the file
     void removeKey(const std::string &sBlock,
                    const std::string &sKey); // removes a Key from the file including the comments
+
+    // make the class non copyable
+    CfgFile(const Log& that) = delete;
+    CfgFile& operator=(const Log& that) = delete;
 
  private:
     std::string sFilename; // the filename
