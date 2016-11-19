@@ -120,7 +120,8 @@ extern const std::string LogPolicyToString[]; // loockup to transform LogPolicy 
  * empty constructor and initialise the log using one of the open(...) functions.
  * Choose a log policy from the enum above and provide either a file name, a custom stream, or a
  * Identity string and a facility if you want to use syslog on linux. (When using LogPolicy::CONSOLE
- * you do not have to provide anything else)
+ * you do not have to provide anything else). When using a custom stream you are responsible for managing
+ * the streams lifetime and ensure that it outlifes the log.
  *
  * You can set the global Log level with setLogLevel(). Only messages wih equal or higher priority will
  * be logged. To log a message you can use the "( ... )" function call operator and provide additional
