@@ -254,6 +254,30 @@ void Log::loggerMainfunc()
             messageQueue.pop();
             queuLck.unlock();
 
+            // check if we need to rotate the log
+            if(logPolicy == LogPolicy::FILE && maxFileSize != 0 && ((std::size_t)(outStream->tellp()) + msg.first.size()) > maxFileSize)
+            {
+                namespace fs = std::experimental::filesystem;
+                dynamic_cast<std::ofstream *>(outStream)->close();
+
+                // rename all existing files deleting the oldest (if logs kept is zero or one this will not be executed at all)
+                for(int i=iNumLogsToKeep-1; i >= 1; i--)
+                {
+                    if(fs::exists( sLogfileName + "." + toString(i)))
+                        fs::rename( sLogfileName + "." + toString(i), sLogfileName + "." + toString(i+1));
+                }
+
+                // if we want to keep at least one, move the original
+                if(iNumLogsToKeep > 0 && fs::exists( sLogfileName))
+                    fs::rename( sLogfileName, sLogfileName + ".1");
+
+                ownedStream.reset( new std::ofstream(sLogfileName, std::ofstream::out | std::ofstream::trunc));
+                outStream = ownedStream.get();
+
+                if (!outStream || !dynamic_cast<std::ofstream *>(outStream)->is_open())
+                    throw std::runtime_error("Log: Could not open output file stream!");
+            }
+
             lastLvl = msg.second;
             *outStream << msg.first << std::endl;
 
