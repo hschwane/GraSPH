@@ -13,6 +13,7 @@
 
 // includes
 //--------------------
+#include <aliases.h>
 #include "Log.h"
 //--------------------
 
@@ -37,6 +38,8 @@ Log::Log(LogPolicy policy, LogLvl lvl)
     logPolicy = LogPolicy::NONE;
     outStream = nullptr;
     bShouldLoggerRun = false;
+    maxFileSize = 0;
+    iNumLogsToKeep = 0;
 
     if (policy != LogPolicy::NONE)
         open(policy, "");
@@ -53,6 +56,8 @@ Log::Log(LogPolicy policy, const std::string &sFile, LogLvl lvl)
     logPolicy = LogPolicy::NONE;
     outStream = nullptr;
     bShouldLoggerRun = false;
+    maxFileSize = 0;
+    iNumLogsToKeep = 0;
 
     if (policy != LogPolicy::NONE)
         open(policy, sFile);
@@ -69,6 +74,8 @@ Log::Log(LogPolicy policy, std::ostream *out, LogLvl lvl)
     logPolicy = LogPolicy::NONE;
     outStream = nullptr;
     bShouldLoggerRun = false;
+    maxFileSize = 0;
+    iNumLogsToKeep = 0;
 
     open(policy, out);
 
@@ -86,6 +93,8 @@ Log::Log(LogPolicy policy, const std::string &sIdent, int iFacility, LogLvl lvl)
     logPolicy = LogPolicy::NONE;
     outStream = nullptr;
     bShouldLoggerRun = false;
+    maxFileSize = 0;
+    iNumLogsToKeep = 0;
 
     open(policy, sIdent, iFacility);
 
@@ -109,6 +118,8 @@ void Log::open(LogPolicy policy, const std::string &sFile)
     if (logPolicy != LogPolicy::NONE)
         close();
 
+    std::unique_lock<std::mutex> lck(loggerMtx);
+
     switch (policy)
     {
     case CONSOLE:
@@ -121,6 +132,8 @@ void Log::open(LogPolicy policy, const std::string &sFile)
 
         if (!outStream || !dynamic_cast<std::ofstream *>(outStream)->is_open())
             throw std::runtime_error("Log: Could not open output file stream!");
+
+        sLogfileName = sFile;
         break;
 
     default:
@@ -142,6 +155,8 @@ void Log::open(LogPolicy policy, std::ostream *out)
     if (policy != LogPolicy::CUSTOM)
         throw std::invalid_argument("Log: You called the wrong open function/constructor for your policy!");
 
+    std::unique_lock<std::mutex> lck(loggerMtx);
+
     outStream = out;
     logPolicy = policy;
 
@@ -159,6 +174,8 @@ void Log::open(LogPolicy policy, const std::string &sIdent, int iFacility)
 
     if (policy != LogPolicy::SYSLOG)
         throw std::invalid_argument("Log: You called the wrong open function/constructor for your policy!");
+
+    std::unique_lock<std::mutex> lck(loggerMtx);
 
     // use the an ostream with the syslog streambuffer
     ownedStreambuff.reset(new SyslogStreambuf(sIdent, iFacility, this));
@@ -181,7 +198,6 @@ void Log::close()
 
     // wait for the logger to print all queued messages and join the thread
     std::unique_lock<std::mutex> lck(loggerMtx);
-    //std::cout << messageQueue.size();
     if(bShouldLoggerRun)
     {
         bShouldLoggerRun = false;
@@ -207,6 +223,14 @@ void Log::logMessage(const std::string &sMessage, LogLvl lvl)
         messageQueue.emplace( sMessage, lvl);
         loggerCv.notify_one();
     }
+}
+
+void Log::setupLogrotate(std::size_t maxFileSize, int numLogsToKeep)
+{
+    std::unique_lock<std::mutex> lck(loggerMtx);
+
+    this->maxFileSize = maxFileSize;
+    this->iNumLogsToKeep = numLogsToKeep;
 }
 
 LogStream Log::operator()(LogLvl lvl, std::string sFilepos, std::string sModule)
@@ -241,17 +265,41 @@ void Log::loggerMainfunc()
     {
         loggerCv.wait(lck);
 
-        std::unique_lock<std::mutex> queuLck(queueMtx);
+        std::unique_lock<std::mutex> queueLck(queueMtx);
         while(!messageQueue.empty())
         {
             auto msg= messageQueue.front();
             messageQueue.pop();
-            queuLck.unlock();
+            queueLck.unlock();
+
+            // check if we need to rotate the log
+            if(logPolicy == LogPolicy::FILE && maxFileSize != 0 && ((std::size_t)(outStream->tellp()) + msg.first.size()) > maxFileSize)
+            {
+                namespace fs = std::experimental::filesystem;
+                dynamic_cast<std::ofstream *>(outStream)->close();
+
+                // rename all existing files deleting the oldest (if logs kept is zero or one this will not be executed at all)
+                for(int i=iNumLogsToKeep-1; i >= 1; i--)
+                {
+                    if(fs::exists( sLogfileName + "." + toString(i)))
+                        fs::rename( sLogfileName + "." + toString(i), sLogfileName + "." + toString(i+1));
+                }
+
+                // if we want to keep at least one, move the original
+                if(iNumLogsToKeep > 0 && fs::exists( sLogfileName))
+                    fs::rename( sLogfileName, sLogfileName + ".1");
+
+                ownedStream.reset( new std::ofstream(sLogfileName, std::ofstream::out | std::ofstream::trunc));
+                outStream = ownedStream.get();
+
+                if (!outStream || !dynamic_cast<std::ofstream *>(outStream)->is_open())
+                    throw std::runtime_error("Log: Could not open output file stream!");
+            }
 
             lastLvl = msg.second;
             *outStream << msg.first << std::endl;
 
-            queuLck.lock();
+            queueLck.lock();
         }
     }
 }

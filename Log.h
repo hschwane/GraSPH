@@ -26,6 +26,7 @@
 #include <queue>
 #include <atomic>
 #include <memory>
+#include <experimental/filesystem>
 #include "mpUtils.h"
 
 #ifdef __linux__
@@ -185,6 +186,8 @@ public:
 
     void logMessage(const std::string &sMessage, LogLvl lvl); // logs a string as one message
 
+    void setupLogrotate(std:: size_t maxFileSize, int numLogsToKeep = 1); // filesize in bytes
+
     // getter and setter
     void setLogLevel(LogLvl lvl) {logLvl = lvl;} // set the current log level
     LogLvl getLogLevel() const {return logLvl;} // get the current log level
@@ -194,7 +197,7 @@ public:
     void makeGlobal() {globalLog = this;}   // makes the current log global
     static Log &getGlobal() {return *globalLog;} // gets the global log
     static bool noGlobal() {return (globalLog == nullptr);} // checks if there is no global log set
-    LogLvl getLastLvl() {return lastLvl;} // returns the log levelof the message that is currently written
+    LogLvl getLastLvl() {return lastLvl;} // returns the log level of the message that is currently written
 
     // operators
     LogStream operator()(LogLvl lvl, std::string sFilepos ="", std::string sModule="");
@@ -210,11 +213,15 @@ private:
     std::atomic<LogLvl> lastLvl; // the log level of the message that is currently written
     std::string sTimeFormat; // format of the timestamp
 
-
     std::atomic<LogPolicy> logPolicy; // the log policy
     std::ostream *outStream; // ponits to the stream we print our log on
     std::unique_ptr<std::ostream> ownedStream; // here we put a stream if we own it
     std::unique_ptr<std::streambuf> ownedStreambuff; // here we put a custom streambuffer
+
+    // for log rotation with files
+    std::atomic<std::size_t> maxFileSize; // max file size before log is rotated
+    std::atomic<int> iNumLogsToKeep; // number of old logs to keep
+    std::string sLogfileName; // save the filename to manage old logfiles
 
     static Log* globalLog; // point this to the global log
 
