@@ -123,6 +123,8 @@ extern const std::string LogPolicyToString[]; // loockup to transform LogPolicy 
  * Identity string and a facility if you want to use syslog on linux. (When using LogPolicy::CONSOLE
  * you do not have to provide anything else). When using a custom stream you are responsible for managing
  * the streams lifetime and ensure that it outlifes the log.
+ * When using a file that already exists the log output is appended to the file. To prevent files growing into infinity
+ * see the section on logrotation.
  *
  * You can set the global Log level with setLogLevel(). Only messages wih equal or higher priority will
  * be logged. To log a message you can use the "( ... )" function call operator and provide additional
@@ -141,6 +143,12 @@ extern const std::string LogPolicyToString[]; // loockup to transform LogPolicy 
  * file, line and function name.
  * You can also give a Module name as a third argument which is included in the message, this way
  * you can later grep for [MODULE_NAME] to filter the log by module.
+ *
+ * logrotation:
+ * You can call setupLogrotate(size,numOfFiles) to tell the logger to rotate the log when the file is
+ * getting larger then size bytes. numOfFiles old logfiles are beeing kept. When the log needs to be rotated,
+ * the oldes file is deleted and all files are renamed file.4 -> file.5 file.3->file.4 and so on.
+ * If numOfFiles is zero, the old log will simply be overwritten.
  *
  * the Global log:
  * There is one additional feature called the global log. you can make a log global using makeGlobal().
