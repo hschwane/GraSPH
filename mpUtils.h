@@ -86,8 +86,8 @@ T fromString(const std::string &s)
     return value;
 }
 
-template<>
-std::string fromString(const std::string &s)
+template<typename>
+const std::string& fromString(const std::string &s)
 {
     return s;
 }
@@ -100,8 +100,8 @@ std::string toString(const T &v)
     return ss.str();
 }
 
-template<>
-std::string toString(const std::string &v)
+template<typename>
+const std::string& toString(const std::string &v)
 {
     return v;
 }
