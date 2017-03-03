@@ -22,6 +22,7 @@
 #include <sstream>
 #include <thread>
 #include <chrono>
+#include <iomanip>
 //--------------------
 
 // namespace
@@ -82,7 +83,25 @@ T fromString(const std::string &s)
 {
     T value;
     std::istringstream ss(s);
+    ss >> value;
+    return value;
+}
+
+template<typename>
+bool fromString(const std::string &s)
+{
+    bool value;
+    std::istringstream ss(s);
     ss >> std::boolalpha >> value;
+    return value;
+}
+
+template<typename>
+tm fromString(const std::string &s, const std::string& format)
+{
+    tm value;
+    std::istringstream ss(s);
+    ss >> std::get_time(&value,format.c_str());
     return value;
 }
 
@@ -96,6 +115,14 @@ template<typename T>
 std::string toString(const T &v)
 {
     std::ostringstream ss;
+    ss << v;
+    return ss.str();
+}
+
+template<typename>
+std::string toString(const bool &v)
+{
+    std::ostringstream ss;
     ss << std::boolalpha << v;
     return ss.str();
 }
@@ -104,6 +131,14 @@ template<typename>
 const std::string& toString(const std::string &v)
 {
     return v;
+}
+
+template<typename>
+const std::string toString(const tm &v, const std::string& format)
+{
+    std::ostringstream ss;
+    ss << std::put_time( &v,format.c_str());
+    return ss.str();
 }
 
 }

@@ -25,14 +25,15 @@ namespace mpu {
 
 std::string timestamp(std::string sFormat)
 {
-    if (sFormat.empty())
-        return "";
-
     time_t timeRaw = time(NULL);
-    struct tm *timeStruct = localtime(&timeRaw);
-
+    struct tm timeStruct;
+#ifdef __linux__
+    localtime_r(&timeRaw, &timeStruct);
+#else
+#error please implement timestamp for your operating system
+#endif
     char a_cResult[sFormat.length() + 100];
-    strftime(a_cResult, sFormat.length() + 100, sFormat.c_str(), timeStruct);
+    strftime(a_cResult, sFormat.length() + 100, sFormat.c_str(), &timeStruct);
     return std::string(a_cResult);
 }
 
