@@ -8,7 +8,7 @@
  * Implements the LogStream class, which is used by the Log class to enable stream like logging
  *
  * Copyright 2016 Hendrik Schwanekamp
- * 
+ *
  */
 
 
@@ -25,28 +25,21 @@ namespace mpu {
 // function definitions of the LogStream
 //-------------------------------------------------------------------
 
-LogStream::LogStream(const LogStream &ls) : logger(ls.logger), sFilepos(ls.sFilepos), lvl(ls.lvl)
+
+LogStream::LogStream(LogStream&& other)  : logger(logger), lm(other.lm), std::ostringstream(std::move(other))
 {
-    str(ls.str());
+
 }
 
-LogStream::LogStream(Log &logger, const std::string &sTimestamp, const std::string &sModule, LogLvl lvl,
-                      std::string sFilepos) : logger(logger), sFilepos(sFilepos), lvl(lvl)
+LogStream::LogStream(Log &logger, LogMessage* lm) : logger(logger), lm(lm)
 {
-    if(!sTimestamp.empty())
-        *this << "[" << sTimestamp << "]";
-    if(!sModule.empty())
-        *this << "[" << sModule << "]";
 
-    *this  << " " << toString(lvl) << ": ";
 }
 
 LogStream::~LogStream()
 {
-    if (!sFilepos.empty())
-        *this << "\t\t@" << sFilepos;
-
-    logger.logMessage(str(), lvl);
+    lm->sMessage = std::move(str());
+    logger.logMessage(lm);
 }
 
 }

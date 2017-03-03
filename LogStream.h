@@ -8,7 +8,7 @@
  * Implements the LogStream class, which is used by the Log class to enable stream like logging
  *
  * Copyright 2016 Hendrik Schwanekamp
- * 
+ *
  */
 
 #ifndef MPUTILS_LOGSTREAM_H
@@ -30,7 +30,7 @@ namespace mpu {
 
 /**
  * class LogStream
- * 
+ *
  * usage:
  * The constructor is usually called from the "Log" class. Then you can log using <<. After the ";" the Logstream is
  * destroyed. It writes its message to the log in its destructor.
@@ -39,14 +39,16 @@ namespace mpu {
 class LogStream : public std::ostringstream
 {
 public:
-    LogStream(const LogStream& ls);
-    LogStream(Log &logger, const std::string &sTimestamp, const std::string &sModule, LogLvl lvl, std::string sFilepos);
+
+    LogStream(LogStream& other) = delete;
+    LogStream(LogStream&& other);
+//    LogStream(Log &logger, const std::string &sTimestamp, const std::string &sModule, LogLvl lvl, const std::string sFilepos);
+    LogStream(Log &logger, LogMessage* lm);
     ~LogStream();
 
 private:
-    LogLvl lvl;
+    LogMessage* lm;
     Log &logger;
-    std::string sFilepos;
 };
 
 }

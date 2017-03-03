@@ -32,29 +32,48 @@ using namespace mpu;
 using namespace std;
 using namespace std::chrono;
 
+constexpr int numRuns = 10;
+double dTime =0;
 
 int main()
 {
-    SimpleStopwatch timer;
+    CpuStopwatch timer;
 
-    Log myLog( LogPolicy::FILE, "/home/hendrik/test.log");
-//    Log myLog( LogPolicy::CONSOLE, LogLvl::ALL);
-    myLog.setupLogrotate(10000000,5);
-    for(int i=0; i<1000000; i++)
+    // eliminate dedicated call with do while loop if possible
+    // improve performance steal stuff from here: https://www.codeproject.com/Articles/288827/g-log-An-efficient-asynchronous-logger-using-Cplus
+    //TODO: make the log more beautiful
+    //TODO: cut file position path
+    //TODO: add log block or something to log unformatted stuff
+    //TODO: make it possible to log to console and file
+
+    //TODO: remove the SAVE_DELEt macro
+    //TODO: make the line comments doxygen ones
+
+//        Log myLog(LogPolicy::CONSOLE, LogLvl::ALL);
+
+    for(int j = 0; j < numRuns; ++j)
     {
-        myLog(LogLvl::INFO, MPU_FILEPOS, "TEST") << "Hi, " << "this is " << "a log";
-        logWARNING("TEST") << "Some log warning";
+        Log myLog( LogPolicy::FILE, "/home/hendrik/test.log", LogLvl::ALL);
+        timer.reset();
+        for(int i=0; i<1000000; i++)
+        {
+        myLog(LogLvl::INFO, MPU_FILEPOS , "TEST") << "Hi, a log";
+//            myLog.logMessage( "[TEST] Info Hi, this is a log @" MPU_FILEPOS,LogLvl::INFO);
+            //logWARNING("TEST") << "Some log warning";
 
-        logERROR("MODULE_TEST") << "some stuff has happend";
+//        logERROR("MODULE_TEST") << "some stuff has happend";
+//
+//        logDEBUG("some stuff") << "some stuff is debugging stuff";
+//        logDEBUG2("some stuff") << "more debugging stuff";
+        }
 
-        logDEBUG("some stuff") << "some stuff is debugging stuff";
-        logDEBUG2("some stuff") << "more debugging stuff";
+        dTime += timer.getSeconds() / numRuns;
+        myLog.close();
     }
 
 
-    myLog.close();
 
-    timer.pause();
-    cout << "It took me " << timer.getSeconds() << " seconds" << endl;
+    //myLog.close();
+    cout << "It took me " << dTime << " seconds on average" << endl;
     return 0;
 }

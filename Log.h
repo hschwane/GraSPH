@@ -113,6 +113,21 @@ extern const std::string LogPolicyToString[]; // loockup to transform LogPolicy 
 
 //-------------------------------------------------------------------
 /**
+ * struct LogMessage
+ * struct to specify all elements of a log message
+ */
+struct LogMessage
+{
+    std::string sMessage;
+    std::string sFilePosition;
+    std::string sModue;
+    LogLvl lvl;
+    time_t timepoint;
+    std::thread::id threadId;
+};
+
+//-------------------------------------------------------------------
+/**
  * @class Log
  * provides flexible formatted logging to stdout, files, the syslog, or custom streams.
  *
@@ -192,7 +207,7 @@ public:
 
     void close(); // close the internal streams, is called automatically before open and on destruction
 
-    void logMessage(const std::string &sMessage, LogLvl lvl); // logs a string as one message
+    void logMessage(LogMessage* lm); // logs a string as one message
 
     void setupLogrotate(std:: size_t maxFileSize, int numLogsToKeep = 1); // filesize in bytes
 
@@ -208,7 +223,7 @@ public:
     LogLvl getLastLvl() {return lastLvl;} // returns the log level of the message that is currently written
 
     // operators
-    LogStream operator()(LogLvl lvl, std::string sFilepos ="", std::string sModule="");
+    LogStream operator()(LogLvl lvl, std::string&& sFilepos ="", std::string&& sModule="");
 
     // make noncopyable and nonmoveable
     Log(const Log& that) = delete;
@@ -233,7 +248,7 @@ private:
 
     static Log* globalLog; // point this to the global log
 
-    std::queue< std::pair<std::string,LogLvl>> messageQueue; // queue to collect messages from all threads
+    std::queue< LogMessage*> messageQueue; // queue to collect messages from all threads
 
     // thread management
     std::mutex timeFormatMtx; // mutex to protect the time format

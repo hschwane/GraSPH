@@ -127,7 +127,7 @@ void Log::open(LogPolicy policy, const std::string &sFile)
         break;
 
     case FILE:
-        ownedStream.reset( new std::ofstream(sFile, std::ofstream::out | std::ofstream::app));
+        ownedStream.reset( new std::ofstream(sFile, std::ofstream::out | std::ofstream::trunc));
         outStream = ownedStream.get();
 
         if (!outStream || !dynamic_cast<std::ofstream *>(outStream)->is_open())
@@ -142,8 +142,8 @@ void Log::open(LogPolicy policy, const std::string &sFile)
 
     logPolicy = policy;
 
-    bShouldLoggerRun = true;
-    loggerMainThread = std::thread( &Log::loggerMainfunc, this);
+    //bShouldLoggerRun = true;
+    //loggerMainThread = std::thread( &Log::loggerMainfunc, this);
 }
 
 void Log::open(LogPolicy policy, std::ostream *out)
@@ -215,12 +215,12 @@ void Log::close()
     setTimeFormat("%c");
 }
 
-void Log::logMessage(const std::string &sMessage, LogLvl lvl)
+void Log::logMessage(LogMessage* lm)
 {
-    if(logPolicy != LogPolicy::NONE && lvl <= logLvl)
+    if(logPolicy != LogPolicy::NONE && lm->lvl <= logLvl)
     {
         std::lock_guard<std::mutex> lck(queueMtx);
-        messageQueue.emplace( sMessage, lvl);
+        messageQueue.push(lm);
         loggerCv.notify_one();
     }
 }
@@ -233,10 +233,16 @@ void Log::setupLogrotate(std::size_t maxFileSize, int numLogsToKeep)
     this->iNumLogsToKeep = numLogsToKeep;
 }
 
-LogStream Log::operator()(LogLvl lvl, std::string sFilepos, std::string sModule)
+LogStream Log::operator()(const LogLvl lvl, std::string&& sFilepos, std::string&& sModule)
 {
-    std::lock_guard<std::mutex> lck(timeFormatMtx);
-    return LogStream( (*this), timestamp(sTimeFormat), sModule, lvl, sFilepos);
+    LogMessage* lm = new LogMessage;
+    lm->lvl = lvl;
+    lm->sFilePosition = std::move(sFilepos);
+    lm->sModue = std::move(sModule);
+    lm->threadId = std::this_thread::get_id();
+    lm->timepoint = time(nullptr);
+
+    return LogStream( (*this), lm);
 }
 
 void Log::loggerMainfunc()
@@ -255,7 +261,7 @@ void Log::loggerMainfunc()
             queuLck.unlock();
 
             // check if we need to rotate the log
-            if(logPolicy == LogPolicy::FILE && maxFileSize != 0 && ((std::size_t)(outStream->tellp()) + msg.first.size()) > maxFileSize)
+            if(logPolicy == LogPolicy::FILE && maxFileSize != 0 && ((std::size_t)(outStream->tellp()) + msg->sMessage.size()) > maxFileSize)
             {
                 namespace fs = std::experimental::filesystem;
                 dynamic_cast<std::ofstream *>(outStream)->close();
@@ -278,8 +284,9 @@ void Log::loggerMainfunc()
                     throw std::runtime_error("Log: Could not open output file stream!");
             }
 
-            lastLvl = msg.second;
-            *outStream << msg.first << std::endl;
+            lastLvl = msg->lvl;
+            *outStream << msg->sMessage << std::endl;
+            delete msg;
 
             queuLck.lock();
         }
@@ -297,7 +304,7 @@ void Log::loggerMainfunc()
             queueLck.unlock();
 
             // check if we need to rotate the log
-            if(logPolicy == LogPolicy::FILE && maxFileSize != 0 && ((std::size_t)(outStream->tellp()) + msg.first.size()) > maxFileSize)
+            if(logPolicy == LogPolicy::FILE && maxFileSize != 0 && ((std::size_t)(outStream->tellp()) + msg->sMessage.size()) > maxFileSize)
             {
                 namespace fs = std::experimental::filesystem;
                 dynamic_cast<std::ofstream *>(outStream)->close();
@@ -320,8 +327,9 @@ void Log::loggerMainfunc()
                     throw std::runtime_error("Log: Could not open output file stream!");
             }
 
-            lastLvl = msg.second;
-            *outStream << msg.first << std::endl;
+            lastLvl = msg->lvl;
+            *outStream << msg->sMessage << std::endl;
+            delete(msg);
 
             queueLck.lock();
         }
