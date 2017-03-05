@@ -74,6 +74,9 @@ T fromString(const std::string &s); // extract a value from a string, bool is ex
 template<typename T>
 std::string toString(const T &v); // converts value to string, bool is extracted with std::boolalpha on, usable on any class with << / >> overload
 
+template<typename F >
+auto makeFuncCopyable( F&& f ); // makes a moveable functor copyable using a shared pointer
+
 //--------------------
 
 // global template function definitions
@@ -139,6 +142,16 @@ const std::string toString(const tm &v, const std::string& format)
     std::ostringstream ss;
     ss << std::put_time( &v,format.c_str());
     return ss.str();
+}
+
+template<typename F >
+auto makeFuncCopyable( F&& f )
+{
+    auto spf = std::make_shared<F>(std::forward<F>(f) );
+    return [spf](auto&&... args)->decltype(auto)
+    {
+        return (*spf)( decltype(args)(args)... );
+    };
 }
 
 }
