@@ -16,8 +16,6 @@
 
 // includes
 //--------------------
-#include <iostream>
-#include <fstream>
 #include <sstream>
 #include <stdexcept>
 #include <thread>
@@ -25,13 +23,9 @@
 #include <condition_variable>
 #include <queue>
 #include <atomic>
-#include <memory>
-#include <experimental/filesystem>
+#include <iostream>
 #include "mpUtils.h"
 
-#ifdef __linux__
-#include "SyslogStreambuf.h"
-#endif
 //--------------------
 
 // defines
@@ -95,21 +89,6 @@ enum LogLvl // enum to specify log level
 };
 extern const std::string LogLvlToString[]; // lookup to transform Loglvl to string
 extern const std::string LogLvlStringInvalid; // lookup to transform Loglvl to string
-
-//-------------------------------------------------------------------
-/**
- * enum LogPolicy
- * enum to specify the log policy
- */
-enum LogPolicy
-{
-    NONE = 0,
-    CONSOLE = 1, //log to std out and err
-    FILE = 2, // log to a text file
-    SYSLOG = 3, // log to the linux syslog (only on linux)
-    CUSTOM = 4 // specify your own stream to log to
-};
-extern const std::string LogPolicyToString[]; // loockup to transform LogPolicy to string
 
 //-------------------------------------------------------------------
 /**
@@ -187,40 +166,25 @@ class Log
 {
 public:
     // constructors
-    Log(LogPolicy policy, LogLvl lvl);
-    Log(LogPolicy policy = LogPolicy::NONE, const std::string &sFile = "", LogLvl lvl = LogLvl::INFO);
-    Log(LogPolicy policy, std::ostream *out, LogLvl lvl = LogLvl::INFO);
-
-#ifdef __linux__
-    Log(LogPolicy policy, const std::string &sIdent, int iFacility, LogLvl lvl = LogLvl::INFO);
-#endif
+    template <class... SINKS>
+    Log(LogLvl lvl, SINKS&&... sinks);
 
     ~Log(); // destructor
 
-    // open function to open/reopen the log
-    void open(LogPolicy policy, const std::string &sFile = "");
-    void open(LogPolicy policy, std::ostream *out);
+    template <class FIRST_SINK, class... OTHER_SINKS>
+    void addSinks(FIRST_SINK&& sink, OTHER_SINKS&&... tail); // add a number of sinks
+    void addSinks(){}
+    void removeSink(int index); // removes a given sink (be carefull)
+    void close(); // removes all sinks and closes the logger thread (queue is flushed), is called automatically before open and on destruction
 
-#ifdef __linux__
-    void open(LogPolicy policy, const std::string &sIdent, int iFacility);
-#endif
-
-    void close(); // close the internal streams, is called automatically before open and on destruction
-
-    void logMessage(LogMessage* lm); // logs a string as one message
-
-    void setupLogrotate(std:: size_t maxFileSize, int numLogsToKeep = 1); // filesize in bytes
+    void logMessage(LogMessage* lm); // logs a message to the log
 
     // getter and setter
     void setLogLevel(LogLvl lvl) {logLvl = lvl;} // set the current log level
     LogLvl getLogLevel() const {return logLvl;} // get the current log level
-    void setTimeFormat(const std::string sFormat) {std::lock_guard<std::mutex> lck(timeFormatMtx); sTimeFormat = sFormat;} // set the timestamp format (like strftime)
-    std::string getTimeFormat() {std::lock_guard<std::mutex> lck(timeFormatMtx); return sTimeFormat;} // get the timestamp format
-    LogPolicy getCurrentPolicy() const {return logPolicy;} // get the log policy
     void makeGlobal() {globalLog = this;}   // makes the current log global
     static Log &getGlobal() {return *globalLog;} // gets the global log
     static bool noGlobal() {return (globalLog == nullptr);} // checks if there is no global log set
-    LogLvl getLastLvl() {return lastLvl;} // returns the log level of the message that is currently written
 
     // operators
     LogStream operator()(LogLvl lvl, std::string&& sFilepos ="", std::string&& sModule="");
@@ -233,25 +197,12 @@ public:
 
 private:
     std::atomic<LogLvl> logLvl; // the log level
-    std::atomic<LogLvl> lastLvl; // the log level of the message that is currently written
-    std::string sTimeFormat; // format of the timestamp
-
-    std::atomic<LogPolicy> logPolicy; // the log policy
-    std::ostream *outStream; // ponits to the stream we print our log on
-    std::unique_ptr<std::ostream> ownedStream; // here we put a stream if we own it
-    std::unique_ptr<std::streambuf> ownedStreambuff; // here we put a custom streambuffer
-
-    // for log rotation with files
-    std::atomic<std::size_t> maxFileSize; // max file size before log is rotated
-    std::atomic<int> iNumLogsToKeep; // number of old logs to keep
-    std::string sLogfileName; // save the filename to manage old logfiles
 
     static Log* globalLog; // point this to the global log
 
     std::queue< LogMessage*> messageQueue; // queue to collect messages from all threads
 
     // thread management
-    std::mutex timeFormatMtx; // mutex to protect the time format
     std::mutex queueMtx;  // mutex to protect the queue
     std::mutex loggerMtx; // protect the logging operation
     std::condition_variable loggerCv; // cv to notify the logger when new messages arrive
@@ -259,6 +210,8 @@ private:
 
     std::thread loggerMainThread; // the logger main thread
     void loggerMainfunc(); // the mainfunc of the second thread
+
+    std::vector<std::function<void(const LogMessage& msg)>> printFunctions; // the funtion used to print a message to the log
 };
 
 // global functions
@@ -269,12 +222,39 @@ inline const std::string &toString(LogLvl lvl)
     return (lvl < 0 || lvl > LogLvl::ALL)
            ? LogLvlStringInvalid : LogLvlToString[lvl];
 }
-
-inline const std::string &toString(LogPolicy policy)
-{
-    return LogPolicyToString[policy];
-}
 //--------------------
+
+
+//-------------------------------------------------------------------
+// definitions of template functions of the log classs
+
+template <class... SINKS>
+Log::Log(LogLvl lvl, SINKS&&... sinks)
+{
+    logLvl = lvl;
+    bShouldLoggerRun = false;
+
+    addSinks(std::forward<SINKS>(sinks)...);
+
+    // first log created is going to be global
+    if (noGlobal())
+        makeGlobal();
+}
+
+template <class FIRST_SINK, class... OTHER_SINKS>
+void Log::addSinks(FIRST_SINK&& sink, OTHER_SINKS&&... tail)
+{
+    std::lock_guard<std::mutex> lck(loggerMtx);
+    printFunctions.push_back( makeFuncCopyable(std::forward<FIRST_SINK>(sink)));
+
+    if(!bShouldLoggerRun)
+    {
+        bShouldLoggerRun = true;
+        loggerMainThread = std::thread( &Log::loggerMainfunc, this);
+    }
+
+    addSinks(std::forward<OTHER_SINKS>(tail)...);
+}
 
 }
 
