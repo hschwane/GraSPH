@@ -244,15 +244,17 @@ Log::Log(LogLvl lvl, SINKS&&... sinks)
 template <class FIRST_SINK, class... OTHER_SINKS>
 void Log::addSinks(FIRST_SINK&& sink, OTHER_SINKS&&... tail)
 {
-    std::lock_guard<std::mutex> lck(loggerMtx);
-    printFunctions.push_back( makeFuncCopyable(std::forward<FIRST_SINK>(sink)));
 
-    if(!bShouldLoggerRun)
     {
-        bShouldLoggerRun = true;
-        loggerMainThread = std::thread( &Log::loggerMainfunc, this);
-    }
+        std::lock_guard<std::mutex> lck(loggerMtx);
+        printFunctions.push_back(makeFuncCopyable(std::forward<FIRST_SINK>(sink)));
 
+        if(!bShouldLoggerRun)
+        {
+            bShouldLoggerRun = true;
+            loggerMainThread = std::thread(&Log::loggerMainfunc, this);
+        }
+    }
     addSinks(std::forward<OTHER_SINKS>(tail)...);
 }
 
