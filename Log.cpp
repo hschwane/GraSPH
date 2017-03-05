@@ -89,7 +89,7 @@ void Log::open(LogPolicy policy, const std::string &sIdent, int iFacility)
 
 void Log::removeSink(int index)
 {
-    std::lock_guard<std::mutex lck(loggerMtx);
+    std::lock_guard<std::mutex> lck(loggerMtx);
     printFunctions.erase( printFunctions.begin() + index);
 }
 
@@ -141,31 +141,7 @@ LogStream Log::operator()(const LogLvl lvl, std::string&& sFilepos, std::string&
 void Log::loggerMainfunc()
 {
     std::unique_lock<std::mutex> lck(loggerMtx);
-
-    // make sure all pending messages are printed if we stop the logger
-    // before this thread actual gets cpu time for the first time
-    if(!bShouldLoggerRun)
-    {
-        std::unique_lock<std::mutex> queuLck(queueMtx);
-        while(!messageQueue.empty())
-        {
-            auto msg= messageQueue.front();
-            messageQueue.pop();
-            queuLck.unlock();
-
-            // print to all sinks
-            for(auto &&function : printFunctions)
-            {
-                function(*msg);
-            }
-
-            delete msg;
-
-            queuLck.lock();
-        }
-    }
-
-    while(bShouldLoggerRun)
+    do
     {
         loggerCv.wait(lck);
 
@@ -187,6 +163,7 @@ void Log::loggerMainfunc()
             queueLck.lock();
         }
     }
+    while(bShouldLoggerRun);
 }
 
 // static variables
