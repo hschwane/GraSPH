@@ -23,6 +23,7 @@
 #include <cstdio>
 #include <cerrno>
 #include <cstring>
+#include <fstream>
 #include "Log.h"
 //--------------------
 
