@@ -25,7 +25,7 @@ namespace mpu{
 //-------------------------------------------------------------------
 FileSink::FileSink(std::string sFilename, std:: size_t maxFileSize, int numLogsToKeep) : sLogfileName(sFilename), maxFileSize(maxFileSize), iNumLogsToKeep(numLogsToKeep)
 {
-    file.open(sFilename, std::ofstream::out | std::ofstream::trunc);
+    rotateLog();
 
     if (!file.is_open())
         throw std::runtime_error("Log: Could not open output file stream!");
@@ -59,7 +59,8 @@ void FileSink::operator()(const LogMessage &msg)
 void FileSink::rotateLog()
 {
     namespace fs = std::experimental::filesystem;
-    file.close();
+    if(file.is_open())
+        file.close();
 
     // rename all existing files deleting the oldest (if logs kept is zero or one this will not be executed at all)
     for(int i=iNumLogsToKeep-1; i >= 1; i--)
