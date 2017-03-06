@@ -35,7 +35,7 @@
 #define _folders 2
 #define _mpu_mystr(x) _mpu_mystr2(x) //convert to string
 #define _mpu_mystr2(x) #x
-#define MPU_FILEPOS  std::string(mpu::shortenPath( __FILE__ , _folders)) + " in line: "  _mpu_mystr(__LINE__)  " in function " + std::string(__PRETTY_FUNCTION__) // output file, line and function
+#define MPU_FILEPOS  std::string(mpu::shortenPath( __FILE__ , _folders)) + " Line: "  _mpu_mystr(__LINE__)  " Function " + std::string(__PRETTY_FUNCTION__) // output file, line and function
 
 // macros for simplified global logging
 
