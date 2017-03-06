@@ -218,7 +218,7 @@ private:
 // global functions
 //--------------------
 // toString overloads
-inline const std::string &toString(LogLvl lvl)
+constexpr const std::string &toString(LogLvl lvl)
 {
     return (lvl < 0 || lvl > LogLvl::ALL)
            ? LogLvlStringInvalid : LogLvlToString[lvl];
