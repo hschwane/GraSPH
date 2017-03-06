@@ -32,9 +32,10 @@
 //--------------------
 
 // macro to print file position
+#define _folders 2
 #define _mpu_mystr(x) _mpu_mystr2(x) //convert to string
 #define _mpu_mystr2(x) #x
-#define MPU_FILEPOS  __FILE__ " in line: "  _mpu_mystr(__LINE__)  " in function " + std::string(__PRETTY_FUNCTION__) // output file, line and function
+#define MPU_FILEPOS  std::string(mpu::shortenPath( __FILE__ , _folders)) + " in line: "  _mpu_mystr(__LINE__)  " in function " + std::string(__PRETTY_FUNCTION__) // output file, line and function
 
 // macros for simplified global logging
 
@@ -222,6 +223,37 @@ inline const std::string &toString(LogLvl lvl)
     return (lvl < 0 || lvl > LogLvl::ALL)
            ? LogLvlStringInvalid : LogLvlToString[lvl];
 }
+
+/*
+ * find end of string at compile time
+ */
+constexpr const char * const strEnd(const char * const str)
+{
+    return *str ? strEnd(str + 1) : str;
+}
+
+/*
+ * shortence a path to contain at most "folders" folder at compile time
+ */
+constexpr const char * const processPath(const char * const start, const char * const end, const size_t folders, const size_t path_level = 0)
+{
+    return (start < end && *end != '/' && *end != '\\') ?
+           processPath(start, end - 1, folders, path_level) :
+           ((start < end && path_level < folders) ?
+            processPath(start, end - 1, folders, path_level + 1) :
+            (end + 1)
+           )
+            ;
+}
+
+/*
+ * shortence a path to contain at most "folders" folder at compile time
+ */
+constexpr const char * const shortenPath(const char * const path, const size_t folders)
+{
+    return processPath(path, strEnd(path), folders);
+}
+
 //--------------------
 
 
