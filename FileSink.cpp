@@ -39,7 +39,11 @@ void FileSink::operator()(const LogMessage &msg)
     }
 
     struct tm timeStruct;
+#ifdef __linux__
     localtime_r(&msg.timepoint, &timeStruct);
+#else
+#error please implement this for your operating system
+#endif
 
     file <<  "[" << toString(msg.lvl) << "]"
         << " [" << std::put_time( &timeStruct, "%c") << "]";

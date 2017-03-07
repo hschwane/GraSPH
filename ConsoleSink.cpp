@@ -33,7 +33,11 @@ void ConsoleSink::operator()(const LogMessage &msg)
         os = &std::cout;
 
     struct tm timeStruct;
+#ifdef __linux__
     localtime_r(&msg.timepoint, &timeStruct);
+#else
+#error please implement this for your operating system
+#endif
 
     *os << "\033[1;" << levelToColor(msg.lvl) << "m"
         << "[" << toString(msg.lvl) << "]" << "\033[m "
