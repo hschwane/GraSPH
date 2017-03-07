@@ -29,63 +29,12 @@ const std::string LogLvlStringInvalid = "INVALID";
 
 // functions of the Log class
 //-------------------------------------------------------------------
-
-/*
-#ifdef __linux__
-Log::Log(LogPolicy policy, const std::string &sIdent, int iFacility, LogLvl lvl)
-{
-    sTimeFormat = "%c";
-    logLvl = lvl;
-    logPolicy = LogPolicy::NONE;
-    outStream = nullptr;
-    bShouldLoggerRun = false;
-    maxFileSize = 0;
-    iNumLogsToKeep = 0;
-
-    open(policy, sIdent, iFacility);
-
-    // first log created is going to be global
-    if (noGlobal())
-        makeGlobal();
-}
-#endif
-*/
-
 Log::~Log()
 {
     close();
     if(globalLog == this)
         globalLog = nullptr;
 }
-
-/*
-
-#ifdef __linux__
-void Log::open(LogPolicy policy, const std::string &sIdent, int iFacility)
-{
-    // close in case it is already opened
-    if (logPolicy != LogPolicy::NONE)
-        close();
-
-    if (policy != LogPolicy::SYSLOG)
-        throw std::invalid_argument("Log: You called the wrong open function/constructor for your policy!");
-
-    std::unique_lock<std::mutex> lck(loggerMtx);
-
-    // use the an ostream with the syslog streambuffer
-    ownedStreambuff.reset(new SyslogStreambuf(sIdent, iFacility, this));
-    ownedStream.reset( new std::ostream( ownedStreambuff.get()));
-    outStream = ownedStream.get();
-
-    // turn of timestamp, since syslog already provides a timestamp
-    setTimeFormat("");
-    logPolicy = policy;
-
-    bShouldLoggerRun = true;
-    loggerMainThread = std::thread( &Log::loggerMainfunc, this);
-}
-#endif
-*/
 
 void Log::removeSink(int index)
 {
