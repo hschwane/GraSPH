@@ -267,7 +267,7 @@ void basic_AsyncTimer<clock>::update()
             {
                 // log and rethrow
                 logFATAL_ERROR("AsyncTimer") << "Exception in the timer function: "<<e.what();
-                throw e;
+                throw;
             }
             funcLck.unlock();
             lck.lock();
