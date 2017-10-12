@@ -32,9 +32,6 @@ namespace mpu {
 
 // defines
 //--------------------
-// macro to safely delete stuff on the heap (dont use it, use smartpointers instead!!!)
-#define MPU_SAVE_DELETE(x) if( x != nullptr) {delete x; x = nullptr;}
-
 // macro to make the current thread sleep
 #define MPU_YIELD() std::this_thread::yield();
 #define MPU_SLEED_D(_DURATION_) std::this_thread::sleep_for(_DURATION_);

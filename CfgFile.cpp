@@ -555,7 +555,7 @@ void CfgFile::copyFirstPart(std::ofstream &filestream, const std::streampos &to)
     cfgfile.read(buff, to);
     filestream.write(buff, to);
 
-    MPU_SAVE_DELETE(buff)
+    delete[] buff;
 }
 
 void CfgFile::copySecondPart(std::ofstream &filestream, const std::streampos &from)
@@ -569,7 +569,7 @@ void CfgFile::copySecondPart(std::ofstream &filestream, const std::streampos &fr
     cfgfile.read(buff, l);
     filestream.write(buff, l);
 
-    MPU_SAVE_DELETE(buff);
+    delete[]buff;
 
     filestream.close();
     close();

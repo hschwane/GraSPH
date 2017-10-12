@@ -43,13 +43,7 @@ int main()
 {
     CpuStopwatch timer;
 
-    //TODO: add log block or something to log unformatted stuff
-
-    // TODO: remove the catch all in async timer
-    // TODO: remove the SAVE_DELEt macro
-    // TODO: change makros in constexpr
     // TODO: make the line comments doxygen ones
-
     // TODO: add network
     // TODO: add serial
     // TODO: add arg parser
