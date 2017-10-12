@@ -43,14 +43,12 @@ int main()
 {
     CpuStopwatch timer;
 
-    // TODO: dokumentation for new log stuff
     //TODO: add log block or something to log unformatted stuff
-    // TODO use lock free queue
 
     // TODO: remove the catch all in async timer
-    //TODO: remove the SAVE_DELEt macro
+    // TODO: remove the SAVE_DELEt macro
     // TODO: change makros in constexpr
-    //TODO: make the line comments doxygen ones
+    // TODO: make the line comments doxygen ones
 
     // TODO: add network
     // TODO: add serial
@@ -59,6 +57,7 @@ int main()
     // TODO: make stuff windows and mac compatible
     // TODO: actually compile as library and other cmake stuff
     // TODO: folder structure and convenient end user include all includes
+    // TODO maybe use lock free queue for logger
 
 //        Log myLog(LogPolicy::CONSOLE, LogLvl::ALL);
 

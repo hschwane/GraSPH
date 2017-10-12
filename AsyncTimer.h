@@ -8,7 +8,7 @@
  * Implements the AsyncTimer class, which provides simple timer functionality similar to the Timer class, but running asynchronous.
  *
  * Copyright 2016 Hendrik Schwanekamp
- * 
+ *
  */
 
 #ifndef MPUTILS_ASYNCTIMER_H
@@ -23,6 +23,7 @@
 #include <condition_variable>
 #include "Stopwatch.h"
 #include "Cpu_Clock.h"
+#include "Log.h"
 //--------------------
 
 // namespace
@@ -32,7 +33,7 @@ namespace mpu {
 
 /**
  * class AsyncTimer
- * 
+ *
  * usage:
  *
  * Use this Class with a custom "clock" from std::chrono or use SimpleTimer, HRTimer or CpuTimer,
@@ -263,7 +264,11 @@ void basic_AsyncTimer<clock>::update()
                     finishFunction();
             }
             catch (std::exception &e)
-            { } // catch the exception so it does not fuck up my timer thread
+            {
+                // log and rethrow
+                logFATAL_ERROR("AsyncTimer") << "Exception in the timer function: "<<e.what();
+                throw e;
+            }
             funcLck.unlock();
             lck.lock();
         }
