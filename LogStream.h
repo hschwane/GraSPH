@@ -42,7 +42,6 @@ public:
 
     LogStream(LogStream& other) = delete;
     LogStream(LogStream&& other);
-//    LogStream(Log &logger, const std::string &sTimestamp, const std::string &sModule, LogLvl lvl, const std::string sFilepos);
     LogStream(Log &logger, LogMessage* lm);
     ~LogStream();
 

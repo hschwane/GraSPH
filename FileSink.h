@@ -33,6 +33,8 @@ namespace mpu {
  * class FileSink
  *
  * usage:
+ * create an instance of file sink and pass it to the log class to log messages to a file.
+ * Use maxFileSize and numLogsToKeep to enable logrotation. If maxFileSize is 0 Logs will not be rotated.
  *
  */
 class FileSink

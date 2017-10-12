@@ -15,8 +15,11 @@
 #include "Stopwatch.h"
 #include <iostream>
 #include "Log.h"
+#include "ConsoleSink.h"
+#include "FileSink.h"
+#include "SyslogSink.h"
 #include <chrono>
-#include "CfgFile.h"
+
 #include <typeinfo>
 #include <ctime>
 #include "DeltaTimer.h"
@@ -26,6 +29,7 @@
 #include <thread>             // std::thread
 #include <mutex>              // std::mutex, std::unique_lock
 #include <condition_variable> // std::condition_variable
+#include <syslog.h>
 
 
 using namespace mpu;
@@ -39,24 +43,27 @@ int main()
 {
     CpuStopwatch timer;
 
-    // eliminate dedicated call with do while loop if possible
-    // improve performance steal stuff from here: https://www.codeproject.com/Articles/288827/g-log-An-efficient-asynchronous-logger-using-Cplus
-    //TODO: make the log more beautiful
-    //TODO: cut file position path
+    // TODO: dokumentation for new log stuff
     //TODO: add log block or something to log unformatted stuff
-    //TODO: make it possible to log to console and file
+    // TODO use lock free queue
 
+    // TODO: remove the catch all in async timer
     //TODO: remove the SAVE_DELEt macro
+    // TODO: change makros in constexpr
     //TODO: make the line comments doxygen ones
+
+    // TODO: add network
+    // TODO: add serial
+    // TODO: add arg parser
+    // TODO: json / xml parser / class serialization
+    // TODO: make stuff windows and mac compatible
+    // TODO: actually compile as library and other cmake stuff
+    // TODO: folder structure and convenient end user include all includes
 
 //        Log myLog(LogPolicy::CONSOLE, LogLvl::ALL);
 
-    for(int j = 0; j < numRuns; ++j)
-    {
-        Log myLog( LogPolicy::FILE, "/home/hendrik/test.log", LogLvl::ALL);
-        timer.reset();
-        for(int i=0; i<1000000; i++)
-        {
+        Log myLog( LogLvl::ALL, FileSink("/home/hendrik/test.log"), ConsoleSink());
+
         myLog(LogLvl::INFO, MPU_FILEPOS , "TEST") << "Hi, a log";
 //            myLog.logMessage( "[TEST] Info Hi, this is a log @" MPU_FILEPOS,LogLvl::INFO);
             //logWARNING("TEST") << "Some log warning";
@@ -65,15 +72,11 @@ int main()
 //
 //        logDEBUG("some stuff") << "some stuff is debugging stuff";
 //        logDEBUG2("some stuff") << "more debugging stuff";
-        }
-
-        dTime += timer.getSeconds() / numRuns;
-        myLog.close();
-    }
 
 
 
-    //myLog.close();
+
+    myLog.close();
     cout << "It took me " << dTime << " seconds on average" << endl;
     return 0;
 }

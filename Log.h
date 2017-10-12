@@ -109,41 +109,21 @@ struct LogMessage
 //-------------------------------------------------------------------
 /**
  * @class Log
- * provides flexible formatted logging to stdout, files, the syslog, or custom streams.
+ * provides flexible formatted logging to multiple costomizable outputs
  *
  * @usage:
- * To use the log create an object using one of the initialising constructors. you can also call the
- * empty constructor and initialise the log using one of the open(...) functions.
- * Choose a log policy from the enum above and provide either a file name, a custom stream, or a
- * Identity string and a facility if you want to use syslog on linux. (When using LogPolicy::CONSOLE
- * you do not have to provide anything else). When using a custom stream you are responsible for managing
- * the streams lifetime and ensure that it outlifes the log.
- * When using a file that already exists the log output is appended to the file. To prevent files growing into infinity
- * see the section on logrotation.
+ * To use the log create an object using the constructor.
+ * You can add as many sinks as you like. Sinks contole where messages are writen and how they are
+ * formatted.
+ * There is a console log sink and a file log sink with logrotation.
+ * You can write your own custom log sink by creating a function object which
+ * accepts a const reference to an object of LogMessage.
+ * See the existing sinks for reference.
  *
- * You can set the global Log level with setLogLevel(). Only messages wih equal or higher priority will
+ * You can set the Log level with setLogLevel(). Only messages wih equal or higher priority will
  * be logged. To log a message you can use the "( ... )" function call operator and provide additional
  * parameters like the LogLevel of the mesage and then input text to the message using the "<<" operator.
  * The message is formatted and written to the Log automatically in a different thread.
- *
- * You can also use the logMessage(...) function to write unformatted strings to the log.
- * The logLevel Parameter n this case is not printed  to the log, but used to check if the Message
- * should be printed at all.
- *
- * additional options:
- * You can modify the timestamp format written to the file via setTimeFormat(string) where string is
- * the std library configuration string used for strftime.
- * You can give the "( .. )" - operator a second parameter which will be displayed at the end of a
- * message seperated by "@" e.g. You can use the MPU_FILEPOS macro defined above to get the current
- * file, line and function name.
- * You can also give a Module name as a third argument which is included in the message, this way
- * you can later grep for [MODULE_NAME] to filter the log by module.
- *
- * logrotation:
- * You can call setupLogrotate(size,numOfFiles) to tell the logger to rotate the log when the file is
- * getting larger then size bytes. numOfFiles old logfiles are beeing kept. When the log needs to be rotated,
- * the oldes file is deleted and all files are renamed file.4 -> file.5 file.3->file.4 and so on.
- * If numOfFiles is zero, the old log will simply be overwritten.
  *
  * the Global log:
  * There is one additional feature called the global log. you can make a log global using makeGlobal().
@@ -156,11 +136,6 @@ struct LogMessage
  * The class was developed with the goal to allow logging from all threads at the same time, as a
  * result the class is totally thread save. Messages from different threads are printed line after line.
  * Also all parameters can safely be changed from different threads.
- *
- * exceptions:
- * If initialisation fails, the constructor or the open(...) function will throw an exception.
- * The default constructor will never throw.
- * No other exceptions are thrown.
  *
  */
 class Log
@@ -242,8 +217,7 @@ constexpr const char * const processPath(const char * const start, const char * 
            ((start < end && path_level < folders) ?
             processPath(start, end - 1, folders, path_level + 1) :
             (end + 1)
-           )
-            ;
+           );
 }
 
 /*

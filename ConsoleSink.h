@@ -29,6 +29,8 @@ namespace mpu {
  * class ConsoleSink
  *
  * usage:
+ * Create an instance of Console Sink and pass it to the log class to print log
+ * messages to the standard output.
  *
  */
 class ConsoleSink
