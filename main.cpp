@@ -12,20 +12,20 @@
  *
  */
 
-#include "Stopwatch.h"
+#include "Timer/Stopwatch.h"
 #include <iostream>
-#include "Log.h"
-#include "ConsoleSink.h"
-#include "FileSink.h"
-#include "SyslogSink.h"
+#include "Log/Log.h"
+#include "Log/ConsoleSink.h"
+#include "Log/FileSink.h"
+#include "Log/SyslogSink.h"
 #include <chrono>
 
 #include <typeinfo>
 #include <ctime>
-#include "DeltaTimer.h"
+#include "Timer/DeltaTimer.h"
 #include <thread>
-#include "Timer.h"
-#include "AsyncTimer.h"
+#include "Timer/Timer.h"
+#include "Timer/AsyncTimer.h"
 #include <thread>             // std::thread
 #include <mutex>              // std::mutex, std::unique_lock
 #include <condition_variable> // std::condition_variable

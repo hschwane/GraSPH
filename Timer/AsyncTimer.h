@@ -23,7 +23,7 @@
 #include <condition_variable>
 #include "Stopwatch.h"
 #include "Cpu_Clock.h"
-#include "Log.h"
+#include "../Log/Log.h"
 //--------------------
 
 // namespace
