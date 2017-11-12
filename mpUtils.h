@@ -32,13 +32,6 @@ namespace mpu {
 
 // defines
 //--------------------
-// macro to make the current thread sleep
-#define MPU_YIELD() std::this_thread::yield();
-#define MPU_SLEED_D(_DURATION_) std::this_thread::sleep_for(_DURATION_);
-#define MPU_SLEEP(_SECONDS_) MPU_SLEED_D(mpu::seconds(_SECONDS_));
-#define MPU_SLEEP_MS(_MILISECONDS_) MPU_SLEED_D(mpu::milliseconds(_MILISECONDS_));
-#define MPU_SLEEP_US(_MICROSECONDS_) MPU_SLEED_D(mpu::microseconds(_MICROSECONDS_));
-#define MPU_SLEEP_UNTIL(_TIMEPOINT_) MPU_SLEED_D(_TIMEPOINT_);
 //--------------------
 
 // typedefs
@@ -57,6 +50,17 @@ typedef std::chrono::nanoseconds nanoseconds;
 
 // some global functions
 //--------------------
+// aliases for std::this_thread functions
+inline void yield() {std::this_thread::yield();}
+inline void sleep_d(auto duration) {std::this_thread::sleep_for(duration);}
+inline void sleep(int sec) {sleep_d(seconds(sec));}
+inline void sleep_ms(int ms) {sleep_d(milliseconds(ms));}
+inline void sleep_us(int us) {sleep_d(microseconds(us));}
+inline void sleep_until(auto tp) {std::this_thread::sleep_until(tp);}
+
+//--------------------
+// some string helper functions
+
 std::string timestamp(std::string sFormat = "%c"); //  get current timestamp as string
 
 std::string &removeWhite(std::string &s); // removes whitespace from string changing the string itself and returning it
@@ -73,8 +77,8 @@ std::string toString(const T &v); // converts value to string, bool is extracted
 
 template<typename F >
 auto makeFuncCopyable( F&& f ); // makes a moveable functor copyable using a shared pointer
-
 //--------------------
+
 
 // global template function definitions
 //--------------------
