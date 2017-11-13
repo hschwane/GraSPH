@@ -14,7 +14,15 @@ project(mpUtils VERSION "${VERSION_SHORT}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 
 # find packages
+
+# mutithreading
 find_package( Threads ) # the systems thread lib
+
+# openGL and window managing
+find_package(OpenGL REQUIRED)
+find_package(GLEW REQUIRED)
+find_package(GLFW3 REQUIRED)
+find_package(GLM REQUIRED)
 
 # search for src files
 file(GLOB SOURCE_FILES src/*.cpp) # yes i know, this is not recommended, but i still like it better and had no problems with it
@@ -30,9 +38,21 @@ target_link_libraries( mpUtils stdc++fs )
 set_target_properties(mpUtils PROPERTIES VERSION ${VERSION_SHORT} SOVERSION ${VERSION_MAJOR})
 
 # set include dir (in this case also the src)
-target_include_directories(mpUtils PUBLIC src)
+target_include_directories(mpUtils PUBLIC src
+        ${OPENGL_INCLUDE_DIRS}
+        ${GLEW_INCLUDE_PATH}
+        ${GLFW3_INCLUDE_PATH}
+        ${GLM_INCLUDE_PATH}
+        )
         #$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/>
         #$<INSTALL_INTERFACE:src/>)
+
+# link with external libs
+target_link_libraries( mpUtils
+        ${GLFW3_LIBRARIES}
+        ${GLEW_LIBRARIES}
+        ${OPENGL_LIBRARY}
+        )
 
 # set install options
 install(TARGETS mpUtils
