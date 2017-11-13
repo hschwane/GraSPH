@@ -3,7 +3,7 @@ a ~~platform independent~~ linux c++ library with some utility classes I use for
 
 -------------------------
 
-##usage / install
+## usage / install
 
 #### as a framework
 
