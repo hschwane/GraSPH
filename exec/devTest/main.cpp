@@ -12,12 +12,12 @@
  *
  */
 
-#include "Timer/Stopwatch.h"
+#include <Timer/Stopwatch.h>
 #include <iostream>
-#include "Log/Log.h"
-#include "Log/ConsoleSink.h"
-#include "Log/FileSink.h"
-#include "Log/SyslogSink.h"
+#include <Log/Log.h>
+#include <Log/ConsoleSink.h>
+#include <Log/FileSink.h>
+#include <Log/SyslogSink.h>
 #include <chrono>
 
 #include <typeinfo>
@@ -41,7 +41,7 @@ double dTime =0;
 
 int main()
 {
-    CpuStopwatch timer;
+    CpuStopwatch timer; //
 
     // TODO: make the line comments doxygen ones
     // TODO: add network
@@ -49,8 +49,6 @@ int main()
     // TODO: add arg parser
     // TODO: json / xml parser / class serialization
     // TODO: make stuff windows and mac compatible
-    // TODO: actually compile as library and other cmake stuff
-    // TODO: folder structure and convenient end user include all includes
     // TODO maybe use lock free queue for logger
 
 //        Log myLog(LogPolicy::CONSOLE, LogLvl::ALL);
