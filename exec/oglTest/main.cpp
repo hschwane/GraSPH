@@ -3,10 +3,9 @@
 #include <vector>
 #include <list>
 
-#include <glm/glm.hpp>
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
+#include <Graphics/Graphics.h>
 #include <ctime>
+#include <Log/ConsoleSink.h>
 
 #include "ShaderTools.h"
 
@@ -100,44 +99,18 @@ void animateParticles(std::list<particle> &particleList, float dt)
     }
 }
 
-void useOpenGL33CoreProfile(){
-    //#ifdef __APPLE__
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-    glewExperimental = GL_TRUE;
-    //#endif
-}
-
-void checkCompatibility(){
-
-    std::cout << "Testing Compatibility " << std::endl;
-
-    // print out some info about the graphics drivers
-    std::cout << "OpenGL version: " << glGetString(GL_VERSION) << std::endl;
-    std::cout << "GLSL version: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
-    std::cout << "Vendor: " << glGetString(GL_VENDOR) << std::endl;
-    std::cout << "Renderer: " << glGetString(GL_RENDERER) << std::endl;
-
-}
-
 int main()
 {
+    // initialise log
+    mpu::Log mainLog(mpu::ALL, mpu::ConsoleSink());
+
     // create window and init gl
-    GLFWwindow* window;
-    glfwInit();
-    useOpenGL33CoreProfile();
+    mpu::gph::init();
+    mpu::gph::Window window(WIDTH,HEIGHT,"GravitySim");
+    window.setPosition(glm::ivec2(600,50));
+    window.makeContextCurrent();
 
-    window = glfwCreateWindow(WIDTH, HEIGHT, "GravitySim", NULL, NULL);
-    glfwSetWindowPos( window, 600, 50);
-    glfwMakeContextCurrent(window);
-
-    glewInit();
-
-    // print some gl info
-    checkCompatibility();
+/*
 
     // set bg and shader
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -231,4 +204,6 @@ int main()
     glfwDestroyWindow(window);
     glfwTerminate();
     return 0;
+
+    */
 }

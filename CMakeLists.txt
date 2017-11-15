@@ -25,7 +25,9 @@ find_package(GLFW3 REQUIRED)
 find_package(GLM REQUIRED)
 
 # search for src files
-file(GLOB SOURCE_FILES src/*.cpp) # yes i know, this is not recommended, but i still like it better and had no problems with it
+file(GLOB_RECURSE SOURCE_FILES ${CMAKE_SOURCE_DIR}/src/*.cpp) # yes i know, this is not recommended, but i still like it better and had no problems with it
+
+message(${SOURCE_FILES})
 
 # create target
 add_library(mpUtils SHARED ${SOURCE_FILES})
