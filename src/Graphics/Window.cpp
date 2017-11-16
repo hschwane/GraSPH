@@ -100,6 +100,8 @@ Window::Window(const int width, const int height, const std::string &title, GLFW
     glDebugMessageCallback(&glDebugCallback, nullptr);
     glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, nullptr, false);
     glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_LOW, 0, nullptr, false);
+
+    glfwSetWindowUserPointer(m_w.get(),this);
 }
 
 Window::operator GLFWwindow*() const
@@ -125,11 +127,6 @@ bool Window::update()
     glfwSwapBuffers(m_w.get());
     glfwPollEvents();
     return !glfwWindowShouldClose(m_w.get());
-}
-
-void Window::setIcon(const std::string icon)
-{
-
 }
 
 }}
