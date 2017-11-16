@@ -87,6 +87,8 @@ int offset_of(TMember T::* field) noexcept
 // include everything useful from the graphics part of the framework
 //____________________
 #include "Window.h"
+#include "utils/Transform.h"
+#include "utils/ModelViewProjection.h"
 //--------------------
 
 #endif //MPUTILS_GRAPHICS_H
