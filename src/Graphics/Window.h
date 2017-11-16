@@ -103,11 +103,11 @@ public:
     int getKey(int key) {return glfwGetKey(m_w.get(),key);} //!< state of key returns GLFW_PRESS or GLFW_RELEASE
     int getMouseButton(int button) {return glfwGetMouseButton(m_w.get(),button);} //!< state of mouse button returns GLFW_PRESS or GLFW_RELEASE
     glm::dvec2 getCursorPos() {glm::dvec2 p; glfwGetCursorPos(m_w.get(),&p.x,&p.y);} //!< returns the cursor position within the window
-    void setCursorPos(glm::dvec2 p) {glfwSetCursorPos(m_w.get(),p.x,p.y)} //!< sets a new cursor position
-    void setCursorPos(double x, double y) {glfwSetCursorPos(m_w.get(),x,y)} //!< sets a new cursor position
+    void setCursorPos(glm::dvec2 p) {glfwSetCursorPos(m_w.get(),p.x,p.y);} //!< sets a new cursor position
+    void setCursorPos(double x, double y) {glfwSetCursorPos(m_w.get(),x,y);} //!< sets a new cursor position
     void setCursor(GLFWcursor* c) {glfwSetCursor(m_w.get(),c);} //!< sets a new cursor
     void setClipboard(const std::string & s) {glfwSetClipboardString(m_w.get(),s.c_str());} //!< copy a string to the clipboard
-    std::string getClipboard() { return std::string(glfwGetClipboardString(m_w.get());} //!< get the string from the clipboard
+    std::string getClipboard() { return std::string(glfwGetClipboardString(m_w.get()));} //!< get the string from the clipboard
 
 private:
     std::unique_ptr<GLFWwindow,void(*)(GLFWwindow*)> m_w; //!< pointer to the glfw window
