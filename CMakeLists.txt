@@ -11,7 +11,7 @@ include(GetVersionFromGit)
 project(mpUtils VERSION "${VERSION_SHORT}")
 
 # set compiler flags
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
 
 # find packages
 

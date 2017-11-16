@@ -24,6 +24,7 @@
 #include <queue>
 #include <atomic>
 #include <iostream>
+#include <functional>
 #include "../mpUtils.h"
 
 //--------------------
