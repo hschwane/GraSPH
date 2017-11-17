@@ -89,7 +89,7 @@ int offset_of(TMember T::* field) noexcept
 #include "Window.h"
 #include "utils/Transform.h"
 #include "utils/ModelViewProjection.h"
-#include "opengl/Handle.h"
+#include "opengl/Buffer.h"
 //--------------------
 
 #endif //MPUTILS_GRAPHICS_H

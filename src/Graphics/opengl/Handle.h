@@ -49,7 +49,7 @@ namespace gph {
 
 		/// Constructs the handle to nullptr.
 		/// Useful for delayed assignment.
-		Handle(nullptr_t);
+		explicit Handle(nullptr_t);
 
 		/// If TArgs is empty, this will construct the object referring to the generated handle.
 		/// Otherwise, it leaves the handle uninitialized for later assignment or recreation.
@@ -141,7 +141,7 @@ namespace gph {
 	template <typename THandle, typename TCreate, TCreate Creator, typename TDestroy, TDestroy Destroyer, typename ... TArgs>
 	Handle<THandle, TCreate, Creator, TDestroy, Destroyer, TArgs...>::operator handle_type() const
 	{
-		assert_true(m_handle, "Trying to access a nullptr handle.");
+		assert(m_handle); // do not create a nullpointer handle
 		return *m_handle;
 	}
 
