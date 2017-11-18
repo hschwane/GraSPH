@@ -109,13 +109,29 @@ int main()
        mpu::gph::Window window(WIDTH,HEIGHT,"GravitySim");
     window.setPosition(glm::ivec2(600,50));
 
-    int a[10];
 
     mpu::gph::Buffer b;
-    mpu::gph::BufferMap map(b, a);
-    logINFO("main") << (bool(map.getHandle())) ;
+    b.allocate<uint8_t>(30, GL_MAP_READ_BIT | GL_MAP_WRITE_BIT);
 
+    {
+        auto data =  b.map<uint8_t>(30, 0, GL_MAP_READ_BIT | GL_MAP_WRITE_BIT);
 
+        data[0] = 5;
+        data[1] = 3;
+
+        for(auto it = data.begin()+2; it != data.end(); ++it)
+        {
+            *it = 8;
+        }
+    } // buffer is unmapped here
+
+    {
+        auto data = b.map<const uint8_t>(30,0, GL_MAP_READ_BIT);
+        for(auto it = data.begin(); it != data.end(); ++it)
+        {
+            std::cout << int(*it) << "\n";
+        }
+    } // buffer is unmapped here
 
 /*
 

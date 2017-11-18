@@ -16,30 +16,50 @@
 
 #include <GL/glew.h>
 #include <vector>
+#include <iterator>
 #include "Handle.h"
 
 namespace mpu {
 namespace gph {
 
 typedef Handle<uint32_t, decltype(&glCreateBuffers), &glCreateBuffers, decltype(&glDeleteBuffers), &glDeleteBuffers> BufferHandle;
-/*
+
 template <typename T>
 class BufferMap
 {
 public:
-    BufferMap(const BufferHandle handle, const T* datapointer);
-    BufferHandle getHandle() { return m_handle;}
-private:
+    BufferMap()= default;
+    BufferMap(const BufferMap &other)=default;
+    BufferMap(BufferMap &&other)=default;
 
-    const BufferHandle m_handle;
+    BufferMap(const BufferHandle handle, T* datapointer, const std::size_t size) : m_handle(handle),
+                                                                                         m_data(std::shared_ptr<T>(datapointer,[handle](T* t){glUnmapNamedBuffer(handle);})),
+                                                                                         m_size(size)
+    {}
+
+    // array access operators
+    T& operator[](std::size_t idx) { return *(m_data.get()+idx); }
+    const T& operator[](std::size_t idx) const {return *(m_data.get()+idx);}
+
+    // helper functions
+    size_t size() const { return m_size;}
+    bool empty() const { return (m_size > 0);}
+
+    // iterators
+    typedef T* iterator;
+    typedef const T* const_iterator;
+
+    iterator begin() { return m_data.get();}
+    iterator end() { return m_data.get() + size();}
+    const_iterator cbegin() const { return m_data.get();}
+    const_iterator cend() const { return m_data.get() + size();}
+
+private:
+    std::shared_ptr<T> m_data{nullptr};
+    const BufferHandle m_handle{nullptr};
+    const std::size_t m_size{0};
 };
 
-template <typename T>
-BufferMap<T>::BufferMap(const BufferHandle handle, const T* datapointer) : m_handle(handle)
-{
-
-}
-*/
 /**
  * class Buffer
  *
@@ -64,11 +84,9 @@ BufferMap<T>::BufferMap(const BufferHandle handle, const T* datapointer) : m_han
         Buffer() = default; //!< creates an empty buffer without allocating it
         explicit Buffer(nullptr_t) : Handle(nullptr) {} //!< creates no buffer
         template<typename T>
-        explicit Buffer(const intptr_t count, const GLbitfield flags = 0); //!< creates a buffer as a inmutable buffer and allocates it to count empty fields of type T
+        explicit Buffer( std::vector<T> data, GLbitfield flags = 0); //!< creates a buffer as a inmutable buffer and allocates it with data from ste std::vector
         template<typename T>
-        explicit Buffer(const std::vector<T> data, const GLbitfield flags = 0); //!< creates a buffer as a inmutable buffer and allocates it with data from ste std::vector
-        template<typename T>
-        explicit Buffer(const T data, const GLbitfield flags = 0); //!< creates a buffer as a inmutable buffer and allocates it with one field of type T CAUTION: do not use for arrays or vectors
+        explicit Buffer( T data, GLbitfield flags = 0); //!< creates a buffer as a inmutable buffer and allocates it with one field of type T CAUTION: do not use for arrays or vectors
 
         /**
          * @brief copys a part of this buffers data to another buffer
@@ -172,10 +190,16 @@ BufferMap<T>::BufferMap(const BufferHandle handle, const T* datapointer) : m_han
         template<typename T>
         void stream(std::vector<T> data, GLenum mode = GL_STREAM_DRAW) const;
 
-        // Provides a pointer to CPU-bound GPU-accessible data.
-        // Use the template parameter to map to a custom type pointer.
-        // CAUTION: count is being used in combination with sizeof(T). Use T=uint8_t to have default behavior of glMapNamedBufferRange.
-      //  template<typename T = uint8_t> std::vector<T> map(ptrdiff_t count, ptrdiff_t offset, GLbitfield access) const;
+        /**
+         * @brief Map the buffer to local memory and retrieve a BufferMap object
+         * @tparam T
+         * @param count
+         * @param offset
+         * @param access
+         * @return
+         */
+        template<typename T = uint8_t>
+        BufferMap<T> map(ptrdiff_t count, ptrdiff_t offset, GLbitfield access) const;
 
         // The buffer size in bytes.
         int64_t size() const;
@@ -196,14 +220,8 @@ BufferMap<T>::BufferMap(const BufferHandle handle, const T* datapointer) : m_han
          * @return
          */
         template<typename T = uint8_t>
-        uint64_t address(const ptrdiff_t offset_bytes = 0, const GLenum access = GL_READ_ONLY) const;
+        uint64_t address( ptrdiff_t offset_bytes = 0, GLenum access = GL_READ_ONLY) const;
     };
-
-    template<typename T>
-    Buffer::Buffer(const intptr_t count, const GLbitfield flags) : Buffer()
-    {
-        allocate(count, flags);
-    }
 
     template <typename T>
     Buffer::Buffer(const std::vector<T> data, const GLbitfield flags) : Buffer()
@@ -292,14 +310,13 @@ BufferMap<T>::BufferMap(const BufferHandle handle, const T* datapointer) : m_han
         glNamedBufferData(*this, data.size()*sizeof(T), data.data(), mode);
     }
 
-/*
     template <typename T>
-    std::vector<T> Buffer::map(const ptrdiff_t count, const ptrdiff_t offset, const GLbitfield access) const
+    BufferMap<T> Buffer::map(const ptrdiff_t count, const ptrdiff_t offset, const GLbitfield access) const
     {
         static_assert(!std::is_same_v<T, void>, "Cannot use void* as buffer mapping return type.");
-        return { reinterpret_cast<T*>(glMapNamedBufferRange(*this, offset, count * sizeof(T), access)), count };
+        return BufferMap<T>(*this, reinterpret_cast<T*>(glMapNamedBufferRange(*this, offset, count * sizeof(T), access)), count);
     }
-*/
+
     template <typename T>
     uint64_t Buffer::address(const ptrdiff_t offset_bytes, const GLenum access) const
     {
