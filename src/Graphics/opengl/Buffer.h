@@ -22,27 +22,24 @@ namespace mpu {
 namespace gph {
 
 typedef Handle<uint32_t, decltype(&glCreateBuffers), &glCreateBuffers, decltype(&glDeleteBuffers), &glDeleteBuffers> BufferHandle;
-
 /*
 template <typename T>
 class BufferMap
 {
 public:
-    BufferMap() = default;
-    BufferMap(T* datapointer, BufferHandle handle);
-
+    BufferMap(const BufferHandle handle, const T* datapointer);
+    BufferHandle getHandle() { return m_handle;}
 private:
-    std::shared_ptr<T> m_datapointer;
-    BufferHandle m_buffer;
+
+    const BufferHandle m_handle;
 };
 
 template <typename T>
-BufferMap<T>::BufferMap(T *datapointer, BufferHandle handle) : m_datapointer(std::shared_ptr<T>(datapointer, [handle](T* d){glUnmapNamedBuffer(handle);}), m_buffer(nullptr)
+BufferMap<T>::BufferMap(const BufferHandle handle, const T* datapointer) : m_handle(handle)
 {
 
 }
 */
-
 /**
  * class Buffer
  *
@@ -191,7 +188,13 @@ BufferMap<T>::BufferMap(T *datapointer, BufferHandle handle) : m_datapointer(std
         void invalidate(GLintptr offset, GLsizeiptr length);
         void invalidate(); //!< invalidate the whle buffers data
 
-        // See GL_NV_shader_buffer_load and/or GL_NV_shader_buffer_store for more info.
+        /**
+         * @brief Generate a adress for the Buffer to access them in the shader in a bindless maner.
+         * @tparam T
+         * @param offset_bytes  TODO: make that doc better
+         * @param access
+         * @return
+         */
         template<typename T = uint8_t>
         uint64_t address(const ptrdiff_t offset_bytes = 0, const GLenum access = GL_READ_ONLY) const;
     };

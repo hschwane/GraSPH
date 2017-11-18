@@ -34,7 +34,7 @@ namespace gph {
  *
  * usage:
  * This is an object oriented wrapper for glwfs Window. use the constructer to create the window.
- * After that call Window::makeContextCurrent() and you are good to go.
+ * The context will automattically be the current one.
  * Most glfw Window functions are implemented in the wrapper, however if you need a glfw Window you can use Window::window()
  * or a cast to obtain a pointer to a glfw Window.
  * In the Windows main loop you shold call Window::update() it handles events and swaps the Framebuffer. It will return false

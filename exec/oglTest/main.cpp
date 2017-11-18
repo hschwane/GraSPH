@@ -5,6 +5,7 @@
 
 #include <Graphics/Graphics.h>
 #include <ctime>
+#include <Log/Log.h>
 #include <Log/ConsoleSink.h>
 
 #include "ShaderTools.h"
@@ -105,10 +106,16 @@ int main()
     mpu::Log mainLog(mpu::ALL, mpu::ConsoleSink());
 
     // create window and init gl
-    mpu::gph::init();
-    mpu::gph::Window window(WIDTH,HEIGHT,"GravitySim");
+       mpu::gph::Window window(WIDTH,HEIGHT,"GravitySim");
     window.setPosition(glm::ivec2(600,50));
-    window.makeContextCurrent();
+
+    int a[10];
+
+    mpu::gph::Buffer b;
+    mpu::gph::BufferMap map(b, a);
+    logINFO("main") << (bool(map.getHandle())) ;
+
+
 
 /*
 

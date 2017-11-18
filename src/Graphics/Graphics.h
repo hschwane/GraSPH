@@ -29,25 +29,6 @@ namespace gph {
 // some global functions for the graphics framework
 
 /**
- * Initialise the graphics framework. Use before calling any graphics functions.
- */
-void inline init()
-{
-    static struct GLFWinit
-    {
-        GLFWinit() {
-            glfwInit();
-            glfwSetErrorCallback([](int code, const char * message){
-                logERROR("GLFW") << "Error code: " << code << "Message: " << message;
-            });
-            logINFO("Graphics") << "Initialised GLFW. Version: " << glfwGetVersionString();
-        }
-        ~GLFWinit() { glfwTerminate(); }
-    } glfw_init;
-    glewInit();
-};
-
-/**
  * Print some info about the supported openGL version to the log
  */
 void inline logGlIinfo()

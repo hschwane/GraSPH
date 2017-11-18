@@ -80,6 +80,25 @@ static void glDebugCallback(GLenum source, GLenum type, GLuint id, const GLenum 
 //-------------------------------------------------------------------
 Window::Window(const int width, const int height, const std::string &title, GLFWmonitor *monitor, GLFWwindow *share) : m_w(nullptr,[](GLFWwindow* wnd){})
 {
+    // init glfw once
+    static struct GLFWinit
+    {
+        GLFWinit() {
+            int e =glfwInit();
+            if(e  != GL_TRUE)
+            {
+                logFATAL_ERROR("Graphics") << "Error initalising glfw. Returned: " << e ;
+                throw std::runtime_error("Could not initalize glfw!");
+            }
+
+            glfwSetErrorCallback([](int code, const char * message){
+                logERROR("GLFW") << "Error code: " << code << "Message: " << message;
+            });
+            logINFO("Graphics") << "Initialised GLFW. Version: " << glfwGetVersionString();
+        }
+        ~GLFWinit() { glfwTerminate(); }
+    } glfwinit;
+
     // setting some important default settings
 #ifndef NDEBUG
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
@@ -96,12 +115,32 @@ Window::Window(const int width, const int height, const std::string &title, GLFW
         throw std::runtime_error("Cannot create window");
     }
     m_w = std::unique_ptr<GLFWwindow,void(*)(GLFWwindow*)>(wnd,[](GLFWwindow* wnd){glfwDestroyWindow(wnd);});
+    glfwSetWindowUserPointer(m_w.get(),this);
+    makeContextCurrent();
+
+    // init glew
+    static struct GLEWinit
+    {
+        GLEWinit() {
+            glewExperimental = GL_TRUE;
+            GLenum e = glewInit();
+            if(e != GLEW_OK)
+            {
+                logFATAL_ERROR("Graphics") << "Error initalising glew. Returned: " << e ;
+                throw std::runtime_error("Could not initalize glew!");
+            }
+            logINFO("Graphics") << "Initialised GLEW."
+                                << "\n\t\t\t\tOpenGL version: " << glGetString(GL_VERSION)
+                                << "\n\t\t\t\tGLSL version: " << glGetString(GL_SHADING_LANGUAGE_VERSION)
+                                << "\n\t\t\t\tVendor: " << glGetString(GL_VENDOR)
+                                << "\n\t\t\t\tRenderer: " << glGetString(GL_RENDERER)
+                                << "\n\t\t\t";
+        }
+    } glewinit;
 
     glDebugMessageCallback(&glDebugCallback, nullptr);
     glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, nullptr, false);
     glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_LOW, 0, nullptr, false);
-
-    glfwSetWindowUserPointer(m_w.get(),this);
 }
 
 Window::operator GLFWwindow*() const
