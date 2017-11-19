@@ -62,6 +62,8 @@ public:
     const_iterator cbegin() const { return m_data.get();}
     const_iterator cend() const { return m_data.get() + size();}
 
+    void flush(GLintptr offset =0, GLsizeiptr length= m_size * sizeof(T)) {glFlushMappedBufferRange(m_handle,offset,length);} //!< flush changes on a subregion of a buffer mapped with "GL_MAP_FLUSH_EXPLICIT_BIT"
+
 private:
     std::shared_ptr<T> m_data{nullptr};
     const BufferHandle m_handle{nullptr};
@@ -134,6 +136,12 @@ private:
          * @tparam T type of values inside the std::array
          * @param data the std::vector of data to be uploaded
          * @param flags flags passed to glBufferStorage
+         *                                      GL_DYNAMIC_STORAGE_BIT  allows the use of the write() function
+         *                                      GL_MAP_READ_BIT         allows mapping for read access
+         *                                      GL_MAP_WRITE_BIT        allows mapping for write access
+         *                                      GL_MAP_PERSISTENT_BIT   allows mapping in persistent mode which allows to maintain a mapping while buffer is used in openGL
+         *                                      GL_MAP_COHERENT_BIT     allows mapping in coherent mode where changes to a persistent buffer are always directly visible
+         *                                      GL_CLIENT_STORAGE_BIT   a hint that the buffer shoulb be created in client memory
          */
         template<typename T>
         void allocate( std::vector<T> data, GLbitfield flags = 0) const;
@@ -143,6 +151,12 @@ private:
          * @tparam T type of values that will be put in the buffer
          * @param count the number of fields (size of the buffer)
          * @param flags flags passed to glBufferStorage
+         *                                      GL_DYNAMIC_STORAGE_BIT  allows the use of the write() function
+         *                                      GL_MAP_READ_BIT         allows mapping for read access
+         *                                      GL_MAP_WRITE_BIT        allows mapping for write access
+         *                                      GL_MAP_PERSISTENT_BIT   allows mapping in persistent mode which allows to maintain a mapping while buffer is used in openGL
+         *                                      GL_MAP_COHERENT_BIT     allows mapping in coherent mode where changes to a persistent buffer are always directly visible
+         *                                      GL_CLIENT_STORAGE_BIT   a hint that the buffer shoulb be created in client memory
          */
         template<typename T>
         void allocate( intptr_t count, GLbitfield flags = 0) const;
@@ -153,6 +167,12 @@ private:
          * @tparam T type of values that will be put in the buffer
          * @param count the number of fields (size of the buffer)
          * @param flags flags passed to glBufferStorage
+         *                                      GL_DYNAMIC_STORAGE_BIT  allows the use of the write() function
+         *                                      GL_MAP_READ_BIT         allows mapping for read access
+         *                                      GL_MAP_WRITE_BIT        allows mapping for write access
+         *                                      GL_MAP_PERSISTENT_BIT   allows mapping in persistent mode which allows to maintain a mapping while buffer is used in openGL
+         *                                      GL_MAP_COHERENT_BIT     allows mapping in coherent mode where changes to a persistent buffer are always directly visible
+         *                                      GL_CLIENT_STORAGE_BIT   a hint that the buffer shoulb be created in client memory
          */
         template<typename T>
         void allocate(T data, GLbitfield flags = 0) const;
@@ -203,7 +223,14 @@ private:
          * @tparam T the data type you want to use to access the buffer data
          * @param count number of fields of type T to load from the buffer
          * @param offset offset in the the buffer where mapping should start
-         * @param access access bit a combination of GL_MAP_READ_BIT and GL_MAP_WRITE_BIT
+         * @param access access bit a combination of    GL_MAP_READ_BIT             map for read acces
+         *                                              GL_MAP_WRITE_BIT            map for write acces
+         *                                              GL_PERSISTENT_BIT           allow mapping while buffer is used in openGL
+         *                                              GL_COHERENT_BIT             on a persistent buffer, changes are always directly visible
+         *                                              GL_MAP_FLUSH_EXPLICIT_BIT   you need to flush everything by yourself instead of automatically on unmap
+         *                                              GL_MAP_INVALIDATE_RANGE_BIT   invalidate the mapped range, might be faster  if you write everything
+         *                                              GL_MAP_INVALIDATE_BUFFER_BIT  invalidate the complete buffer, might be faster if you write everything
+         *                                              GL_MAP_UNSYNCHRONIZED_BIT   openGL will not perform any syncronization bevor ahnding over the pointer to the mapped date
          * @return a BufferMap object which can be used to manipulate the buffer data. when the BufferMap goes out of scope it will unmap the buffer
          */
         template<typename T = uint8_t>
