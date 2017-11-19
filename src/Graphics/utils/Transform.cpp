@@ -57,9 +57,4 @@ Transform::operator glm::mat4() const
     return glm::translate(glm::mat4(1.f), position) * glm::scale(glm::mat4(1.f), scale) * glm::toMat4(rotation);
 }
 
-glm::vec4 Transform::operator*(const glm::vec4 v) const
-{
-    return v * glm::mat4(*this);
-}
-
 }}

@@ -51,9 +51,6 @@ public:
     // cast operators
     operator glm::mat4() const;
 
-    // transform something
-    glm::vec4 operator * (const glm::vec4 v) const;
-
     // public members for easy access
     glm::vec3 position{ 0, 0, 0 };
     glm::vec3 scale{ 1, 1, 1 };
