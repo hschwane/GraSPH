@@ -62,7 +62,8 @@ public:
     const_iterator cbegin() const { return m_data.get();}
     const_iterator cend() const { return m_data.get() + size();}
 
-    void flush(GLintptr offset =0, GLsizeiptr length= m_size * sizeof(T)) {glFlushMappedBufferRange(m_handle,offset,length);} //!< flush changes on a subregion of a buffer mapped with "GL_MAP_FLUSH_EXPLICIT_BIT"
+    void flush(GLintptr offset, GLsizeiptr length) {glFlushMappedBufferRange(m_handle,offset,length);} //!< flush changes on a subregion of a buffer mapped with "GL_MAP_FLUSH_EXPLICIT_BIT"
+    void flush() {glFlushMappedBufferRange(m_handle,0,m_size * sizeof(T));} //!< flush changes on the entire mapped region of a buffer mapped with "GL_MAP_FLUSH_EXPLICIT_BIT"
 
 private:
     std::shared_ptr<T> m_data{nullptr};
