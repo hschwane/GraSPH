@@ -24,10 +24,18 @@ namespace gph {
 
 typedef Handle<uint32_t, decltype(&glCreateBuffers), &glCreateBuffers, decltype(&glDeleteBuffers), &glDeleteBuffers> BufferHandle;
 
+/**
+ * class BufferMap
+ *
+ * usage:
+ * A buffer map will be returned from the buffers map() function and can be used to manipulate the buffer data
+ *
+ */
 template <typename T>
 class BufferMap
 {
 public:
+    // constructors
     BufferMap()= default;
     BufferMap(const BufferMap &other)=default;
     BufferMap(BufferMap &&other)=default;
@@ -192,11 +200,11 @@ private:
 
         /**
          * @brief Map the buffer to local memory and retrieve a BufferMap object
-         * @tparam T
-         * @param count
-         * @param offset
-         * @param access
-         * @return
+         * @tparam T the data type you want to use to access the buffer data
+         * @param count number of fields of type T to load from the buffer
+         * @param offset offset in the the buffer where mapping should start
+         * @param access access bit a combination of GL_MAP_READ_BIT and GL_MAP_WRITE_BIT
+         * @return a BufferMap object which can be used to manipulate the buffer data. when the BufferMap goes out of scope it will unmap the buffer
          */
         template<typename T = uint8_t>
         BufferMap<T> map(ptrdiff_t count, ptrdiff_t offset, GLbitfield access) const;
@@ -213,7 +221,7 @@ private:
         void invalidate(); //!< invalidate the whle buffers data
 
         /**
-         * @brief Generate a adress for the Buffer to access them in the shader in a bindless maner.
+         * @brief Generate a adress for the Buffer to access them in the shader without binding.
          * @tparam T
          * @param offset_bytes  TODO: make that doc better
          * @param access
@@ -226,13 +234,13 @@ private:
     template <typename T>
     Buffer::Buffer(const std::vector<T> data, const GLbitfield flags) : Buffer()
     {
-        allocate(data,flags);
+        allocate<T>(data,flags);
     }
 
     template <typename T>
     Buffer::Buffer(const T data, const GLbitfield flags) : Buffer()
     {
-        allocate(data, flags);
+        allocate<T>(data, flags);
     }
 
     void Buffer::bindBase(const uint32_t binding, const GLenum target) const
@@ -243,7 +251,7 @@ private:
     template <typename T>
     void Buffer::copyTo(const Buffer& target, const ptrdiff_t count, const ptrdiff_t src_offset, const ptrdiff_t dst_offset) const
     {
-        glCopyNamedBufferSubData(*this, target, src_offset, dst_offset, sizeof(T) * count);
+        glCopyNamedBufferSubData(*this, target, src_offset*sizeof(T), dst_offset*sizeof(T), sizeof(T) * count);
     }
 
     void Buffer::copyTo(const Buffer& target, const ptrdiff_t dst_offset) const
@@ -255,7 +263,7 @@ private:
     Buffer Buffer::clone(const ptrdiff_t count, const ptrdiff_t src_offset, const ptrdiff_t dst_offset) const
     {
         Buffer newBuffer;
-        copyTo(newBuffer, count, src_offset, dst_offset);
+        copyTo(newBuffer, count * sizeof(T), src_offset*sizeof(T), dst_offset*sizeof(T));
         return newBuffer;
     }
 
@@ -285,14 +293,14 @@ private:
     template<typename T>
     void Buffer::write(const std::vector<T> data, const intptr_t offset) const
     {
-        glNamedBufferSubData(*this, offset, data.size()*sizeof(T), data.data());
+        glNamedBufferSubData(*this, offset * sizeof(T), data.size()*sizeof(T), data.data());
     }
 
     template <typename T>
     std::vector<T> Buffer::read(const GLsizei size, const intptr_t offset) const
     {
         std::vector<T> v(size);
-        glGetNamedBufferSubData(*this,offset, size* sizeof(T),v.data());
+        glGetNamedBufferSubData(*this,offset*sizeof(T), size* sizeof(T),v.data());
         return v;
     }
 
@@ -300,7 +308,7 @@ private:
     T Buffer::read(const intptr_t offset) const
     {
         T t;
-        glGetNamedBufferSubData(*this,offset,sizeof(T),&t);
+        glGetNamedBufferSubData(*this,offset* sizeof(T),sizeof(T),&t);
         return t;
     }
 
@@ -314,7 +322,7 @@ private:
     BufferMap<T> Buffer::map(const ptrdiff_t count, const ptrdiff_t offset, const GLbitfield access) const
     {
         static_assert(!std::is_same_v<T, void>, "Cannot use void* as buffer mapping return type.");
-        return BufferMap<T>(*this, reinterpret_cast<T*>(glMapNamedBufferRange(*this, offset, count * sizeof(T), access)), count);
+        return BufferMap<T>(*this, reinterpret_cast<T*>(glMapNamedBufferRange(*this, offset * sizeof(T), count * sizeof(T), access)), count);
     }
 
     template <typename T>
