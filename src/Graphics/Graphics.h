@@ -71,6 +71,7 @@ int offset_of(TMember T::* field) noexcept
 #include "utils/Transform.h"
 #include "utils/ModelViewProjection.h"
 #include "opengl/Buffer.h"
+#include "opengl/VertexArray.h"
 //--------------------
 
 #endif //MPUTILS_GRAPHICS_H

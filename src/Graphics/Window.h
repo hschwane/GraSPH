@@ -59,7 +59,7 @@ public:
      */
     Window(const int width, const int height, const std::string & title, GLFWmonitor* monitor = nullptr, GLFWwindow* share = nullptr);
 
-    explicit operator GLFWwindow*() const; //!< return the inner pointer to the glfw window
+    operator GLFWwindow*() const; //!< return the inner pointer to the glfw window
     GLFWwindow* window() const; //!< return the inner pointer to the glfw window
 
     void makeContextCurrent() {glfwMakeContextCurrent(m_w.get());} //!< makes this window the current openGL context

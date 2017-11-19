@@ -49,7 +49,7 @@ void spawnParticles(int numOfParticles, std::list<particle> &particleList, float
     }
 }
 
-void drawParticles(std::list<particle> &particleList, GLuint vbo)
+void drawParticles(std::list<particle> &particleList, mpu::gph::Buffer vbo)
 {
     std::vector<glm::vec2> vert;
     for(auto &&item : particleList)
@@ -57,7 +57,7 @@ void drawParticles(std::list<particle> &particleList, GLuint vbo)
         vert.push_back(item.m_pos);
     }
 
-    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2)*vert.size(), vert.data(), GL_STATIC_DRAW);
+    vbo.stream(vert,GL_STREAM_DRAW);
     glDrawArrays( GL_POINTS, 0, vert.size());
 }
 
@@ -102,38 +102,13 @@ void animateParticles(std::list<particle> &particleList, float dt)
 
 int main()
 {
+
     // initialise log
     mpu::Log mainLog(mpu::ALL, mpu::ConsoleSink());
 
     // create window and init gl
-       mpu::gph::Window window(WIDTH,HEIGHT,"GravitySim");
+    mpu::gph::Window window(WIDTH,HEIGHT,"GravitySim");
     window.setPosition(glm::ivec2(600,50));
-
-
-    mpu::gph::Buffer b;
-    b.allocate<uint8_t>(30, GL_MAP_READ_BIT | GL_MAP_WRITE_BIT);
-
-    {
-        auto data =  b.map<uint8_t>(30, 0, GL_MAP_READ_BIT | GL_MAP_WRITE_BIT);
-
-        data[0] = 5;
-        data[1] = 3;
-
-        for(auto it = data.begin()+2; it != data.end(); ++it)
-        {
-            *it = 8;
-        }
-    } // buffer is unmapped here
-
-    {
-        auto data = b.map<const uint8_t>(30,0, GL_MAP_READ_BIT);
-        for(auto it = data.begin(); it != data.end(); ++it)
-        {
-            std::cout << int(*it) << "\n";
-        }
-    } // buffer is unmapped here
-
-/*
 
     // set bg and shader
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -146,16 +121,11 @@ int main()
 
     std::cout << "created particles" << std::endl;
 
-    // vertex buffer
-    GLuint vertexbuffer;
-    glGenBuffers(1, &vertexbuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-
-    GLuint vertexarray;
-    glGenVertexArrays(1, &vertexarray);
-    glBindVertexArray(vertexarray);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer( 0, 2, GL_FLOAT, GL_FALSE, 0, 0);
+    // vertex buffer and array
+    mpu::gph::Buffer vertexbuffer;
+    mpu::gph::VertexArray vertexarray;
+    vertexarray.addAttributeBufferArray(0,vertexbuffer,0,sizeof(glm::vec2),2,0);
+    vertexarray.bind();
 
     glPointSize( 2);
 
@@ -167,7 +137,7 @@ int main()
 
     int nbframes =0;
     double lastPerfT = oldT;
-    while( !glfwWindowShouldClose(window))
+    while( window.update())
     {
         glClear(GL_COLOR_BUFFER_BIT);
 
@@ -219,14 +189,7 @@ int main()
             nbframes = 0;
             lastPerfT += elapsedPerT;
         }
-
-        glfwSwapBuffers(window);
-        glfwPollEvents();
     }
 
-    glfwDestroyWindow(window);
-    glfwTerminate();
     return 0;
-
-    */
 }
