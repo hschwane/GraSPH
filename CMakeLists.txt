@@ -18,8 +18,8 @@ set(LIB_RESOURCE_PATH ${CMAKE_SOURCE_DIR}/resources CACHE PATH "Library Resource
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
 
 # set defines
-add_definitions(-DLIB_SHADER_PATH="${LIB_SHADER_PATH}")
-add_definitions(-DLIB_RESOURCE_PATH="${LIB_RESOURCE_PATH}")
+add_definitions(-DLIB_SHADER_PATH="${LIB_SHADER_PATH}/")
+add_definitions(-DLIB_RESOURCE_PATH="${LIB_RESOURCE_PATH}/")
 add_definitions(-DMPU_LIB_VERSION="${VERSION_SHORT}")
 add_definitions(-DGLFW_INCLUDE_GLCOREARB)
 add_definitions(-DGLEW_NO_GLU)
