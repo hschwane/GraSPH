@@ -49,7 +49,7 @@ public:
     bool operator!=(const Transform &other) const;
 
     // cast operators
-    operator glm::mat4() const;
+    explicit operator glm::mat4() const;
 
     // public members for easy access
     glm::vec3 position{ 0, 0, 0 };
