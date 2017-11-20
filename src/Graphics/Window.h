@@ -67,10 +67,10 @@ public:
 
     // window setting functions
     void setTitle(const std::string & s) {glfwSetWindowTitle(m_w.get(),s.c_str());} //!< change the window title
-    glm::ivec2 getPosition() {glm::ivec2 p; glfwGetWindowPos(m_w.get(),&p.x,&p.y);} //!< returns the window position
+    glm::ivec2 getPosition() {glm::ivec2 p; glfwGetWindowPos(m_w.get(),&p.x,&p.y);return p;} //!< returns the window position
     void setPosition(glm::ivec2 pos) {glfwSetWindowPos(m_w.get(),pos.x,pos.y);} //!< sets a new window position
     void setPosition(int x, int y) {glfwSetWindowPos(m_w.get(),x,y);} //!< sets a new window position
-    glm::ivec2 getSize(){glm::ivec2 p; glfwGetWindowSize(m_w.get(),&p.x,&p.y);} //!< returns the current window size
+    glm::ivec2 getSize(){glm::ivec2 p; glfwGetWindowSize(m_w.get(),&p.x,&p.y);return p;} //!< returns the current window size
     void setSize(glm::ivec2 size) {glfwSetWindowSize(m_w.get(),size.x,size.y);} //!< resize the window
     void setSize(int x, int y) {glfwSetWindowSize(m_w.get(),x,y);} //!< resize the window
     void minimize(){glfwIconifyWindow(m_w.get());} //!< minimize the window
@@ -102,7 +102,7 @@ public:
     int getInputMode(int mode){return glfwGetInputMode(m_w.get(),mode);} //!< set glfwSetInputMode for reference
     int getKey(int key) {return glfwGetKey(m_w.get(),key);} //!< state of key returns GLFW_PRESS or GLFW_RELEASE
     int getMouseButton(int button) {return glfwGetMouseButton(m_w.get(),button);} //!< state of mouse button returns GLFW_PRESS or GLFW_RELEASE
-    glm::dvec2 getCursorPos() {glm::dvec2 p; glfwGetCursorPos(m_w.get(),&p.x,&p.y);} //!< returns the cursor position within the window
+    glm::dvec2 getCursorPos() {glm::dvec2 p; glfwGetCursorPos(m_w.get(),&p.x,&p.y);return p;} //!< returns the cursor position within the window
     void setCursorPos(glm::dvec2 p) {glfwSetCursorPos(m_w.get(),p.x,p.y);} //!< sets a new cursor position
     void setCursorPos(double x, double y) {glfwSetCursorPos(m_w.get(),x,y);} //!< sets a new cursor position
     void setCursor(GLFWcursor* c) {glfwSetCursor(m_w.get(),c);} //!< sets a new cursor
