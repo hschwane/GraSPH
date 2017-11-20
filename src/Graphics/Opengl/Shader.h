@@ -55,7 +55,7 @@ namespace gph {
 		ShaderModule( ShaderStage stage, std::experimental::filesystem::path path_to_file);
 
 		// For a quicker usage, determine shader stage with just the file extension.
-		explicit ShaderModule(std::experimental::filesystem::path path_to_file);
+		ShaderModule(std::experimental::filesystem::path path_to_file);
 
 		ShaderStage stage;
         std::experimental::filesystem::path path_to_file;
