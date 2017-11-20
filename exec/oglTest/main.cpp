@@ -1,104 +1,11 @@
-#include <iostream>
-#include <random>
-#include <vector>
-#include <list>
-
-#include <Graphics/Graphics.h>
-#include <ctime>
 #include <Log/Log.h>
 #include <Log/ConsoleSink.h>
+#include <Timer/DeltaTimer.h>
+#include <Graphics/Graphics.h>
+#include "Graphics/Geometry/Cube.h"
 
-#include "ShaderTools.h"
-
-constexpr int HEIGHT = 600;
+constexpr int HEIGHT = 800;
 constexpr int WIDTH = 800;
-constexpr int NUM_PARTICLES = 300;
-constexpr double G_CONST = 6.6740831e-11;
-constexpr double MASS = 0.00003;
-constexpr double RADIUS = 0.00001;
-constexpr double DT = 0.001;
-constexpr int RESPAWN = 30;
-constexpr double RESPAWN_RADIUS = 0.1;
-constexpr float SPEED_DIVIDER = 2;
-
-struct particle
-{
-public:
-    glm::vec2 m_pos;
-    glm::vec2 m_vel;
-    glm::vec2 m_acc;
-    float m_mass;
-    float m_radius;
-};
-
-void spawnParticles(int numOfParticles, std::list<particle> &particleList, float mass, float radius, glm::vec2 lower, glm::vec2 upper, glm::vec2 speed = glm::vec2())
-{
-    for(int i = 0; i < numOfParticles; ++i)
-    {
-        particle p;
-
-        p.m_pos.x = lower.x + static_cast<float>(rand()) / (static_cast <float>(RAND_MAX/(upper.x-lower.x)));
-        p.m_pos.y = lower.y + static_cast<float>(rand()) / (static_cast <float>(RAND_MAX/(upper.y-lower.y)));
-
-        std::cout << "spawning: " << p.m_pos.x << " | " << p.m_pos.y << std::endl;
-
-        p.m_vel = speed;
-        p.m_mass = mass;
-        p.m_radius = radius;
-        particleList.push_back(p);
-    }
-}
-
-void drawParticles(std::list<particle> &particleList, mpu::gph::Buffer vbo)
-{
-    std::vector<glm::vec2> vert;
-    for(auto &&item : particleList)
-    {
-        vert.push_back(item.m_pos);
-    }
-
-    vbo.stream(vert,GL_STREAM_DRAW);
-    glDrawArrays( GL_POINTS, 0, vert.size());
-}
-
-void animateParticles(std::list<particle> &particleList, float dt)
-{
-    for(auto p = particleList.begin(); p != particleList.end(); ++p)
-    {
-        for(auto pp = particleList.begin(); pp != p;)
-        {
-            glm::vec2 rv = pp->m_pos - p->m_pos; // vector from p to pp
-            float r12 = glm::dot(rv,rv); // distance squared
-
-            // check collision
-            if(r12 <= (p->m_radius+pp->m_radius)) // not corect but faster
-            {
-                // particles colliding
-                glm::vec2 impuls = p->m_mass * p->m_vel + pp->m_mass * pp->m_vel;
-                p->m_mass += pp->m_mass;
-                p->m_vel = impuls / p->m_mass;
-
-                pp = particleList.erase(pp);
-            }
-            else
-            {
-                // calculate gravity
-                glm::vec2 gravity = (p->m_mass * pp->m_mass / r12) * glm::normalize(rv); // gravity
-
-                p->m_acc += gravity / p->m_mass;
-                pp->m_acc += -1.0f * gravity / pp->m_mass;
-                ++pp;
-            }
-        }
-    }
-
-    for(auto &&item : particleList)
-    {
-        item.m_vel += item.m_acc * dt;
-        item.m_pos += item.m_vel * dt;
-        item.m_acc = glm::vec2(0,0);
-    }
-}
 
 int main()
 {
@@ -108,87 +15,76 @@ int main()
 
     // create window and init gl
     mpu::gph::Window window(WIDTH,HEIGHT,"GravitySim");
-    window.setPosition(glm::ivec2(600,50));
 
-    // set bg and shader
-    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-    ShaderTools::createColorShaderProgram(1.0f,0.0f,0.0f);
+    // create a cube
+    mpu::gph::Buffer vbo(mpu::gph::Geometry::Cube::position());
+    mpu::gph::VertexArray vao;
+    vao.addAttributeBufferArray(0,vbo,0,3*sizeof(GLfloat),3,0);
+    vao.bind();
 
-    // particles
-    srand(std::time(nullptr));
-    std::list<particle> ptls;
-    spawnParticles(NUM_PARTICLES,ptls,MASS,RADIUS,glm::vec2(-0.75f,-0.75), glm::vec2(0.75f,0.75));
+    // create a mvp in gpu memory
+    mpu::gph::Buffer ubo;
+    ubo.allocate<mpu::gph::ModelViewProjection>(1,GL_MAP_READ_BIT|GL_MAP_WRITE_BIT|GL_MAP_PERSISTENT_BIT|GL_MAP_COHERENT_BIT);
+    ubo.bindBase( 0, GL_UNIFORM_BUFFER);
+    auto mvp = ubo.map<mpu::gph::ModelViewProjection>(1,0,GL_MAP_READ_BIT|GL_MAP_WRITE_BIT|GL_MAP_PERSISTENT_BIT|GL_MAP_COHERENT_BIT);
+    mvp[0] = mpu::gph::ModelViewProjection();
 
-    std::cout << "created particles" << std::endl;
+    // create camera
+    mpu::gph::Camera camera(&window);
+    camera.setMVP(&mvp[0]);
 
-    // vertex buffer and array
-    mpu::gph::Buffer vertexbuffer;
-    mpu::gph::VertexArray vertexarray;
-    vertexarray.addAttributeBufferArray(0,vertexbuffer,0,sizeof(glm::vec2),2,0);
-    vertexarray.bind();
+    // set gl options
+    glClearColor(1, 1, 1, 1);
+    glClearDepth(1.f);
+    glEnable(GL_DEPTH_TEST);
+    //mpu::gph::enableVsync(true);
+    glfwSwapInterval(0);
 
-    glPointSize( 2);
+    // create a shader
+    mpu::gph::addShaderIncludePath(LIB_SHADER_PATH);
+    mpu::gph::ShaderProgram shader({ {LIB_SHADER_PATH"simple.frag"},
+                                     {LIB_SHADER_PATH"simple.vert"} });
+    shader.use();
 
-    double oldT = glfwGetTime();
-    double lag = 0.0;
-
-    bool spawning = false;
-    glm::vec2 spawnpos;
-
+    // timing
+    mpu::DeltaTimer timer;
+    double dt;
     int nbframes =0;
-    double lastPerfT = oldT;
+    double elapsedPerT = 0;
+
     while( window.update())
     {
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glFinish();
 
-        // timing
-        double time = glfwGetTime();
-        double elapsed = time - oldT;
-        oldT = time;
-        lag += elapsed;
+        dt = timer.getDeltaTime();
+        camera.update(dt);
 
-        // get input
-        if(!spawning && glfwGetMouseButton(window,GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
-        {
-            spawning = true;
-            glm::f64vec2 cpos;
-            glfwGetCursorPos(window, &cpos.x, &cpos.y);
-            cpos.x = (cpos.x / WIDTH)*2 -1;
-            cpos.y = (-cpos.y / HEIGHT)*2 +1;
-            spawnpos = cpos;
-        }
-        else if(spawning && glfwGetMouseButton(window,GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE)
-        {
-            glm::f64vec2 cpos;
-            glfwGetCursorPos(window, &cpos.x, &cpos.y);
-            cpos.x = (cpos.x / WIDTH)*2 -1;
-            cpos.y = (-cpos.y / HEIGHT)*2 +1;
-            glm::vec2 speed = glm::vec2(cpos) - spawnpos / SPEED_DIVIDER;
+        shader.uniform4f("color",{1,0,0,1});
+        mvp[0].setModel(glm::translate(glm::mat4(),{0,0,0}));
+        glDrawArrays(GL_TRIANGLES,0,mpu::gph::Geometry::Cube::vertexCount);
+        glFinish();
 
+        shader.uniform4f("color",{0,1,0,1});
+        mvp[0].setModel(glm::translate(glm::mat4(),{2,0,0}));
+        glDrawArrays(GL_TRIANGLES,0,mpu::gph::Geometry::Cube::vertexCount);
+        glFinish();
 
-            spawnParticles(RESPAWN,ptls,MASS,RADIUS, glm::vec2(spawnpos)-glm::vec2(RESPAWN_RADIUS), glm::vec2(spawnpos)+glm::vec2(RESPAWN_RADIUS), speed);
-            spawning = false;
-        }
+        shader.uniform4f("color",{0,0,1,1});
+        mvp[0].setModel(glm::translate(glm::mat4(),{-2,0,0}));
+        glDrawArrays(GL_TRIANGLES,0,mpu::gph::Geometry::Cube::vertexCount);
 
-        // animate particles
-        while(lag > DT)
-        {
-            animateParticles(ptls, DT);
-            lag -= DT;
-        }
-
-        // draw particles
-        drawParticles( ptls, vertexbuffer);
 
         // performance display
         nbframes++;
-        double elapsedPerT = time-lastPerfT;
+        elapsedPerT += dt;
         if(elapsedPerT >= 1.0)
         {
-            printf("%f ms/frame\n", 1000.0*elapsedPerT/double(nbframes));
+            printf("%f ms/frame -- %f fps\n", 1000.0*elapsedPerT/double(nbframes), nbframes/elapsedPerT);
             nbframes = 0;
-            lastPerfT += elapsedPerT;
+            elapsedPerT = 0;
         }
+
     }
 
     return 0;
