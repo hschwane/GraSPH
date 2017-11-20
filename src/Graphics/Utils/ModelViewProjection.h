@@ -52,8 +52,8 @@ public:
     glm::mat4 getModelNormal() {return m_model_normal;}
     glm::mat4 getModelView() {return m_model_view;}
     glm::mat4 getModelViewNormal() {return m_model_view_normal;}
-    glm::mat4 getViewProjektion() { return m_view_projection;}
-    glm::mat4 getModelViewProjektion() {return m_model_view_projection;}
+    glm::mat4 getViewProjection() { return m_view_projection;}
+    glm::mat4 getModelViewProjection() {return m_model_view_projection;}
 
 private:
     glm::mat4 m_model{ 1.f };

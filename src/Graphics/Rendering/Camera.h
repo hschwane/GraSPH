@@ -107,7 +107,7 @@ private:
 class SimlpleWASDController : public CameraController
 {
 public:
-    explicit SimlpleWASDController( Window* window, float rotation_speed = 1.f, float movement_speed = 10.f);
+    explicit SimlpleWASDController( Window* window, float rotation_speed = 15.f, float movement_speed = 10.f);
     void updateTransform(Transform& transform, double dt) override;
 
 private:
@@ -115,8 +115,8 @@ private:
 
     glm::dvec2 m_last_cursor_position{}; //!< cursor position on last update
 
-    float m_rotation_speed = 1.f;   //!< camera rotation speed
-    float m_movement_speed = 10.f;  //!< camera movement speed
+    float m_rotation_speed;   //!< camera rotation speed
+    float m_movement_speed;  //!< camera movement speed
 
     Window& m_window; //!< the window that is querried for inputs
 };

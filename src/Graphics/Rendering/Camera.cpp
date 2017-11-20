@@ -17,6 +17,7 @@
 //--------------------
 #include "Camera.h"
 #include <GL/glew.h>
+#include <Log/Log.h>
 //--------------------
 
 // namespace
@@ -113,17 +114,15 @@ SimlpleWASDController::SimlpleWASDController( Window* window, float rotation_spe
 
 void SimlpleWASDController::updateTransform(Transform &transform, double dt)
 {
-
-    auto mode = m_window.getInputMode(GLFW_CURSOR);
-
     // switch input mode on right click
     switch(m_window.getMouseButton(GLFW_MOUSE_BUTTON_RIGHT))
     {
         case GLFW_PRESS:
             if (!m_mode_changed)
             {
+                logDEBUG("Camera") << "Changed input mode for rotation.";
                 m_last_cursor_position = m_window.getCursorPos();
-                m_window.setInputMode(GLFW_CURSOR,mode != GLFW_CURSOR_DISABLED ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
+                m_window.setInputMode(GLFW_CURSOR,m_window.getInputMode(GLFW_CURSOR) != GLFW_CURSOR_DISABLED ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
                 m_mode_changed = true;
             }
             break;
@@ -145,15 +144,17 @@ void SimlpleWASDController::updateTransform(Transform &transform, double dt)
     }) * m_movement_speed * static_cast<float>(dt);
 
     // update rotation
-    if(mode == GLFW_CURSOR_DISABLED)
+    if(m_window.getInputMode(GLFW_CURSOR) == GLFW_CURSOR_DISABLED)
     {
         glm::dvec2 current_position = m_window.getCursorPos();
         const glm::dvec2 delta = m_last_cursor_position - current_position;
         m_last_cursor_position = current_position;
 
-        transform.rotation = glm::quat(glm::vec3(glm::radians(delta.y * m_rotation_speed * dt), 0.f, 0.f))
-                             * glm::quat(glm::vec3(0.f, glm::radians(delta.x * m_rotation_speed * dt), 0.f))
-                             * transform.rotation;
+
+        transform.rotation = glm::quat(glm::vec3(0.f, glm::radians(delta.x) * m_rotation_speed * dt, 0.f))
+                                * transform.rotation
+                             *glm::quat(glm::vec3(glm::radians(delta.y) * m_rotation_speed * dt, 0.f, 0.f));
+
     }
 
 
