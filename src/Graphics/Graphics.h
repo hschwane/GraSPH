@@ -73,6 +73,7 @@ int offset_of(TMember T::* field) noexcept
 #include "opengl/Buffer.h"
 #include "opengl/VertexArray.h"
 #include "opengl/Shader.h"
+#include "rendering/Camera.h"
 //--------------------
 
 #endif //MPUTILS_GRAPHICS_H
