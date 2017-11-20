@@ -7,7 +7,7 @@ namespace gph {
 namespace Geometry {
 namespace Cube {
 
-    const float size = 1.0;
+    const unsigned int vertexCount = 36;
 
     std::vector<GLfloat> position(float size = 1.0)
     {
