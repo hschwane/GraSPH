@@ -107,12 +107,12 @@ void Camera::setAspect(const float aspect)
         m_mvp->setProjection(projectionMatrix());
 }
 
-SimlpleWASDController::SimlpleWASDController( Window* window, float rotation_speed, float movement_speed)
+SimpleWASDController::SimpleWASDController( Window* window, float rotation_speed, float movement_speed)
         : m_rotation_speed(rotation_speed), m_movement_speed(movement_speed), m_window(*window)
 {
 }
 
-void SimlpleWASDController::updateTransform(Transform &transform, double dt)
+void SimpleWASDController::updateTransform(Transform &transform, double dt)
 {
     // switch input mode on right click
     switch(m_window.getMouseButton(GLFW_MOUSE_BUTTON_RIGHT))

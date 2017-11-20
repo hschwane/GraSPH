@@ -94,7 +94,7 @@ private:
 };
 
 /**
- * class SipleWASDController
+ * class SimpleWASDController
  *
  * A simple was flying camera controller.
  * Press right mouse button to enter rotation mode.
@@ -104,10 +104,10 @@ private:
  * There is no rotation along the Z axis. (+Y is up)
  *
  */
-class SimlpleWASDController : public CameraController
+class SimpleWASDController : public CameraController
 {
 public:
-    explicit SimlpleWASDController( Window* window, float rotation_speed = 15.f, float movement_speed = 10.f);
+    explicit SimpleWASDController( Window* window, float rotation_speed = 15.f, float movement_speed = 10.f);
     void updateTransform(Transform& transform, double dt) override;
 
 private:
@@ -121,7 +121,7 @@ private:
     Window& m_window; //!< the window that is querried for inputs
 };
 
-typedef SimlpleWASDController DefaultCameraController;
+typedef SimpleWASDController DefaultCameraController;
 
 
 }}
