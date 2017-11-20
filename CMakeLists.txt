@@ -10,11 +10,22 @@ include(GetVersionFromGit)
 # create project
 project(mpUtils VERSION "${VERSION_SHORT}")
 
+# find directories
+set(LIB_SHADER_PATH ${CMAKE_SOURCE_DIR}/shader CACHE PATH "Library Shader Path. Set manually if it was not found.")
+set(LIB_RESOURCE_PATH ${CMAKE_SOURCE_DIR}/resources CACHE PATH "Library Resource path. Set manually if it was not found.")
+
 # set compiler flags
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
 
-# find packages
+# set defines
+add_definitions(-DLIB_SHADER_PATH="${LIB_SHADER_PATH}")
+add_definitions(-DLIB_RESOURCE_PATH="${LIB_RESOURCE_PATH}")
+add_definitions(-DMPU_LIB_VERSION="${VERSION_SHORT}")
+add_definitions(-DGLFW_INCLUDE_GLCOREARB)
+add_definitions(-DGLEW_NO_GLU)
 
+# find packages
+# --------------------
 # mutithreading
 find_package( Threads ) # the systems thread lib
 
@@ -26,8 +37,6 @@ find_package(GLM REQUIRED)
 
 # search for src files
 file(GLOB_RECURSE SOURCE_FILES ${CMAKE_SOURCE_DIR}/src/*.cpp) # yes i know, this is not recommended, but i still like it better and had no problems with it
-
-message(${SOURCE_FILES})
 
 # create target
 add_library(mpUtils SHARED ${SOURCE_FILES})
