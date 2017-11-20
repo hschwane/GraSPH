@@ -68,12 +68,12 @@ int offset_of(TMember T::* field) noexcept
 // include everything useful from the graphics part of the framework
 //____________________
 #include "Window.h"
-#include "utils/Transform.h"
-#include "utils/ModelViewProjection.h"
-#include "opengl/Buffer.h"
-#include "opengl/VertexArray.h"
-#include "opengl/Shader.h"
-#include "rendering/Camera.h"
+#include "Utils/Transform.h"
+#include "Utils/ModelViewProjection.h"
+#include "Opengl/Buffer.h"
+#include "Opengl/VertexArray.h"
+#include "Opengl/Shader.h"
+#include "Rendering/Camera.h"
 //--------------------
 
 #endif //MPUTILS_GRAPHICS_H

@@ -22,8 +22,8 @@
 //--------------------
 #include <glm/glm.hpp>
 #include <memory>
-#include "../utils/Transform.h"
-#include "../utils/ModelViewProjection.h"
+#include "../Utils/Transform.h"
+#include "../Utils/ModelViewProjection.h"
 #include "../Window.h"
 //--------------------
 
