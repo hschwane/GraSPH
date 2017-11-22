@@ -56,11 +56,11 @@ void inline enableVsync(bool enabled)
  * auto off = offset_of(&MyStruct::my_member);
  */
 template<typename T, typename TMember>
-int offset_of(TMember T::* field) noexcept
+GLuint offset_of(TMember T::* field) noexcept
 {
     // Use 0 instead of nullptr to prohibit a reinterpret_cast of nullptr_t
     // which throws a compiler error on some compilers.
-    return static_cast<int>(reinterpret_cast<size_t>(&(reinterpret_cast<T*>(0)->*field)));
+    return static_cast<GLuint>(reinterpret_cast<size_t>(&(reinterpret_cast<T*>(0)->*field)));
 }
 
 }}
