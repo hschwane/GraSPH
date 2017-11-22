@@ -8,7 +8,7 @@ constexpr int HEIGHT = 800;
 constexpr int WIDTH = 800;
 constexpr double DT = 0.001;
 constexpr double EPS2 = 0.001;
-constexpr unsigned int NUM_PARTICLES = 1000;
+constexpr unsigned int NUM_PARTICLES = 2000;
 constexpr float G = 1;
 constexpr float MASS = .1;
 const  glm::vec3 LOWER_BOUND = glm::vec3(-1,-1,-1);
@@ -106,8 +106,7 @@ int main()
             lag += dt;
         while(lag >= DT)
         {
-            simulationShader.dispatch(NUM_PARTICLES,1000,GL_ALL_BARRIER_BITS);
-            glFinish();
+            simulationShader.dispatch(NUM_PARTICLES,1000,GL_SHADER_STORAGE_BARRIER_BIT);
             lag -= DT;
         }
 
@@ -115,6 +114,7 @@ int main()
         // render the particles
         renderShader.use();
         vao.bind();
+        glMemoryBarrier(GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT);
         glDrawArrays( GL_POINTS, 0, particles.size());
 
         if(window.getKey(GLFW_KEY_1) == GLFW_PRESS)
