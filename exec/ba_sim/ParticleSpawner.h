@@ -41,7 +41,17 @@ public:
     ParticleSpawner(); //!< constructor will compile shader
     void spawnParticles(uint32_t numParticles, float totalMass, float temp,
                         const glm::vec3& upperBound, const glm::vec3& lowerBound); //!< spawns particles in a cube
-    mpu::gph::Buffer getParticleBuffer() {return m_particleBuffer;} //!< returns the particle buffer for use by rendering and simulation classes
+    void spawnParticles(uint32_t numParticles, float totalMass, float temp,
+                        float radius, const glm::vec3& center={0,0,0} ); //!< spawns particles in a sphere
+
+    // getter
+    mpu::gph::Buffer getParticleBuffer()const{return m_particleBuffer;} //!< returns the particle buffer for use by rendering and simulation classes
+    uint32_t getNumParticles()const{return m_numParticles;} //!< returns the number of particles that were created
+    float getTotalMass()const{return m_totalMass;} //!< returns the total mass of particles created
+    float getParticleMass()const{return m_particleMass;} //!< returns the mass of each particle that was created
+    float getTotalVolume()const{return m_totalVolume;} //!< returns the total volume the particles represent
+    float getParticleVolume()const{return m_particleVolume;} //!< returns the volume each particle represent
+    float getParticleDensity()const{return m_particleDensity;} //!< returns the density of each particle
 
     void setBufferFlags(uint32_t flags){m_bufferFlags = flags;}; //!< set the flags the particle buffer will be created with
 

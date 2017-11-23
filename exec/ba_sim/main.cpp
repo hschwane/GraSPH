@@ -47,7 +47,7 @@ int main()
 
     // generate some particles
     ParticleSpawner spawner;
-    spawner.spawnParticles(NUM_PARTICLES,TOTAL_MASS,TEMPERATURE,UPPER_BOUND,LOWER_BOUND);
+    spawner.spawnParticles(NUM_PARTICLES,TOTAL_MASS,TEMPERATURE, 2);
 
     // create a shader for simulation
     mpu::gph::ShaderProgram simulationShader({{PROJECT_SHADER_PATH"naive-gravity.comp"}});
@@ -84,7 +84,7 @@ int main()
             lag += dt;
         while(lag >= DT)
         {
-            simulationShader.dispatch(NUM_PARTICLES,500,GL_SHADER_STORAGE_BARRIER_BIT);
+            simulationShader.dispatch(NUM_PARTICLES,1000,GL_SHADER_STORAGE_BARRIER_BIT);
             lag -= DT;
         }
 
