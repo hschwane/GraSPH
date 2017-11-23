@@ -11,24 +11,24 @@ layout(binding=SPAWNER_BUFFER_BINDING,std430) buffer ParticleBuffer
 
 layout(local_size_variable) in;
 
-uniform vec3 upperBound;
-uniform vec3 lowerBound;
+uniform vec3 upper_bound;
+uniform vec3 lower_bound;
 uniform float mass;
 uniform float density;
 uniform float temperature;
-uniform float renderSize;
-uniform uint numOfParticles;
+uniform float render_size;
+uniform uint num_of_particles;
 
-uniform uint randomSeed;
+uniform uint random_seed;
 
 void main()
 {
-    if(gl_GlobalInvocationID.x >= numOfParticles)
+    if(gl_GlobalInvocationID.x >= num_of_particles)
         return;
 
     // generate a random position
-    uint seed = randomSeed*gl_GlobalInvocationID.x;
-    vec3 randomPos = (rand3(seed) * (upperBound - lowerBound)+lowerBound);
+    uint seed = random_seed*gl_GlobalInvocationID.x;
+    vec3 randomPos = (rand3(seed) * (upper_bound - lower_bound)+lower_bound);
     particles[gl_GlobalInvocationID.x].position = vec4(randomPos ,1);
 
     // set all the attributes
@@ -36,5 +36,5 @@ void main()
     particles[gl_GlobalInvocationID.x].mass = mass;
     particles[gl_GlobalInvocationID.x].density = density;
     particles[gl_GlobalInvocationID.x].temperature = temperature;
-    particles[gl_GlobalInvocationID.x].renderSize = renderSize;
+    particles[gl_GlobalInvocationID.x].renderSize = render_size;
 }

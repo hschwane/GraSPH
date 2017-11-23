@@ -55,14 +55,14 @@ void ParticleSpawner::spawnParticles(const uint32_t numParticles, const float to
     logDEBUG("Spawner") << "Buffer created and bound at binding " <<  SPAWNER_BUFFER_BINDING;
 
     // call the shader to do the work
-    m_cubeSpawnShader.uniform3f("upperBound",upperBound);
-    m_cubeSpawnShader.uniform3f("lowerBound",lowerBound);
+    m_cubeSpawnShader.uniform3f("upper_bound",upperBound);
+    m_cubeSpawnShader.uniform3f("lower_bound",lowerBound);
     m_cubeSpawnShader.uniform1f("mass",m_particleMass);
     m_cubeSpawnShader.uniform1f("density",m_particleDensity);
     m_cubeSpawnShader.uniform1f("temperature",temp);
-    m_cubeSpawnShader.uniform1f("renderSize",PARTICLE_RENDER_SIZE);
-    m_cubeSpawnShader.uniform1ui("numOfParticles",m_numParticles);
-    m_cubeSpawnShader.uniform1ui("randomSeed", std::time(nullptr)); // time as pseudo random seed
+    m_cubeSpawnShader.uniform1f("render_size",PARTICLE_RENDER_SIZE);
+    m_cubeSpawnShader.uniform1ui("num_of_particles",m_numParticles);
+    m_cubeSpawnShader.uniform1ui("random_seed", std::time(nullptr)); // time as pseudo random seed
     m_cubeSpawnShader.dispatch(numParticles,SPAWNER_GROUP_SIZE);
 }
 
@@ -100,9 +100,9 @@ void ParticleSpawner::spawnParticles(const uint32_t numParticles, const float to
     m_sphereSpawnShader.uniform1f("mass",m_particleMass);
     m_sphereSpawnShader.uniform1f("density",m_particleDensity);
     m_sphereSpawnShader.uniform1f("temperature",temp);
-    m_sphereSpawnShader.uniform1f("renderSize",PARTICLE_RENDER_SIZE);
-    m_sphereSpawnShader.uniform1ui("numOfParticles",m_numParticles);
-    m_sphereSpawnShader.uniform1ui("randomSeed", std::time(nullptr)); // time as pseudo random seed
+    m_sphereSpawnShader.uniform1f("render_size",PARTICLE_RENDER_SIZE);
+    m_sphereSpawnShader.uniform1ui("num_of_particles",m_numParticles);
+    m_sphereSpawnShader.uniform1ui("random_seed", std::time(nullptr)); // time as pseudo random seed
     m_sphereSpawnShader.dispatch(numParticles,SPAWNER_GROUP_SIZE);
 
     logDEBUG("Spawner") << "Generation";
