@@ -3,7 +3,7 @@
 
 #include "datatypes.glsl"
 
-layout(binding=2,std430) buffer ParticleBuffer
+layout(binding=PARTICLE_BUFFER_BINDING,std430) buffer ParticleBuffer
 {
     Particle particles[];
 };

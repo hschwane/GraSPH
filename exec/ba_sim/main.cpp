@@ -2,25 +2,14 @@
 #include <Log/ConsoleSink.h>
 #include <Timer/DeltaTimer.h>
 #include <Graphics/Graphics.h>
-#include "Graphics/Geometry/Cube.h"
+
+#include "Common.h"
 
 constexpr int HEIGHT = 800;
 constexpr int WIDTH = 800;
-constexpr double DT = 0.001;
-constexpr double EPS2 = 0.001;
-constexpr unsigned int NUM_PARTICLES = 2000;
-constexpr float G = 1;
-constexpr float MASS = .1;
-const  glm::vec3 LOWER_BOUND = glm::vec3(-1,-1,-1);
-const  glm::vec3 UPPER_BOUND = glm::vec3(1,1,1);
 
-struct Particle
-{
-    glm::vec4 position{0,0,0,1};
-    glm::vec4 velocity{0};
-    float mass{0};
-    float pad[3];
-};
+
+
 
 int main()
 {
@@ -62,24 +51,6 @@ int main()
     simulationShader.uniform1f("gravityConstant",  G);
     simulationShader.uniform1ui("numOfParticles",  NUM_PARTICLES);
 
-    // create some particles in a buffer
-    srand(std::time(nullptr));
-    std::vector<Particle> particles;
-    for(int i = 0; i < NUM_PARTICLES; ++i)
-    {
-        Particle p;
-        p.mass = MASS;
-        p.position.x = LOWER_BOUND.x + static_cast<float>(rand()) / (static_cast <float>(RAND_MAX/(UPPER_BOUND.x-LOWER_BOUND.x)));
-        p.position.y = LOWER_BOUND.y + static_cast<float>(rand()) / (static_cast <float>(RAND_MAX/(UPPER_BOUND.y-LOWER_BOUND.x)));
-        p.position.z = LOWER_BOUND.z + static_cast<float>(rand()) / (static_cast <float>(RAND_MAX/(UPPER_BOUND.z-LOWER_BOUND.x)));
-        p.position.w = 1;
-        particles.push_back(p);
-    }
-    logINFO("Particles") << "created " << particles.size() << " particles";
-
-    mpu::gph::Buffer particleBuffer(particles);
-    particleBuffer.bindBase(2,GL_SHADER_STORAGE_BUFFER);
-
     // create a vao
     mpu::gph::VertexArray vao;
     vao.addAttributeBufferArray(0,particleBuffer,0,sizeof(Particle),4,mpu::gph::offset_of(&Particle::position));
@@ -106,7 +77,7 @@ int main()
             lag += dt;
         while(lag >= DT)
         {
-            simulationShader.dispatch(NUM_PARTICLES,1000,GL_SHADER_STORAGE_BARRIER_BIT);
+            simulationShader.dispatch(NUM_PARTICLES,500,GL_SHADER_STORAGE_BARRIER_BIT);
             lag -= DT;
         }
 
