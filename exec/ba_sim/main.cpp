@@ -42,7 +42,7 @@ int main()
     camera.setMVP(&mvp[0]);
 
     // set gl options
-    glClearColor(1, 1, 1, 1);
+    glClearColor(0, 0, 0, 1);
     glClearDepth(1.f);
     glEnable(GL_DEPTH_TEST);
     glPointSize(2.0f);
@@ -53,7 +53,7 @@ int main()
     mpu::gph::addShaderIncludePath(PROJECT_SHADER_PATH);
     mpu::gph::ShaderProgram renderShader({ {LIB_SHADER_PATH"simple.frag"},
                                      {LIB_SHADER_PATH"simple.vert"} });
-    renderShader.uniform4f("color",{1,0,0,1});
+    renderShader.uniform4f("color",{1,1,1,1});
 
     // create a shader for simulation
     mpu::gph::ShaderProgram simulationShader({{PROJECT_SHADER_PATH"naive-gravity.comp"}});
