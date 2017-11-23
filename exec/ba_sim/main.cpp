@@ -84,7 +84,8 @@ int main()
             lag += dt;
         while(lag >= DT)
         {
-            simulationShader.dispatch(NUM_PARTICLES,1000,GL_SHADER_STORAGE_BARRIER_BIT);
+            glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+            simulationShader.dispatch(NUM_PARTICLES,1000);
             lag -= DT;
         }
 

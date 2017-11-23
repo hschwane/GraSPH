@@ -31,8 +31,8 @@
  * Use one of the spawnParticles functions to spawn the particles as a sphere or cube. the particle Buffer will be overwritten
  * in this process. If you want to add particles to an existing buffer make sure to make a copy beforehand. The new Buffer will be bound at
  * the SPAWNER_BUFFER_BINDING specified in the Common.h make sure the same index is used in the shader.
- * Dispatch goup size is specified by SPAWNER_GROUP_SIZE.
- * A memory barrier is in place after the particles were spawned.
+ * Dispatch group size is specified by SPAWNER_GROUP_SIZE.
+ * Remember to sync memory after spawning (glMemorieBarrier(...))!
  *
  */
 class ParticleSpawner
