@@ -41,6 +41,10 @@ struct Particle
 constexpr unsigned int PARTICLE_BUFFER_BINDING = 2;
 constexpr unsigned int SPAWNER_BUFFER_BINDING = 3;
 constexpr unsigned int SPAWNER_GROUP_SIZE = 500;
+constexpr unsigned int RENDERER_BUFFER_BINDING = 2;
+constexpr unsigned int RENDERER_POSITION_BINDING = 0;
+constexpr unsigned int RENDERER_SIZE_BINDING = 1;
+
 
 // simulation
 constexpr double DT = 0.001;
@@ -53,7 +57,7 @@ constexpr float TEMPERATURE = 30;
 
 // spawning
 constexpr float TOTAL_MASS = 1;
-constexpr unsigned int NUM_PARTICLES = 3000;
+constexpr unsigned int NUM_PARTICLES = 300;
 const  glm::vec3 LOWER_BOUND = glm::vec3(-1,-1,-1);
 const  glm::vec3 UPPER_BOUND = glm::vec3(1,1,1);
 
