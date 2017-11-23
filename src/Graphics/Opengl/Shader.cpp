@@ -100,17 +100,17 @@ namespace gph {
 		glUseProgram(*this);
 	}
 
-	void ShaderProgram::dispatch(const uint32_t invocations, const uint32_t group_size, const GLbitfield barrier) const
+	void ShaderProgram::dispatch(const uint32_t invocations, const uint32_t group_size) const
 	{
 		dispatch(glm::uvec3(invocations, 1, 1), glm::uvec3(group_size, 1, 1), barrier);
 	}
 
-	void ShaderProgram::dispatch(const glm::uvec2 invocations, const glm::uvec2 group_size, const GLbitfield barrier) const
+	void ShaderProgram::dispatch(const glm::uvec2 invocations, const glm::uvec2 group_size) const
 	{
 		dispatch(glm::uvec3(invocations.x, invocations.y, 1), glm::uvec3(group_size.x, group_size.y, 1), barrier);
 	}
 
-	void ShaderProgram::dispatch(const glm::uvec3 invocations, const glm::uvec3 group_size, const GLbitfield barrier) const
+	void ShaderProgram::dispatch(const glm::uvec3 invocations, const glm::uvec3 group_size) const
 	{
 		const static auto invocation_count = [](uint32_t global, uint32_t local)
 		{
@@ -126,7 +126,6 @@ namespace gph {
 			group_size.y,
 			group_size.z
 		);
-		glMemoryBarrier(barrier);
 	}
 
 	void ShaderProgram::uniform1i(const std::string_view uniform, const int32_t value) const
