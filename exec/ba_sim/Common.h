@@ -43,7 +43,7 @@ constexpr unsigned int SPAWNER_BUFFER_BINDING = 3;
 constexpr unsigned int SPAWNER_GROUP_SIZE = 500;
 
 // simulation
-constexpr double DT = 0.01;
+constexpr double DT = 0.001;
 constexpr double EPS2 = 0.001;
 constexpr float G = 1;
 
@@ -52,8 +52,8 @@ constexpr float PARTICLE_RENDER_SIZE = 1;
 constexpr float TEMPERATURE = 30;
 
 // spawning
-constexpr float TOTAL_MASS = 2000;
-constexpr unsigned int NUM_PARTICLES = 20000;
+constexpr float TOTAL_MASS = 1;
+constexpr unsigned int NUM_PARTICLES = 3000;
 const  glm::vec3 LOWER_BOUND = glm::vec3(-1,-1,-1);
 const  glm::vec3 UPPER_BOUND = glm::vec3(1,1,1);
 

@@ -95,7 +95,7 @@ int main()
         glMemoryBarrier(GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT);
         glDrawArrays( GL_POINTS, 0, NUM_PARTICLES);
 
-        if(window.getKey(GLFW_KEY_1) == GLFW_PRESS)
+        if(window.getKey(GLFW_KEY_1) == GLFW_PRESS && dt < 0.5)
         {
             runSim = true;
         } else {
