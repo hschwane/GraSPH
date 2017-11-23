@@ -62,6 +62,6 @@ ParticleSpawner::spawnParticles(uint32_t numParticles, float totalMass, float te
     m_cubeSpawnShader.uniform1f("temperature",temp);
     m_cubeSpawnShader.uniform1f("renderSize",PARTICLE_RENDER_SIZE);
     m_cubeSpawnShader.uniform1f("numOfParticles",m_numParticles);
-    m_cubeSpawnShader.uniform1f("randomSeed", std::time(nullptr)); // time as pseudo random seed
+    m_cubeSpawnShader.uniform1ui("randomSeed", std::time(nullptr)); // time as pseudo random seed
     m_cubeSpawnShader.dispatch(numParticles,SPAWNER_GROUP_SIZE);
 }

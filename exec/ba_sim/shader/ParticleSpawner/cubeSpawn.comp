@@ -2,6 +2,7 @@
 #extension GL_ARB_compute_variable_group_size : require
 
 #include "common.glsl"
+#include "random.glsl"
 
 layout(binding=SPAWNER_BUFFER_BINDING,std430) buffer ParticleBuffer
 {
@@ -18,18 +19,19 @@ uniform float temperature;
 uniform float renderSize;
 uniform float numOfParticles;
 
-uniform float randomSeed;
+uniform uint randomSeed;
 
 void main()
 {
     if(gl_GlobalInvocationID.x >= numOfParticles)
         return;
 
-    particles[gl_GlobalInvocationID.x].position.x = noise1(gl_GlobalInvocationID.x*randomSeed);
-    particles[gl_GlobalInvocationID.x].position.y = noise1(gl_GlobalInvocationID.x*randomSeed+1);
-    particles[gl_GlobalInvocationID.x].position.z = noise1(gl_GlobalInvocationID.x*randomSeed+2);
-    particles[gl_GlobalInvocationID.x].position.w = 1;
+    // generate a random position
+    uint seed = randomSeed*gl_GlobalInvocationID.x;
+    vec3 randomPos = (rand3(seed) * (upperBound - lowerBound)+lowerBound);
+    particles[gl_GlobalInvocationID.x].position = vec4(randomPos ,1);
 
+    // set all the attributes
     particles[gl_GlobalInvocationID.x].velocity = vec4(0,0,0,0);
     particles[gl_GlobalInvocationID.x].mass = mass;
     particles[gl_GlobalInvocationID.x].density = density;
