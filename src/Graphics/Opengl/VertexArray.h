@@ -89,42 +89,42 @@ public:
 	void bind() const; //!< bind the vao to use it as the rendering source
 };
 
-void VertexArray::enableArray(const GLuint attribIndex)
+inline void VertexArray::enableArray(const GLuint attribIndex)
 {
     glEnableVertexArrayAttrib(*this, attribIndex);
 }
 
-void VertexArray::disableArray(GLuint attribIndex)
+inline void VertexArray::disableArray(GLuint attribIndex)
 {
     glDisableVertexArrayAttrib(*this, attribIndex);
 }
 
-void VertexArray::setBuffer(const GLuint bindingIndex, const Buffer buffer, const GLintptr offset, const GLsizei stride)
+inline void VertexArray::setBuffer(const GLuint bindingIndex, const Buffer buffer, const GLintptr offset, const GLsizei stride)
 {
     glVertexArrayVertexBuffer(*this, bindingIndex, buffer, offset, stride);
 }
 
-void VertexArray::setAttribFormat(const GLuint attribIndex, const GLint vecSize, const GLuint relativeOffset, const GLenum type, const GLboolean normalize)
+inline void VertexArray::setAttribFormat(const GLuint attribIndex, const GLint vecSize, const GLuint relativeOffset, const GLenum type, const GLboolean normalize)
 {
     glVertexArrayAttribFormat(*this, attribIndex, vecSize, type, normalize, relativeOffset);
 }
 
-void VertexArray::setAttribFormatInt(GLuint attribIndex, GLint vecSize, GLuint relativeOffset, GLenum type)
+inline void VertexArray::setAttribFormatInt(GLuint attribIndex, GLint vecSize, GLuint relativeOffset, GLenum type)
 {
     glVertexArrayAttribIFormat(*this, attribIndex, vecSize, type, relativeOffset);
 }
 
-void VertexArray::setAttribFormatDouble(GLuint attribIndex, GLint vecSize, GLuint relativeOffset)
+inline void VertexArray::setAttribFormatDouble(GLuint attribIndex, GLint vecSize, GLuint relativeOffset)
 {
     glVertexArrayAttribLFormat(*this, attribIndex, vecSize, GL_DOUBLE, relativeOffset);
 }
 
-void VertexArray::addBinding(GLuint attribIndex, GLuint bindingIndex)
+inline void VertexArray::addBinding(GLuint attribIndex, GLuint bindingIndex)
 {
     glVertexArrayAttribBinding(*this, attribIndex, bindingIndex);
 }
 
-void VertexArray::addAttributeArray(GLuint attribIndex, GLuint bindingIndex, GLint vecSize, GLuint relativeOffset,
+inline void VertexArray::addAttributeArray(GLuint attribIndex, GLuint bindingIndex, GLint vecSize, GLuint relativeOffset,
                                     GLenum type, GLboolean normalize)
 {
     enableArray(attribIndex);
@@ -132,7 +132,7 @@ void VertexArray::addAttributeArray(GLuint attribIndex, GLuint bindingIndex, GLi
     addBinding(attribIndex, bindingIndex);
 }
 
-void VertexArray::addAttributeBufferArray(GLuint attribIndex, GLuint bindingIndex, Buffer buffer, GLintptr offset,
+inline void VertexArray::addAttributeBufferArray(GLuint attribIndex, GLuint bindingIndex, Buffer buffer, GLintptr offset,
                                           GLsizei stride, GLint vecSize, GLuint relativeOffset, GLenum type,
                                           GLboolean normalize)
 {
@@ -142,18 +142,18 @@ void VertexArray::addAttributeBufferArray(GLuint attribIndex, GLuint bindingInde
     addBinding(attribIndex,bindingIndex);
 }
 
-void VertexArray::addAttributeBufferArray(GLuint attribIndex, Buffer buffer, GLintptr offset, GLsizei stride,
+inline void VertexArray::addAttributeBufferArray(GLuint attribIndex, Buffer buffer, GLintptr offset, GLsizei stride,
                                           GLint vecSize, GLuint relativeOffset, GLenum type, GLboolean normalize)
 {
     addAttributeBufferArray(attribIndex,attribIndex,buffer,offset,stride,vecSize,relativeOffset,type,normalize);
 }
 
-void VertexArray::setIndexBuffer(const uint32_t buffer) const
+inline void VertexArray::setIndexBuffer(const uint32_t buffer) const
 {
 	glVertexArrayElementBuffer(*this, buffer);
 }
 
-void VertexArray::bind() const
+inline void VertexArray::bind() const
 {
 	glBindVertexArray(*this);
 }

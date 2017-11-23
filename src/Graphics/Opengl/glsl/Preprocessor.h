@@ -85,7 +85,7 @@ namespace glsl {
         void syntaxError(const fs::path& file, const int line, const std::string& reason)
         {
             logERROR("Shader Preprocessor") << "Error in " << file.string() << ":" << std::to_string(line) << ": " << reason;
-            throw std::runtime_error("Syntax error in shader preprocessor");
+            throw std::runtime_error("Syntax error in shader preprocessor"+file.string()+":"+ std::to_string(line) + ": "+ reason);
         }
 
         bool isNewLine(const char* in)
