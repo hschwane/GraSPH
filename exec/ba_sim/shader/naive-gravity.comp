@@ -1,7 +1,7 @@
 #version 450 core
 #extension GL_ARB_compute_variable_group_size : require
 
-#include "datatypes.glsl"
+#include "common.glsl"
 
 layout(binding=PARTICLE_BUFFER_BINDING,std430) buffer ParticleBuffer
 {

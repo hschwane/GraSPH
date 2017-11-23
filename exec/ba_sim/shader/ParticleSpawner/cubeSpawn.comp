@@ -1,7 +1,7 @@
 #version 450
 #extension GL_ARB_compute_variable_group_size : require
 
-#include "datatypes.glsl"
+#include "common.glsl"
 
 layout(binding=SPAWNER_BUFFER_BINDING,std430) buffer ParticleBuffer
 {
@@ -10,6 +10,29 @@ layout(binding=SPAWNER_BUFFER_BINDING,std430) buffer ParticleBuffer
 
 layout(local_size_variable) in;
 
-void main() {
+uniform vec3 upperBound;
+uniform vec3 lowerBound;
+uniform float mass;
+uniform float density;
+uniform float temperature;
+uniform float renderSize;
+uniform float numOfParticles;
 
+uniform float randomSeed;
+
+void main()
+{
+    if(gl_GlobalInvocationID.x >= numOfParticles)
+        return;
+
+    particles[gl_GlobalInvocationID.x].position.x = noise1(gl_GlobalInvocationID.x*randomSeed);
+    particles[gl_GlobalInvocationID.x].position.y = noise1(gl_GlobalInvocationID.x*randomSeed+1);
+    particles[gl_GlobalInvocationID.x].position.z = noise1(gl_GlobalInvocationID.x*randomSeed+2);
+    particles[gl_GlobalInvocationID.x].position.w = 1;
+
+    particles[gl_GlobalInvocationID.x].velocity = vec4(0,0,0,0);
+    particles[gl_GlobalInvocationID.x].mass = mass;
+    particles[gl_GlobalInvocationID.x].density = density;
+    particles[gl_GlobalInvocationID.x].temperature = temperature;
+    particles[gl_GlobalInvocationID.x].renderSize = renderSize;
 }

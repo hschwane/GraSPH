@@ -4,6 +4,7 @@
 #include <Graphics/Graphics.h>
 
 #include "Common.h"
+#include "ParticleSpawner.h"
 
 constexpr int HEIGHT = 800;
 constexpr int WIDTH = 800;
@@ -44,16 +45,22 @@ int main()
                                      {LIB_SHADER_PATH"simple.vert"} });
     renderShader.uniform4f("color",{1,1,1,1});
 
+    // generate some particles
+    ParticleSpawner spawner;
+    spawner.spawnParticles(NUM_PARTICLES,TOTAL_MASS,TEMPERATURE,UPPER_BOUND,LOWER_BOUND);
+
     // create a shader for simulation
     mpu::gph::ShaderProgram simulationShader({{PROJECT_SHADER_PATH"naive-gravity.comp"}});
     simulationShader.uniform1f("dt",DT);
     simulationShader.uniform1f("smoothingEpsilonSquared",  EPS2);
     simulationShader.uniform1f("gravityConstant",  G);
     simulationShader.uniform1ui("numOfParticles",  NUM_PARTICLES);
+    auto pb = spawner.getParticleBuffer();
+    pb.bindBase(PARTICLE_BUFFER_BINDING,GL_SHADER_STORAGE_BUFFER);
 
     // create a vao
     mpu::gph::VertexArray vao;
-    vao.addAttributeBufferArray(0,particleBuffer,0,sizeof(Particle),4,mpu::gph::offset_of(&Particle::position));
+    vao.addAttributeBufferArray(0,spawner.getParticleBuffer(),0,sizeof(Particle),4,mpu::gph::offset_of(&Particle::position));
 
     // timing
     mpu::DeltaTimer timer;
@@ -86,7 +93,7 @@ int main()
         renderShader.use();
         vao.bind();
         glMemoryBarrier(GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT);
-        glDrawArrays( GL_POINTS, 0, particles.size());
+        glDrawArrays( GL_POINTS, 0, NUM_PARTICLES);
 
         if(window.getKey(GLFW_KEY_1) == GLFW_PRESS)
         {

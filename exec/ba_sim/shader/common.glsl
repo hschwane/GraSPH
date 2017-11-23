@@ -4,7 +4,9 @@ struct Particle
     vec4 position;
     vec4 velocity;
     float mass;
-    float pad[3];
+    float density;
+    float temperature;
+    float renderSize;
 };
 
 #define PARTICLE_BUFFER_BINDING 2

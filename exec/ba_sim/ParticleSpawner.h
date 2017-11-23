@@ -41,7 +41,7 @@ public:
     ParticleSpawner(); //!< constructor will compile shader
     void spawnParticles(uint32_t numParticles, float totalMass, float temp,
                         const glm::vec3& upperBound, const glm::vec3& lowerBound); //!< spawns particles in a cube
-    mpu::gph::Buffer getParticleBuffer() {m_particleBuffer;} //!< returns the particle buffer for use by rendering and simulation classes
+    mpu::gph::Buffer getParticleBuffer() {return m_particleBuffer;} //!< returns the particle buffer for use by rendering and simulation classes
 
     void setBufferFlags(uint32_t flags){m_bufferFlags = flags;}; //!< set the flags the particle buffer will be created with
 
