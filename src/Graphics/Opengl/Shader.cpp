@@ -102,12 +102,12 @@ namespace gph {
 
 	void ShaderProgram::dispatch(const uint32_t invocations, const uint32_t group_size) const
 	{
-		dispatch(glm::uvec3(invocations, 1, 1), glm::uvec3(group_size, 1, 1), barrier);
+		dispatch(glm::uvec3(invocations, 1, 1), glm::uvec3(group_size, 1, 1));
 	}
 
 	void ShaderProgram::dispatch(const glm::uvec2 invocations, const glm::uvec2 group_size) const
 	{
-		dispatch(glm::uvec3(invocations.x, invocations.y, 1), glm::uvec3(group_size.x, group_size.y, 1), barrier);
+		dispatch(glm::uvec3(invocations.x, invocations.y, 1), glm::uvec3(group_size.x, group_size.y, 1));
 	}
 
 	void ShaderProgram::dispatch(const glm::uvec3 invocations, const glm::uvec3 group_size) const
