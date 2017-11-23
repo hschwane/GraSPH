@@ -271,7 +271,7 @@ private:
         allocate<T>(data, flags);
     }
 
-    void Buffer::bindBase(const uint32_t binding, const GLenum target) const
+    inline void Buffer::bindBase(const uint32_t binding, const GLenum target) const
     {
         glBindBufferBase(target, binding, *this);
     }
@@ -282,7 +282,7 @@ private:
         glCopyNamedBufferSubData(*this, target, src_offset*sizeof(T), dst_offset*sizeof(T), sizeof(T) * count);
     }
 
-    void Buffer::copyTo(const Buffer& target, const ptrdiff_t dst_offset) const
+    inline void Buffer::copyTo(const Buffer& target, const ptrdiff_t dst_offset) const
     {
         glCopyNamedBufferSubData(*this, target, 0, dst_offset, size());
     }
@@ -295,7 +295,7 @@ private:
         return newBuffer;
     }
 
-    Buffer Buffer::clone(const ptrdiff_t dst_offset) const
+    inline Buffer Buffer::clone(const ptrdiff_t dst_offset) const
     {
         return clone(size(), 0, dst_offset);
     }
@@ -366,19 +366,19 @@ private:
         return addr + offset_bytes * sizeof(T);
     }
 
-    int64_t Buffer::size() const
+    inline int64_t Buffer::size() const
     {
         int64_t num;
         glGetNamedBufferParameteri64v(*this, GL_BUFFER_SIZE, &num);
         return num;
     }
 
-    void Buffer::invalidate(GLintptr offset, GLsizeiptr length)
+    inline void Buffer::invalidate(GLintptr offset, GLsizeiptr length)
     {
         glInvalidateBufferSubData(*this,offset,length);
     }
 
-    void Buffer::invalidate()
+    inline void Buffer::invalidate()
     {
         glInvalidateBufferData(*this);
     }
