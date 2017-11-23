@@ -7,6 +7,23 @@
 // ----------------------------------------------------------------------------
 // some helper functions
 
+// Hammersley Point Set
+float radicalInverse_VdC(uint bits)
+{
+	bits = (bits << 16u) | (bits >> 16u);
+	bits = ((bits & 0x55555555u) << 1u) | ((bits & 0xAAAAAAAAu) >> 1u);
+	bits = ((bits & 0x33333333u) << 2u) | ((bits & 0xCCCCCCCCu) >> 2u);
+	bits = ((bits & 0x0F0F0F0Fu) << 4u) | ((bits & 0xF0F0F0F0u) >> 4u);
+	bits = ((bits & 0x00FF00FFu) << 8u) | ((bits & 0xFF00FF00u) >> 8u);
+	return float(bits) * 2.3283064365386963e-10f;
+}
+
+// trasform numbers using hammerley
+vec2 hammersley2d(uint current_sample, float inv_max_samples)
+{
+	return vec2(float(current_sample) * inv_max_samples, radicalInverse_VdC(current_sample));
+}
+
 //Method to generate a pseudo-random seed.
 uint WangHash(in uint a)
 {
@@ -47,6 +64,12 @@ vec2 rand2(uint seed)
 vec3 rand3(uint seed)
 {
     return vec3(rand(seed),rand(seed),rand(seed));
+}
+
+// hammersley point set
+// pass a random seed and the total number of points to generate
+vec2 genHammersleySet(uint seed, uint samples){
+	return hammersley2d(uint(clamp(rand(seed), 0.f, 1.f) * samples), 1/float(samples));
 }
 
 // random positions on the surface of a spere with radius 1
