@@ -17,7 +17,7 @@ uniform float mass;
 uniform float density;
 uniform float temperature;
 uniform float renderSize;
-uniform float numOfParticles;
+uniform uint numOfParticles;
 
 uniform uint randomSeed;
 
@@ -28,7 +28,8 @@ void main()
 
     // generate a random position
     uint seed = randomSeed*gl_GlobalInvocationID.x;
-    vec3 randomPos = randSphere(rand(seed),rand(seed),rand(seed),radius);
+    vec2 hammersley = genHammersleySet(seed, numOfParticles);
+    vec3 randomPos = randSphere( hammersley.x, hammersley.y,rand(seed),radius);
     particles[gl_GlobalInvocationID.x].position = vec4(randomPos + center,1);
 
     // set all the attributes

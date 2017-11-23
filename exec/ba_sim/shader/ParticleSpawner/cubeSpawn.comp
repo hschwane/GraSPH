@@ -17,7 +17,7 @@ uniform float mass;
 uniform float density;
 uniform float temperature;
 uniform float renderSize;
-uniform float numOfParticles;
+uniform uint numOfParticles;
 
 uniform uint randomSeed;
 
