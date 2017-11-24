@@ -39,7 +39,7 @@ void ParticleSpawner::spawnParticles(const uint32_t numParticles, const float to
     glm::vec3 cubeSize = upperBound - lowerBound;
     m_totalVolume = cubeSize.x * cubeSize.y * cubeSize.z;
     m_particleVolume = m_totalVolume / m_numParticles;
-    m_particleDensity = m_particleVolume / m_particleMass;
+    m_particleDensity = m_particleMass / m_particleVolume;
 
     logINFO("Spawner") << "Total volume: " << m_totalVolume;
 
@@ -79,7 +79,7 @@ void ParticleSpawner::spawnParticles(const uint32_t numParticles, const float to
     m_particleMass = m_totalMass / m_numParticles;
     m_totalVolume = 3.0/3.0 * M_PI * std::pow(radius,3);
     m_particleVolume = m_totalVolume / m_numParticles;
-    m_particleDensity = m_particleVolume / m_particleMass;
+    m_particleDensity = m_particleMass / m_particleVolume;
 
     logINFO("Spawner") << "Total volume: " << m_totalVolume;
 
