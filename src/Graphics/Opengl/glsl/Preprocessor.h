@@ -45,7 +45,7 @@ namespace glsl {
     {
         DefinitionInfo() = default;
 
-        explicit DefinitionInfo(const std::string value)
+        DefinitionInfo(const std::string value)
             : replacement(std::move(value)){}
 
         DefinitionInfo(const std::vector<std::string> parameters, const std::string replacement)
