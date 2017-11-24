@@ -15,5 +15,5 @@ void main()
         discard;
 
     //float b = 1-distFromCenter;
-	fragment_color = vec4(1,1,1,1);
+	fragment_color = vec4(0.9,0.3,0.1,1);
 }

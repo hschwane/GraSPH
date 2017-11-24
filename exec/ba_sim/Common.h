@@ -57,7 +57,7 @@ constexpr float TEMPERATURE = 30;
 
 // spawning
 constexpr float TOTAL_MASS = 1;
-constexpr unsigned int NUM_PARTICLES = 300;
+constexpr unsigned int NUM_PARTICLES = 5000;
 const  glm::vec3 LOWER_BOUND = glm::vec3(-1,-1,-1);
 const  glm::vec3 UPPER_BOUND = glm::vec3(1,1,1);
 

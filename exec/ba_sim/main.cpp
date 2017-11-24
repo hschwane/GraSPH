@@ -27,9 +27,9 @@ int main()
 
     // set some gl options
     glClearColor(0, 0, 0, 1);
-    glClearDepth(1.f);
-    glEnable(GL_DEPTH_TEST);
-    mpu::gph::enableVsync(true);
+//    glClearDepth(1.f);
+//    glEnable(GL_DEPTH_TEST);
+    mpu::gph::enableVsync(false);
 
     // generate some particles
     ParticleSpawner spawner;
@@ -67,30 +67,26 @@ int main()
     while( window.update())
     {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glFinish();
+//        glFinish();
 
         dt = timer.getDeltaTime();
         camera.update(dt);
 
-        if(runSim)
+        if(window.getKey(GLFW_KEY_1) == GLFW_PRESS && dt < 0.5)
             lag += dt;
+        else
+            lag = 0;
+
         while(lag >= DT)
         {
             glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-            simulationShader.dispatch(NUM_PARTICLES,1000);
+            simulationShader.dispatch(NUM_PARTICLES,100);
             lag -= DT;
         }
 
         // render the particles
         glMemoryBarrier(GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT);
         renderer.draw();
-
-        if(window.getKey(GLFW_KEY_1) == GLFW_PRESS && dt < 0.5)
-        {
-            runSim = true;
-        } else {
-            runSim = false;
-        }
 
         // performance display
         nbframes++;
