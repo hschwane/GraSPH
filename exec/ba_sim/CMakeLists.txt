@@ -7,6 +7,7 @@ project(ba_sim)
 set(SOURCE_FILES
         main.cpp
         ParticleSpawner.cpp
+        ParticleRenderer.cpp
         )
 
 # find directories

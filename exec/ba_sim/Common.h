@@ -41,9 +41,9 @@ struct Particle
 constexpr unsigned int PARTICLE_BUFFER_BINDING = 2;
 constexpr unsigned int SPAWNER_BUFFER_BINDING = 3;
 constexpr unsigned int SPAWNER_GROUP_SIZE = 500;
-constexpr unsigned int RENDERER_BUFFER_BINDING = 2;
-constexpr unsigned int RENDERER_POSITION_BINDING = 0;
-constexpr unsigned int RENDERER_SIZE_BINDING = 1;
+constexpr unsigned int RENDERER_BUFFER_BINDING = 1;
+constexpr unsigned int RENDERER_POSITION_ARRAY = 0;
+constexpr unsigned int RENDERER_SIZE_ARRAY = 1;
 
 
 // simulation
@@ -52,7 +52,7 @@ constexpr double EPS2 = 0.001;
 constexpr float G = 1;
 
 // particles
-constexpr float PARTICLE_RENDER_SIZE = 1;
+constexpr float PARTICLE_RENDER_SIZE = 2; // radius of a particle
 constexpr float TEMPERATURE = 30;
 
 // spawning
