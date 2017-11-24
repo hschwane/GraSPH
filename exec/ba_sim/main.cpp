@@ -46,7 +46,8 @@ int main()
     camera.setMVP(&renderer);
 
     // create a shader for simulation
-    mpu::gph::ShaderProgram simulationShader({{PROJECT_SHADER_PATH"naive-gravity.comp"}});
+    mpu::gph::glsl::Definition semiImplicit = {"SIMULATION_INTEGRATOR",{"\"Integration/semi-implicit-euler.glsl\""}};
+    mpu::gph::ShaderProgram simulationShader({{PROJECT_SHADER_PATH"naive-gravity.comp"}},{semiImplicit});
     simulationShader.uniform1f("dt",DT);
     simulationShader.uniform1f("smoothingEpsilonSquared",  EPS2);
     simulationShader.uniform1f("gravityConstant",  G);

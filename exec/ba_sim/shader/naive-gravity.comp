@@ -2,6 +2,7 @@
 #extension GL_ARB_compute_variable_group_size : require
 
 #include "common.glsl"
+#include SIMULATION_INTEGRATOR
 
 layout(binding=PARTICLE_BUFFER_BINDING,std430) buffer ParticleBuffer
 {
@@ -31,7 +32,5 @@ void main()
     }
     acc *= gravityConstant;
 
-    // integration
-    particles[gl_GlobalInvocationID.x].velocity += acc * dt;
-    particles[gl_GlobalInvocationID.x].position += particles[gl_GlobalInvocationID.x].velocity * dt;
+    integrate(particles[gl_GlobalInvocationID.x], acc, dt);
 }
