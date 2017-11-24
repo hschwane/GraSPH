@@ -10,13 +10,13 @@ layout(binding=PARTICLE_BUFFER_BINDING,std430) buffer ParticleBuffer
 
 layout(local_size_variable) in;
 
-uniform uint numOfParticles;
+uniform uint num_of_particles;
 uniform float dt;
 
 // This shader performs a semi-implicit euler step on one particle.
 void main()
 {
-    if(gl_GlobalInvocationID.x >= numOfParticles)
+    if(gl_GlobalInvocationID.x >= num_of_particles)
         return;
 
     particles[gl_GlobalInvocationID.x].velocity += particles[gl_GlobalInvocationID.x].acceleration * dt;

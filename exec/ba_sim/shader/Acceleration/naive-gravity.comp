@@ -11,15 +11,15 @@ layout(binding=PARTICLE_BUFFER_BINDING,std430) buffer ParticleBuffer
 
 layout(local_size_variable) in;
 
-uniform uint numOfParticles;
-uniform float gravityConstant;
-uniform float smoothingEpsilonSquared;
+uniform uint num_of_particles;
+uniform float gravity_constant;
+uniform float smoothing_epsilon_squared;
 
 // This shader updates a particles acceleration by interacting with all other particles in
 // a naive implementation.
 void main()
 {
-    if(gl_GlobalInvocationID.x >= numOfParticles)
+    if(gl_GlobalInvocationID.x >= num_of_particles)
         return;
 
     // cache my position in local memory
@@ -27,12 +27,12 @@ void main()
     vec4 myAcc = vec4(0,0,0,0);
 
     // interact with all other particles
-    for(uint i=0; i<numOfParticles; i++)
+    for(uint i=0; i<num_of_particles; i++)
     {
         myAcc += interaction(myPosition, particles[i].position,
-                            particles[i].mass, smoothingEpsilonSquared);
+                            particles[i].mass, smoothing_epsilon_squared);
     }
 
     // write back the acceleration
-    particles[gl_GlobalInvocationID.x].acceleration = myAcc; //* gravityConstant;
+    particles[gl_GlobalInvocationID.x].acceleration = myAcc; //* gravity_constant;
 }

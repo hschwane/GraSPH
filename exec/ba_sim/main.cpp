@@ -46,13 +46,13 @@ int main()
 
     // create shaders for simulation
     mpu::gph::ShaderProgram accShader({{PROJECT_SHADER_PATH"Acceleration/naive-gravity.comp"}});
-    accShader.uniform1f("smoothingEpsilonSquared",  EPS2);
-    accShader.uniform1f("gravityConstant",  G);
-    accShader.uniform1ui("numOfParticles",  NUM_PARTICLES);
+    accShader.uniform1f("smoothing_epsilon_squared",  EPS2);
+    accShader.uniform1f("gravity_constant",  G);
+    accShader.uniform1ui("num_of_particles",  NUM_PARTICLES);
 
     mpu::gph::ShaderProgram integShader({{PROJECT_SHADER_PATH"Integration/semi-implicit-euler.comp"}});
     integShader.uniform1f("dt",DT);
-    integShader.uniform1ui("numOfParticles",  NUM_PARTICLES);
+    integShader.uniform1ui("num_of_particles",  NUM_PARTICLES);
 
     // timing
     mpu::DeltaTimer timer;
