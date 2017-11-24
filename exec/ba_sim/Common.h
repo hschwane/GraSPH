@@ -52,7 +52,7 @@ constexpr double EPS2 = 0.001;
 constexpr float G = 1;
 
 // particles
-constexpr float PARTICLE_RENDER_SIZE = 2; // radius of a particle
+constexpr float PARTICLE_RENDER_SIZE = 0.005; // radius of a particle
 constexpr float TEMPERATURE = 30;
 
 // spawning

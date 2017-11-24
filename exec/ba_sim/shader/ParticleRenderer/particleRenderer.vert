@@ -13,5 +13,4 @@ void main()
 {
 	gl_Position = model_view_projection * input_position;
 	gl_PointSize = viewport_size.y * projection[1][1] * input_size / gl_Position.w;
-//	gl_PointSize = 2;// projection[1][1] * input_size / gl_Position.w;
 }
