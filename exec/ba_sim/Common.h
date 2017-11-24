@@ -48,11 +48,11 @@ constexpr unsigned int RENDERER_SIZE_ARRAY = 1;
 
 // simulation
 constexpr double DT = 0.001;
-constexpr double EPS2 = 0.001;
+constexpr double EPS2 = 0.0001;
 constexpr float G = 1;
 
 // particles
-constexpr float PARTICLE_RENDER_SIZE = 0.005; // radius of a particle
+constexpr float PARTICLE_RENDER_SIZE = 0.008; // radius of a particle
 constexpr float TEMPERATURE = 30;
 
 // spawning
