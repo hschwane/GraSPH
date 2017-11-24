@@ -50,9 +50,22 @@ int main()
     accShader.uniform1f("gravity_constant",  G);
     accShader.uniform1ui("num_of_particles",  NUM_PARTICLES);
 
-    mpu::gph::ShaderProgram integShader({{PROJECT_SHADER_PATH"Integration/semi-implicit-euler.comp"}});
-    integShader.uniform1f("dt",DT);
+//    mpu::gph::ShaderProgram integShader({{PROJECT_SHADER_PATH"Integration/semi-implicit-euler.comp"}});
+//    integShader.uniform1f("dt",DT);
+//    integShader.uniform1ui("num_of_particles",  NUM_PARTICLES);
+//
+    mpu::gph::ShaderProgram integShader({{PROJECT_SHADER_PATH"Integration/leapfrog.comp"}});
     integShader.uniform1ui("num_of_particles",  NUM_PARTICLES);
+    integShader.uniform1f("dt",DT);
+
+    // performe first step:
+    integShader.uniform1f("vel_dt",DT/2.0);
+    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+    accShader.dispatch(NUM_PARTICLES,100);
+    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+    integShader.dispatch(NUM_PARTICLES,100);
+    integShader.uniform1f("vel_dt",DT);
+
 
     // timing
     mpu::DeltaTimer timer;
