@@ -28,6 +28,7 @@ struct Particle
 {
     glm::vec4 position{0,0,0,1};
     glm::vec4 velocity{0};
+    glm::vec4 acceleration{0};
     float mass{0};
     float density{0};
     float temperature{0};
@@ -56,8 +57,8 @@ constexpr float PARTICLE_RENDER_SIZE = 0.008; // radius of a particle
 constexpr float TEMPERATURE = 30;
 
 // spawning
-constexpr float TOTAL_MASS = 1;
-constexpr unsigned int NUM_PARTICLES = 1000;
+constexpr float TOTAL_MASS = 0.1;
+constexpr unsigned int NUM_PARTICLES = 3000;
 const  glm::vec3 LOWER_BOUND = glm::vec3(-1,-1,-1);
 const  glm::vec3 UPPER_BOUND = glm::vec3(1,1,1);
 

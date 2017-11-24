@@ -1,0 +1,38 @@
+#version 450 core
+#extension GL_ARB_compute_variable_group_size : require
+
+#include "common.glsl"
+#include "softGravity.glsl"
+
+layout(binding=PARTICLE_BUFFER_BINDING,std430) buffer ParticleBuffer
+{
+    Particle particles[];
+};
+
+layout(local_size_variable) in;
+
+uniform uint numOfParticles;
+uniform float gravityConstant;
+uniform float smoothingEpsilonSquared;
+
+// This shader updates a particles acceleration by interacting with all other particles in
+// a naive implementation.
+void main()
+{
+    if(gl_GlobalInvocationID.x >= numOfParticles)
+        return;
+
+    // cache my position in local memory
+    vec4 myPosition = particles[gl_GlobalInvocationID.x].position;
+    vec4 myAcc = vec4(0,0,0,0);
+
+    // interact with all other particles
+    for(uint i=0; i<numOfParticles; i++)
+    {
+        myAcc += interaction(myPosition, particles[i].position,
+                            particles[i].mass, smoothingEpsilonSquared);
+    }
+
+    // write back the acceleration
+    particles[gl_GlobalInvocationID.x].acceleration = myAcc; //* gravityConstant;
+}

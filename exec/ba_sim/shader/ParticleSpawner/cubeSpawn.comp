@@ -33,6 +33,7 @@ void main()
 
     // set all the attributes
     particles[gl_GlobalInvocationID.x].velocity = vec4(0,0,0,0);
+    particles[gl_GlobalInvocationID.x].acceleration = vec4(0,0,0,0);
     particles[gl_GlobalInvocationID.x].mass = mass;
     particles[gl_GlobalInvocationID.x].density = density;
     particles[gl_GlobalInvocationID.x].temperature = temperature;

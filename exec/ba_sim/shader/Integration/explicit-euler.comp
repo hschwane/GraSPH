@@ -1,0 +1,26 @@
+#version 450 core
+#extension GL_ARB_compute_variable_group_size : require
+
+#include "common.glsl"
+
+layout(binding=PARTICLE_BUFFER_BINDING,std430) buffer ParticleBuffer
+{
+    Particle particles[];
+};
+
+layout(local_size_variable) in;
+
+uniform uint numOfParticles;
+uniform float dt;
+
+// This shader performs a explicit euler step on one particle.
+void main()
+{
+    if(gl_GlobalInvocationID.x >= numOfParticles)
+        return;
+
+    particles[gl_GlobalInvocationID.x].position += particles[gl_GlobalInvocationID.x].velocity * dt;
+    particles[gl_GlobalInvocationID.x].velocity += particles[gl_GlobalInvocationID.x].acceleration * dt;
+
+    particles[gl_GlobalInvocationID.x].acceleration = vec4(0,0,0,0);
+}

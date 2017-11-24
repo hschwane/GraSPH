@@ -10,9 +10,6 @@
 constexpr int HEIGHT = 800;
 constexpr int WIDTH = 800;
 
-
-
-
 int main()
 {
     // initialise log
@@ -34,6 +31,8 @@ int main()
     // generate some particles
     ParticleSpawner spawner;
     spawner.spawnParticles(NUM_PARTICLES,TOTAL_MASS,TEMPERATURE, 2);
+    auto pb = spawner.getParticleBuffer();
+    pb.bindBase(PARTICLE_BUFFER_BINDING,GL_SHADER_STORAGE_BUFFER);
 
     // create a renderer
     ParticleRenderer renderer;
@@ -45,15 +44,15 @@ int main()
     mpu::gph::Camera camera(&window);
     camera.setMVP(&renderer);
 
-    // create a shader for simulation
-    mpu::gph::glsl::Definition semiImplicit = {"SIMULATION_INTEGRATOR",{"\"Integration/semi-implicit-euler.glsl\""}};
-    mpu::gph::ShaderProgram simulationShader({{PROJECT_SHADER_PATH"naive-gravity.comp"}},{semiImplicit});
-    simulationShader.uniform1f("dt",DT);
-    simulationShader.uniform1f("smoothingEpsilonSquared",  EPS2);
-    simulationShader.uniform1f("gravityConstant",  G);
-    simulationShader.uniform1ui("numOfParticles",  NUM_PARTICLES);
-    auto pb = spawner.getParticleBuffer();
-    pb.bindBase(PARTICLE_BUFFER_BINDING,GL_SHADER_STORAGE_BUFFER);
+    // create shaders for simulation
+    mpu::gph::ShaderProgram accShader({{PROJECT_SHADER_PATH"Acceleration/naive-gravity.comp"}});
+    accShader.uniform1f("smoothingEpsilonSquared",  EPS2);
+    accShader.uniform1f("gravityConstant",  G);
+    accShader.uniform1ui("numOfParticles",  NUM_PARTICLES);
+
+    mpu::gph::ShaderProgram integShader({{PROJECT_SHADER_PATH"Integration/semi-implicit-euler.comp"}});
+    integShader.uniform1f("dt",DT);
+    integShader.uniform1ui("numOfParticles",  NUM_PARTICLES);
 
     // timing
     mpu::DeltaTimer timer;
@@ -67,7 +66,7 @@ int main()
     bool runSim = false;
     while( window.update())
     {
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 //        glFinish();
 
         dt = timer.getDeltaTime();
@@ -78,10 +77,16 @@ int main()
         else
             lag = 0;
 
+        if(window.getKey(GLFW_KEY_2) != GLFW_PRESS)
+            glClear(GL_COLOR_BUFFER_BIT);
+
         while(lag >= DT)
         {
             glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-            simulationShader.dispatch(NUM_PARTICLES,100);
+            accShader.dispatch(NUM_PARTICLES,100);
+            glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+            integShader.dispatch(NUM_PARTICLES,100);
+
             lag -= DT;
         }
 

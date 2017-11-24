@@ -4,6 +4,7 @@ struct Particle
 {
     vec4 position;
     vec4 velocity;
+    vec4 acceleration;
     float mass;
     float density;
     float temperature;
