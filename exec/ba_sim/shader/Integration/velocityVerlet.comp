@@ -1,0 +1,58 @@
+#version 450 core
+#extension GL_ARB_compute_variable_group_size : require
+
+#include "common.glsl"
+
+layout(binding=PARTICLE_BUFFER_BINDING,std430) buffer ParticleBuffer
+{
+    Particle particles[];
+};
+
+layout(binding=VERLET_BUFFER_BINDING,std430) buffer VerletLastPositionBuffer
+{
+    vec4 lastAcceleration[];
+};
+
+layout(local_size_variable) in;
+
+uniform uint num_of_particles;
+uniform float dt;
+uniform float vel_dt;
+
+// This shader performes a velocity verlet Integration step on a particle.
+// for the first step set vel_dt to 0
+// assumes A is only dependent on position
+// velVerlet scheme:
+// -----------------
+// A(X_0)
+// X_1 using X_0, V_0 and A_0
+// A(X_1)
+// V_1 using V_0, A_1 and A_0
+// X_2 using X_1, V_1 and A_1
+// A(X_2)
+// V_2 using V_1, A_2 and A_1
+// X_3 using X_2, V_2 and A_2
+// ------------------
+// Meaning that at the end of this function call the particle state will be
+// lastAcceleration: A_i-1
+// acceleration: A_i
+// velocity: V_i
+// position: X_i+1
+void main()
+{
+    if(gl_GlobalInvocationID.x >= num_of_particles)
+        return;
+
+    vec4 currPos = particles[gl_GlobalInvocationID.x].position;
+    vec4 currVel = particles[gl_GlobalInvocationID.x].velocity;
+    vec4 oldAcc = lastAcceleration[gl_GlobalInvocationID.x];
+    vec4 currAcc = particles[gl_GlobalInvocationID.x].acceleration;
+
+    vec4 newVel = currVel + 0.5*(currAcc+oldAcc)*vel_dt;
+    vec4 newPos = currPos + newVel*dt + 0.5 * currAcc*dt*dt;
+
+    particles[gl_GlobalInvocationID.x].position = newPos;
+    particles[gl_GlobalInvocationID.x].velocity = newVel;
+    lastAcceleration[gl_GlobalInvocationID.x] = currAcc;
+    particles[gl_GlobalInvocationID.x].acceleration = vec4(0,0,0,0);
+}

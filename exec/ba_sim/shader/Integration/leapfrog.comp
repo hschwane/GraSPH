@@ -17,6 +17,8 @@ uniform float vel_dt;
 // This shader performs a leapfrog integration step on one particle.
 // for the first step of the simulation set vel_dt=dt/2
 // for all other steps set vel_dt=dt
+// only works for fixed time steps
+// is time reversible
 // the leapfrog scheme:
 // -------------------
 // A(X_0)
@@ -26,7 +28,7 @@ uniform float vel_dt;
 // V_3/2 using A(X_1) * dt
 // X_2 using V_3/2 * dt
 // ------------------
-// Meaning that at teh end of this function call the particle state will be
+// Meaning that at the end of this function call the particle state will be
 // acceleration: A_i
 // velocity:     V_i+1/2
 // position:     X_i+1
