@@ -44,7 +44,7 @@ constexpr unsigned int RENDERER_BUFFER_BINDING = 1;
 
 constexpr unsigned int PARTICLE_BUFFER_BINDING = 2;
 constexpr unsigned int SPAWNER_BUFFER_BINDING = 3;
-constexpr unsigned int VERLET_LAST_POS_BUFFER_BINDING = 4;
+constexpr unsigned int VERLET_BUFFER_BINDING = 4;
 
 constexpr unsigned int RENDERER_POSITION_ARRAY = 0;
 constexpr unsigned int RENDERER_SIZE_ARRAY = 1;

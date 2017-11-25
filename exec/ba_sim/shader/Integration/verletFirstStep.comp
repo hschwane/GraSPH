@@ -8,7 +8,7 @@ layout(binding=PARTICLE_BUFFER_BINDING,std430) buffer ParticleBuffer
     Particle particles[];
 };
 
-layout(binding=VERLET_LAST_POS_BUFFER_BINDING,std430) buffer VerletLastPositionBuffer
+layout(binding=VERLET_BUFFER_BINDING,std430) buffer VerletLastPositionBuffer
 {
     vec4 lastPosition[];
 };
