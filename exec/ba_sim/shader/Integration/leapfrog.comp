@@ -26,6 +26,10 @@ uniform float vel_dt;
 // V_3/2 using A(X_1) * dt
 // X_2 using V_3/2 * dt
 // ------------------
+// Meaning that at teh end of this function call the particle state will be
+// acceleration: A_i
+// velocity:     V_i+1/2
+// position:     X_i+1
 void main()
 {
     if(gl_GlobalInvocationID.x >= num_of_particles)
