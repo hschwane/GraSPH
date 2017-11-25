@@ -53,18 +53,32 @@ int main()
 //    mpu::gph::ShaderProgram integShader({{PROJECT_SHADER_PATH"Integration/semi-implicit-euler.comp"}});
 //    integShader.uniform1f("dt",DT);
 //    integShader.uniform1ui("num_of_particles",  NUM_PARTICLES);
-//
-    mpu::gph::ShaderProgram integShader({{PROJECT_SHADER_PATH"Integration/leapfrog.comp"}});
-    integShader.uniform1ui("num_of_particles",  NUM_PARTICLES);
-    integShader.uniform1f("dt",DT);
 
-    // performe first step:
-    integShader.uniform1f("vel_dt",DT/2.0);
+//    mpu::gph::ShaderProgram integShader({{PROJECT_SHADER_PATH"Integration/leapfrog.comp"}});
+//    integShader.uniform1ui("num_of_particles",  NUM_PARTICLES);
+//    integShader.uniform1f("dt",DT);
+//    integShader.uniform1f("vel_dt",DT/2.0);
+//    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+//    accShader.dispatch(NUM_PARTICLES,100);
+//    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+//    integShader.dispatch(NUM_PARTICLES,100);
+//    integShader.uniform1f("vel_dt",DT);
+
+    mpu::gph::ShaderProgram integShader({{PROJECT_SHADER_PATH"Integration/verlet.comp"}});
+    mpu::gph::ShaderProgram verletFirstShader({{PROJECT_SHADER_PATH"Integration/verletFirstStep.comp"}});
+    integShader.uniform1ui("num_of_particles",  NUM_PARTICLES);
+    verletFirstShader.uniform1ui("num_of_particles",  NUM_PARTICLES);
+    integShader.uniform1f("dt",DT);
+    verletFirstShader.uniform1f("dt",DT);
+
+    mpu::gph::Buffer verletBuffer;
+    verletBuffer.allocate<glm::vec4>(NUM_PARTICLES);
+    verletBuffer.bindBase( VERLET_LAST_POS_BUFFER_BINDING, GL_SHADER_STORAGE_BUFFER);
+
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
     accShader.dispatch(NUM_PARTICLES,100);
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-    integShader.dispatch(NUM_PARTICLES,100);
-    integShader.uniform1f("vel_dt",DT);
+    verletFirstShader.dispatch(NUM_PARTICLES,100);
 
 
     // timing

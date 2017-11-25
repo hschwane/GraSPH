@@ -11,7 +11,13 @@ struct Particle
     float renderSize;
 };
 
-#define PARTICLE_BUFFER_BINDING 2
+// buffer for spawning
 #define SPAWNER_BUFFER_BINDING 3
+
+// buffer for simulation
+#define PARTICLE_BUFFER_BINDING 2
+#define VERLET_LAST_POS_BUFFER_BINDING 4
+
+// arrays for rendering data
 #define RENDERER_POSITION_ARRAY 0
 #define RENDERER_SIZE_ARRAY 1
