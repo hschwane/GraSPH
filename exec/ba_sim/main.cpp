@@ -96,9 +96,9 @@ int main()
         while(lag >= DT)
         {
             glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-            accShader.dispatch(NUM_PARTICLES,100);
+            accShader.dispatch(NUM_PARTICLES,500);
             glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-            integShader.dispatch(NUM_PARTICLES,100);
+            integShader.dispatch(NUM_PARTICLES,500);
 
             lag -= DT;
         }

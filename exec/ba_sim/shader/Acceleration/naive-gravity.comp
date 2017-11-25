@@ -29,7 +29,7 @@ void main()
     // interact with all other particles
     for(uint i=0; i<num_of_particles; i++)
     {
-        myAcc += interaction(myPosition, particles[i].position,
+            myAcc += interaction(myPosition, particles[i].position,
                             particles[i].mass, smoothing_epsilon_squared);
     }
 
