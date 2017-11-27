@@ -8,7 +8,7 @@ layout(binding=PARTICLE_BUFFER_BINDING,std430) buffer ParticleBuffer
     Particle particles[];
 };
 
-layout(binding=RK_MONE_BUFFER_BINDING,std430) buffer M1Buffer
+layout(binding=RK_MX_BUFFER_BINDING,std430) buffer M1Buffer
 {
     Particle particlesM1[];
 };

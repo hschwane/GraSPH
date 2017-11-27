@@ -8,7 +8,7 @@ layout(binding=PARTICLE_BUFFER_BINDING,std430) buffer ParticleBuffer
     Particle particlesIn[];
 };
 
-layout(binding=RK_MONE_BUFFER_BINDING,std430) buffer M1Buffer
+layout(binding=RK_MX_BUFFER_BINDING,std430) buffer MxBuffer
 {
     Particle particlesOut[];
 };
@@ -30,8 +30,8 @@ void main()
     vec4 posIn = particlesIn[gl_GlobalInvocationID.x].position;
 
     // advance the particles to t+dt/2 based on the acceleration that was calculated at t
-    vec4 velOut = velIn + accIn * dt/2;
-    vec4 posOut = posIn + velOut * dt/2;
+    vec4 velOut = velIn + accIn * dt;
+    vec4 posOut = posIn + velOut * dt;
 
     particlesOut[gl_GlobalInvocationID.x].velocity = velOut;
     particlesOut[gl_GlobalInvocationID.x].position = posOut;
