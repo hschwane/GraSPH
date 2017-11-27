@@ -3,12 +3,17 @@
 
 #include "common.glsl"
 
-layout(binding=PARTICLE_BUFFER_BINDING,std430) buffer ParticleBuffer
+layout(binding=RK_STATE_IN_BUFFER_BINDING,std430) buffer StateBuffer
 {
-    Particle particlesIn[];
+    Particle state[];
 };
 
-layout(binding=RK_MX_BUFFER_BINDING,std430) buffer MxBuffer
+layout(binding=RK_DERIV_BUFFER_BINDING,std430) buffer DerivativeBuffer
+{
+    Particle derivative[];
+};
+
+layout(binding=RK_OUT_BUFFER_BINDING,std430) buffer OutputBuffer
 {
     Particle particlesOut[];
 };
@@ -25,17 +30,19 @@ void main()
     if(gl_GlobalInvocationID.x >= num_of_particles)
         return;
 
-    vec4 velIn = particlesIn[gl_GlobalInvocationID.x].velocity;
-    vec4 accIn = particlesIn[gl_GlobalInvocationID.x].acceleration;
-    vec4 posIn = particlesIn[gl_GlobalInvocationID.x].position;
+    vec4 posIn = state[gl_GlobalInvocationID.x].position;
+    vec4 dposIn = derivative[gl_GlobalInvocationID.x].velocity;
 
-    // advance the particles to t+dt/2 based on the acceleration that was calculated at t
-    vec4 velOut = velIn + accIn * dt;
-    vec4 posOut = posIn + velOut * dt;
+    vec4 velIn = state[gl_GlobalInvocationID.x].velocity;
+    vec4 pvelIn = derivative[gl_GlobalInvocationID.x].acceleration;
+
+    // advance the particles to t+dt based on the acceleration and velocity from the derivative buffer
+    vec4 velOut = velIn + pvelIn * dt;
+    vec4 posOut = posIn + dposIn * dt;
 
     particlesOut[gl_GlobalInvocationID.x].velocity = velOut;
     particlesOut[gl_GlobalInvocationID.x].position = posOut;
     particlesOut[gl_GlobalInvocationID.x].acceleration = vec4(0,0,0,0);
-    particlesOut[gl_GlobalInvocationID.x].mass = particlesIn[gl_GlobalInvocationID.x].mass;
+    particlesOut[gl_GlobalInvocationID.x].mass = state[gl_GlobalInvocationID.x].mass;
     // now calculate acceleration of the new paricles
 }

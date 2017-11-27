@@ -1,0 +1,55 @@
+#version 450 core
+#extension GL_ARB_compute_variable_group_size : require
+
+#include "common.glsl"
+
+layout(binding=PARTICLE_BUFFER_BINDING,std430) buffer ParticleBuffer
+{
+    Particle particles[];
+};
+
+layout(binding=RK_MTWO_BUFFER_BINDING,std430) buffer M2Buffer
+{
+    Particle m2[];
+};
+
+layout(binding=RK_MTHREE_BUFFER_BINDING,std430) buffer M3Buffer
+{
+    Particle m3[];
+};
+
+layout(binding=RK_MFOUR_BUFFER_BINDING,std430) buffer M4Buffer
+{
+    Particle m4[];
+};
+
+
+layout(local_size_variable) in;
+
+uniform uint num_of_particles;
+uniform float dt;
+
+// This shader performs a semi-implicit euler step on one particle.
+void main()
+{
+    if(gl_GlobalInvocationID.x >= num_of_particles)
+        return;
+
+    vec4 velIn = particles[gl_GlobalInvocationID.x].velocity;
+    vec4 dVelM1 = particles[gl_GlobalInvocationID.x].acceleration;
+    vec4 dVelM2 = m2[gl_GlobalInvocationID.x].acceleration;
+    vec4 dVelM3 = m3[gl_GlobalInvocationID.x].acceleration;
+    vec4 dVelM4 = m4[gl_GlobalInvocationID.x].acceleration;
+
+    vec4 posIn = particles[gl_GlobalInvocationID.x].position;
+    vec4 dPosM1 = particles[gl_GlobalInvocationID.x].velocity;
+    vec4 dPosM2 = m2[gl_GlobalInvocationID.x].velocity;
+    vec4 dPosM3 = m3[gl_GlobalInvocationID.x].velocity;
+    vec4 dPosM4 = m4[gl_GlobalInvocationID.x].velocity;
+
+    vec4 velOut = velIn + 1.0/6.0 * (dVelM1 + dVelM2 + dVelM3 + dVelM4) *dt;
+    vec4 posOut = posIn + 1.0/6.0 * (dPosM1 + dPosM2 + dPosM3 + dPosM4) *dt;
+
+    particles[gl_GlobalInvocationID.x].position = posOut;
+    particles[gl_GlobalInvocationID.x].velocity = velOut;
+}
