@@ -45,13 +45,14 @@ constexpr unsigned int RENDERER_BUFFER_BINDING = 1;
 constexpr unsigned int PARTICLE_BUFFER_BINDING = 2;
 constexpr unsigned int SPAWNER_BUFFER_BINDING = 3;
 constexpr unsigned int VERLET_BUFFER_BINDING = 4;
+constexpr unsigned int RK_M1_BUFFER_BINDING = 5;
 
 constexpr unsigned int RENDERER_POSITION_ARRAY = 0;
 constexpr unsigned int RENDERER_SIZE_ARRAY = 1;
 
 
 // simulation
-constexpr double DT = 0.001;
+constexpr double DT = 0.016;
 constexpr double EPS2 = 0.001;
 constexpr float G = 1;
 
@@ -60,8 +61,8 @@ constexpr float PARTICLE_RENDER_SIZE = 0.008; // radius of a particle
 constexpr float TEMPERATURE = 30;
 
 // spawning
-constexpr float TOTAL_MASS = 0.01;
-constexpr unsigned int NUM_PARTICLES = 1000;
+constexpr float TOTAL_MASS = 0.5;
+constexpr unsigned int NUM_PARTICLES = 10000;
 const  glm::vec3 LOWER_BOUND = glm::vec3(-1,-1,-1);
 const  glm::vec3 UPPER_BOUND = glm::vec3(1,1,1);
 

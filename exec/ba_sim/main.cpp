@@ -33,12 +33,25 @@ int main()
     spawner.spawnParticles(NUM_PARTICLES,TOTAL_MASS,TEMPERATURE, 2);
     auto pb = spawner.getParticleBuffer();
     pb.bindBase(PARTICLE_BUFFER_BINDING,GL_SHADER_STORAGE_BUFFER);
+//
+//    std::vector<Particle> ptls;
+//    Particle a;
+//    a.position = {0.5,0,0,1};
+//    a.velocity = {0,0,0,0};
+//    a.acceleration = {0,0,0,0};
+//    a.renderSize = 0.008;
+//    a.mass=0.25;
+//    ptls.push_back(a);
+//    a.position = {-0.5,0,0,1};
+//    ptls.push_back(a);
+//    mpu::gph::Buffer pb(ptls);
+//    pb.bindBase(PARTICLE_BUFFER_BINDING,GL_SHADER_STORAGE_BUFFER);
 
     // create a renderer
     ParticleRenderer renderer;
     renderer.setViewportSize({WIDTH,HEIGHT});
     renderer.configureArrays(mpu::gph::offset_of(&Particle::position), mpu::gph::offset_of(&Particle::renderSize));
-    renderer.setParticleBuffer<Particle>( spawner.getParticleBuffer(), spawner.getNumParticles());
+    renderer.setParticleBuffer<Particle>( pb, NUM_PARTICLES);
 
     // create camera
     mpu::gph::Camera camera(&window);
@@ -83,20 +96,29 @@ int main()
 //    verletFirstShader.dispatch(NUM_PARTICLES,100);
 
     // velocity verlet
-    mpu::gph::ShaderProgram integShader({{PROJECT_SHADER_PATH"Integration/velocityVerlet.comp"}});
+//    mpu::gph::ShaderProgram integShader({{PROJECT_SHADER_PATH"Integration/velocityVerlet.comp"}});
+//    integShader.uniform1ui("num_of_particles",  NUM_PARTICLES);
+//    integShader.uniform1f("dt",DT);
+//    integShader.uniform1f("vel_dt",0.0f);
+//    mpu::gph::Buffer verletBuffer;
+//    verletBuffer.allocate<glm::vec4>(NUM_PARTICLES);
+//    verletBuffer.bindBase( VERLET_BUFFER_BINDING, GL_SHADER_STORAGE_BUFFER);
+//    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+//    accShader.dispatch(NUM_PARTICLES,100);
+//    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+//    integShader.dispatch(NUM_PARTICLES,100);
+//    integShader.uniform1f("vel_dt",DT);
+
+    // RK2-Midpoint
+    mpu::gph::ShaderProgram integShader({{PROJECT_SHADER_PATH"Integration/RK2-Midpoint.comp"}});
+    mpu::gph::ShaderProgram rkM1Shader({{PROJECT_SHADER_PATH"Integration/rk-intermediate/rkM1.comp"}});
     integShader.uniform1ui("num_of_particles",  NUM_PARTICLES);
+    rkM1Shader.uniform1ui("num_of_particles",  NUM_PARTICLES);
     integShader.uniform1f("dt",DT);
-    integShader.uniform1f("vel_dt",0.0f);
-
-    mpu::gph::Buffer verletBuffer;
-    verletBuffer.allocate<glm::vec4>(NUM_PARTICLES);
-    verletBuffer.bindBase( VERLET_BUFFER_BINDING, GL_SHADER_STORAGE_BUFFER);
-
-    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-    accShader.dispatch(NUM_PARTICLES,100);
-    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-    integShader.dispatch(NUM_PARTICLES,100);
-    integShader.uniform1f("vel_dt",DT);
+    rkM1Shader.uniform1f("dt",DT);
+    mpu::gph::Buffer rkM1Buffer;
+    rkM1Buffer.allocate<Particle>(NUM_PARTICLES);
+    rkM1Buffer.bindBase( RK_M1_BUFFER_BINDING, GL_SHADER_STORAGE_BUFFER);
 
     // timing
     mpu::DeltaTimer timer;
@@ -128,6 +150,16 @@ int main()
         {
             glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
             accShader.dispatch(NUM_PARTICLES,500);
+            glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+            rkM1Shader.dispatch(NUM_PARTICLES,500);
+            glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+            rkM1Buffer.bindBase( PARTICLE_BUFFER_BINDING, GL_SHADER_STORAGE_BUFFER);
+            glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+            accShader.dispatch(NUM_PARTICLES,500);
+
+            glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+            pb.bindBase( PARTICLE_BUFFER_BINDING,GL_SHADER_STORAGE_BUFFER);
+            rkM1Buffer.bindBase( RK_M1_BUFFER_BINDING, GL_SHADER_STORAGE_BUFFER);
             glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
             integShader.dispatch(NUM_PARTICLES,500);
 

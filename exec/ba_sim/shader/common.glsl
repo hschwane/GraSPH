@@ -17,6 +17,7 @@ struct Particle
 // buffer for simulation
 #define PARTICLE_BUFFER_BINDING 2
 #define VERLET_BUFFER_BINDING 4
+#define RK_MONE_BUFFER_BINDING 5
 
 // arrays for rendering data
 #define RENDERER_POSITION_ARRAY 0

@@ -1,0 +1,41 @@
+#version 450 core
+#extension GL_ARB_compute_variable_group_size : require
+
+#include "common.glsl"
+
+layout(binding=PARTICLE_BUFFER_BINDING,std430) buffer ParticleBuffer
+{
+    Particle particlesIn[];
+};
+
+layout(binding=RK_MONE_BUFFER_BINDING,std430) buffer M1Buffer
+{
+    Particle particlesOut[];
+};
+
+
+layout(local_size_variable) in;
+
+uniform uint num_of_particles;
+uniform float dt;
+
+// This shader performs a semi-implicit euler step on one particle.
+void main()
+{
+    if(gl_GlobalInvocationID.x >= num_of_particles)
+        return;
+
+    vec4 velIn = particlesIn[gl_GlobalInvocationID.x].velocity;
+    vec4 accIn = particlesIn[gl_GlobalInvocationID.x].acceleration;
+    vec4 posIn = particlesIn[gl_GlobalInvocationID.x].position;
+
+    // advance the particles to t+dt/2 based on the acceleration that was calculated at t
+    vec4 velOut = velIn + accIn * dt/2;
+    vec4 posOut = posIn + velOut * dt/2;
+
+    particlesOut[gl_GlobalInvocationID.x].velocity = velOut;
+    particlesOut[gl_GlobalInvocationID.x].position = posOut;
+    particlesOut[gl_GlobalInvocationID.x].acceleration = vec4(0,0,0,0);
+    particlesOut[gl_GlobalInvocationID.x].mass = particlesIn[gl_GlobalInvocationID.x].mass;
+    // now calculate acceleration of the new paricles
+}
