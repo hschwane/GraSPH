@@ -58,8 +58,8 @@ constexpr unsigned int RENDERER_POSITION_ARRAY = 0;
 constexpr unsigned int RENDERER_SIZE_ARRAY = 1;
 
 // simulation
-constexpr double DT = 0.016;
-constexpr double EPS2 = 0.01;
+constexpr double DT = 0.0001;
+constexpr double EPS2 = 0.001;
 constexpr float G = 1;
 
 // particles
@@ -68,14 +68,14 @@ constexpr float TEMPERATURE = 30;
 
 // spawning
 constexpr float TOTAL_MASS = 0.5;
-constexpr unsigned int NUM_PARTICLES = 3200;
+constexpr unsigned int NUM_PARTICLES = 3;
 const  glm::vec3 LOWER_BOUND = glm::vec3(-1,-1,-1);
 const  glm::vec3 UPPER_BOUND = glm::vec3(1,1,1);
 
 // work group size
 constexpr unsigned int FORCED_SIZE = 0;
 constexpr unsigned int THREADS_PER_CORE = 32;
-constexpr unsigned int THREAD_GOUP_SIZE = 128;
+constexpr unsigned int THREAD_GROUPING_SIZE = 128;
 constexpr unsigned int COMPUTE_CORES = 640;
 
 //-------------------------------------------------------------------
@@ -84,7 +84,7 @@ constexpr unsigned int COMPUTE_CORES = 640;
 /**
  * @brief calculates a workgroup size that fits the global invocation count based on some assumption on the gpu
  * structure (THREADS_PER_CORE / THREAD_GOUP_SIZE / COMPUTE_CORES) Will probably waste a lot of potential gpu power
- * if totalInvocations & THREADS_PER_CORE != 0 and you have other dispatch calls that could be executed in parallel.
+ * if totalInvocations % THREADS_PER_CORE != 0 and you have other dispatch calls that could be executed in parallel.
  *
  */
 inline uint32_t calcWorkgroupSize(uint32_t totalInvocations)
@@ -92,17 +92,17 @@ inline uint32_t calcWorkgroupSize(uint32_t totalInvocations)
     if(FORCED_SIZE!=0)
         return FORCED_SIZE;
 
-    if(totalInvocations % THREAD_GOUP_SIZE == 0)
+    if(totalInvocations % THREAD_GROUPING_SIZE == 0)
     {
-        logINFO("WGSize") << "Selecting workgroup size 128 for " << totalInvocations
-                          << " total invocations. Resulting in " << totalInvocations / 128 << " groups";
-        return 128;
+        logINFO("WGSize") << "Selecting workgroup size "<<THREAD_GROUPING_SIZE<<" for " << totalInvocations
+                          << " total invocations. Resulting in " << totalInvocations / THREAD_GROUPING_SIZE << " groups";
+        return THREAD_GROUPING_SIZE;
     }
     else if (totalInvocations % THREADS_PER_CORE == 0)
     {
-        logINFO("WGSize") << "Selecting workgroup size 32 for " << totalInvocations
-                          << " total invocations. Resulting in " << totalInvocations / 32 << " groups";
-        return 32;
+        logINFO("WGSize") << "Selecting workgroup size "<<THREADS_PER_CORE<<" for " << totalInvocations
+                          << " total invocations. Resulting in " << totalInvocations / THREADS_PER_CORE << " groups";
+        return THREADS_PER_CORE;
     }
     else if(totalInvocations <= 32)
     {
