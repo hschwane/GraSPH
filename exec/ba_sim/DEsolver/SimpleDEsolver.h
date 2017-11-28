@@ -65,4 +65,20 @@ public:
     virtual ~ExplicitEuler() override = default;
 };
 
+//-------------------------------------------------------------------
+/**
+ * class SemiImplicitEuler
+ *
+ * usage:
+ * Perform Semi-Implcit (symplectic) Euler integration on the particles. See DEsolver for usage info.
+ *
+ */
+class SemiImplicitEuler : public SimpleDEsolver
+{
+public:
+    SemiImplicitEuler() : SimpleDEsolver(PROJECT_SHADER_PATH"DEsolver/semi-implicit-euler.comp"){}
+    SemiImplicitEuler(std::function<void(void)> accelerator, mpu::gph::Buffer particleBuffer, uint32_t number, double dt) : SimpleDEsolver(PROJECT_SHADER_PATH"DEsolver/semi-implicit-euler.comp",accelerator,particleBuffer,number,dt) {}
+    virtual ~SemiImplicitEuler() override = default;
+};
+
 #endif //MPUTILS_EXPLICITEULER_H

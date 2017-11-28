@@ -72,12 +72,7 @@ int main()
     };
 
     //  create a simulator
-    ExplicitEuler simulation(accFunc,pb,NUM_PARTICLES,DT);
-
-    // semi implicit euler
-//    mpu::gph::ShaderProgram integShader({{PROJECT_SHADER_PATH"DEsolver/semi-implicit-euler.comp"}});
-//    integShader.uniform1f("dt",DT);
-//    integShader.uniform1ui("num_of_particles",  NUM_PARTICLES);
+    SemiImplicitEuler simulation(accFunc,pb,NUM_PARTICLES,DT);
 
     // leapfrog
 //    mpu::gph::ShaderProgram integShader({{PROJECT_SHADER_PATH"DEsolver/leapfrog.comp"}});
