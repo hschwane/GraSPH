@@ -8,6 +8,7 @@ set(SOURCE_FILES
         main.cpp
         ParticleSpawner.cpp
         ParticleRenderer.cpp
+        DEsolver/SimpleDEsolver.cpp
         )
 
 # find directories

@@ -19,6 +19,7 @@
 // includes
 //--------------------
 #include "Graphics/Graphics.h"
+#include "../Common.h"
 //--------------------
 
 //-------------------------------------------------------------------
@@ -28,14 +29,18 @@
 enum class DEsolverFlag : char
 {
     IS_SELF_STARTING = 2,
+    REQUIRE_ONE_ACC = 4,
+    REQUIRE_TWO_ACC = 8,
+    REQUIRE_THREE_ACC = 16,
+    REQUIRE_FOUR_ACC = 32,
 };
 
-DEsolverFlag operator|(const DEsolverFlag lhs, const DEsolverFlag rhs)
+inline DEsolverFlag operator|(const DEsolverFlag lhs, const DEsolverFlag rhs)
 {
     return static_cast<DEsolverFlag>(static_cast<char>(lhs) | static_cast<char>(rhs));
 }
 
-DEsolverFlag operator&(const DEsolverFlag lhs, const DEsolverFlag rhs)
+inline DEsolverFlag operator&(const DEsolverFlag lhs, const DEsolverFlag rhs)
 {
     return static_cast<DEsolverFlag>(static_cast<char>(lhs) & static_cast<char>(rhs));
 }
@@ -56,26 +61,56 @@ DEsolverFlag operator&(const DEsolverFlag lhs, const DEsolverFlag rhs)
  * Finally use advanceTime to advance the simulation.
  * Some solvers require you to use the start() function before performing the first step. You can check by calling isSelfStarting.
  *
+ * sync
+ * The accelerator does not have to use any memory barriers after finishing the acceleration calculation.
+ * Make sure to set the memory barrier yourself.
+ *
  */
 class DEsolver
 {
 public:
+    DEsolver(DEsolverFlag flags) : m_flags(flags){}
     virtual ~DEsolver()=default;
 
     virtual void setAccelerator(std::function<void(void)> accelerator)=0; //!< set the function used to calculate the acceleration
     virtual void setDT(double dt)=0; //!< set the timestep
-    virtual void setParticles(mpu::gph::Buffer particleBufferm, uint32_t number)=0; //!< set the particle buffer to be simulated
+    virtual void setParticles(mpu::gph::Buffer particleBuffer, uint32_t number)=0; //!< set the particle buffer to be simulated
 
     virtual void start(){}  //!< start the solver if it is not self starting
     virtual void advanceTime()=0; //!< advance the time by dt
 
-    bool isSelfStarting(){ return testFlag(DEsolverFlag::IS_SELF_STARTING);} //!< check if the solver is self starting
+    bool isSelfStarting()const; //!< check if the solver is self starting
+    int numberOfAccelerations()const; //!< check how many accelerations are computed per timestep
 
 private:
-    bool testFlag(DEsolverFlag flag) { return static_cast<bool>((m_flags & flag));}
+    bool testFlag(DEsolverFlag flag) const;
     const DEsolverFlag m_flags; //!< flags describing solver properties
-
 };
+
+inline bool DEsolver::isSelfStarting() const
+{
+    return testFlag(DEsolverFlag::IS_SELF_STARTING);
+}
+
+inline int DEsolver::numberOfAccelerations() const
+{
+    if(testFlag(DEsolverFlag::REQUIRE_ONE_ACC))
+        return 1;
+    else if(testFlag(DEsolverFlag::REQUIRE_TWO_ACC))
+        return 2;
+    else if(testFlag(DEsolverFlag::REQUIRE_THREE_ACC))
+        return 3;
+    else if(testFlag(DEsolverFlag::REQUIRE_FOUR_ACC))
+        return 4;
+    else
+        return 0;
+
+}
+
+inline bool DEsolver::testFlag(DEsolverFlag flag) const
+{
+    return static_cast<bool>((m_flags & flag));
+}
 
 
 #endif //MPUTILS_DESOLVER_H

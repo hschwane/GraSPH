@@ -6,12 +6,14 @@
 #include "Common.h"
 #include "ParticleSpawner.h"
 #include "ParticleRenderer.h"
+#include "DEsolver/SimpleDEsolver.h"
 
 constexpr int HEIGHT = 800;
 constexpr int WIDTH = 800;
 
 int main()
 {
+
     // initialise log
     mpu::Log mainLog(mpu::ALL, mpu::ConsoleSink());
 
@@ -57,20 +59,28 @@ int main()
     mpu::gph::Camera camera(&window);
     camera.setMVP(&renderer);
 
-    // create shaders for simulation
+    // create shaders for acceleration
     mpu::gph::ShaderProgram accShader({{PROJECT_SHADER_PATH"Acceleration/naive-gravity.comp"}});
     accShader.uniform1f("smoothing_epsilon_squared",  EPS2);
     accShader.uniform1f("gravity_constant",  G);
     accShader.uniform1ui("num_of_particles",  NUM_PARTICLES);
 
+    uint32_t wgSize = calcWorkgroupSize(NUM_PARTICLES);
+    auto accFunc = [accShader,wgSize](){
+        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+        accShader.dispatch(NUM_PARTICLES,wgSize);
+    };
+
+    //  create a simulator
+    ExplicitEuler simulation(accFunc,pb,NUM_PARTICLES,DT);
 
     // semi implicit euler
-//    mpu::gph::ShaderProgram integShader({{PROJECT_SHADER_PATH"Integration/semi-implicit-euler.comp"}});
+//    mpu::gph::ShaderProgram integShader({{PROJECT_SHADER_PATH"DEsolver/semi-implicit-euler.comp"}});
 //    integShader.uniform1f("dt",DT);
 //    integShader.uniform1ui("num_of_particles",  NUM_PARTICLES);
 
     // leapfrog
-//    mpu::gph::ShaderProgram integShader({{PROJECT_SHADER_PATH"Integration/leapfrog.comp"}});
+//    mpu::gph::ShaderProgram integShader({{PROJECT_SHADER_PATH"DEsolver/leapfrog.comp"}});
 //    integShader.uniform1ui("num_of_particles",  NUM_PARTICLES);
 //    integShader.uniform1f("dt",DT);
 //    integShader.uniform1f("vel_dt",DT/2.0);
@@ -81,8 +91,8 @@ int main()
 //    integShader.uniform1f("vel_dt",DT);
 
     // verlet
-//    mpu::gph::ShaderProgram integShader({{PROJECT_SHADER_PATH"Integration/verlet.comp"}});
-//    mpu::gph::ShaderProgram verletFirstShader({{PROJECT_SHADER_PATH"Integration/verletFirstStep.comp"}});
+//    mpu::gph::ShaderProgram integShader({{PROJECT_SHADER_PATH"DEsolver/verlet.comp"}});
+//    mpu::gph::ShaderProgram verletFirstShader({{PROJECT_SHADER_PATH"DEsolver/verletFirstStep.comp"}});
 //    integShader.uniform1ui("num_of_particles",  NUM_PARTICLES);
 //    verletFirstShader.uniform1ui("num_of_particles",  NUM_PARTICLES);
 //    integShader.uniform1f("dt",DT);
@@ -96,7 +106,7 @@ int main()
 //    verletFirstShader.dispatch(NUM_PARTICLES,100);
 
     // velocity verlet
-//    mpu::gph::ShaderProgram integShader({{PROJECT_SHADER_PATH"Integration/velocityVerlet.comp"}});
+//    mpu::gph::ShaderProgram integShader({{PROJECT_SHADER_PATH"DEsolver/velocityVerlet.comp"}});
 //    integShader.uniform1ui("num_of_particles",  NUM_PARTICLES);
 //    integShader.uniform1f("dt",DT);
 //    integShader.uniform1f("vel_dt",0.0f);
@@ -110,8 +120,8 @@ int main()
 //    integShader.uniform1f("vel_dt",DT);
 
     // RK2-Midpoint
-//    mpu::gph::ShaderProgram integShader({{PROJECT_SHADER_PATH"Integration/RK2-Midpoint.comp"}});
-//    mpu::gph::ShaderProgram rkM1Shader({{PROJECT_SHADER_PATH"Integration/rkIntermediate.comp"}});
+//    mpu::gph::ShaderProgram integShader({{PROJECT_SHADER_PATH"DEsolver/RK2-Midpoint.comp"}});
+//    mpu::gph::ShaderProgram rkM1Shader({{PROJECT_SHADER_PATH"DEsolver/rkIntermediate.comp"}});
 //    integShader.uniform1ui("num_of_particles",  NUM_PARTICLES);
 //    rkM1Shader.uniform1ui("num_of_particles",  NUM_PARTICLES);
 //    integShader.uniform1f("dt",DT);
@@ -121,20 +131,20 @@ int main()
 //    rkM1Buffer.bindBase( RK_MX_BUFFER_BINDING, GL_SHADER_STORAGE_BUFFER);
 
     // RK4
-    mpu::gph::ShaderProgram integShader({{PROJECT_SHADER_PATH"Integration/RK4.comp"}});
-    mpu::gph::ShaderProgram rkIntermediateShader({{PROJECT_SHADER_PATH"Integration/rkIntermediate.comp"}});
-    integShader.uniform1ui("num_of_particles",  NUM_PARTICLES);
-    rkIntermediateShader.uniform1ui("num_of_particles",  NUM_PARTICLES);
-    integShader.uniform1f("dt",DT);
-
-    mpu::gph::Buffer rkM2Buffer;
-    rkM2Buffer.allocate<Particle>(NUM_PARTICLES);
-
-    mpu::gph::Buffer rkM3Buffer;
-    rkM3Buffer.allocate<Particle>(NUM_PARTICLES);
-
-    mpu::gph::Buffer rkM4Buffer;
-    rkM4Buffer.allocate<Particle>(NUM_PARTICLES);
+//    mpu::gph::ShaderProgram integShader({{PROJECT_SHADER_PATH"DEsolver/RK4.comp"}});
+//    mpu::gph::ShaderProgram rkIntermediateShader({{PROJECT_SHADER_PATH"DEsolver/rkIntermediate.comp"}});
+//    integShader.uniform1ui("num_of_particles",  NUM_PARTICLES);
+//    rkIntermediateShader.uniform1ui("num_of_particles",  NUM_PARTICLES);
+//    integShader.uniform1f("dt",DT);
+//
+//    mpu::gph::Buffer rkM2Buffer;
+//    rkM2Buffer.allocate<Particle>(NUM_PARTICLES);
+//
+//    mpu::gph::Buffer rkM3Buffer;
+//    rkM3Buffer.allocate<Particle>(NUM_PARTICLES);
+//
+//    mpu::gph::Buffer rkM4Buffer;
+//    rkM4Buffer.allocate<Particle>(NUM_PARTICLES);
 
     // timing
     mpu::DeltaTimer timer;
@@ -165,6 +175,8 @@ int main()
         while(lag >= DT)
         {
 
+            simulation.advanceTime();
+            /*
             // calculate a(t,p(t),v(t))
             glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
             accShader.dispatch(NUM_PARTICLES,500);
@@ -209,7 +221,7 @@ int main()
             rkM3Buffer.bindBase( RK_MTHREE_BUFFER_BINDING, GL_SHADER_STORAGE_BUFFER);
             rkM4Buffer.bindBase( RK_MFOUR_BUFFER_BINDING, GL_SHADER_STORAGE_BUFFER);
             integShader.dispatch(NUM_PARTICLES,500);
-
+*/
               // RK2
 //            glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 //            accShader.dispatch(NUM_PARTICLES,500);
@@ -224,7 +236,7 @@ int main()
 //            rkM1Buffer.bindBase( RK_MX_BUFFER_BINDING, GL_SHADER_STORAGE_BUFFER);
 //            integShader.dispatch(NUM_PARTICLES,500);
 
-            lag -= DT;
+            lag -= DT*2;
         }
 
         // render the particles

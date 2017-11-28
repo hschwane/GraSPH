@@ -16,9 +16,6 @@ uniform float dt;
 // This shader performs a explicit euler step on one particle.
 void main()
 {
-    if(gl_GlobalInvocationID.x >= num_of_particles)
-        return;
-
     particles[gl_GlobalInvocationID.x].position += particles[gl_GlobalInvocationID.x].velocity * dt;
     particles[gl_GlobalInvocationID.x].velocity += particles[gl_GlobalInvocationID.x].acceleration * dt;
 
