@@ -39,7 +39,7 @@ struct Particle
 // global variables for settings TODO: move to init file / gui eventually
 
 // gl
-constexpr unsigned int SPAWNER_GROUP_SIZE = 500;
+constexpr unsigned int SPAWNER_GROUP_SIZE = 200;
 constexpr unsigned int RENDERER_BUFFER_BINDING = 1;
 
 constexpr unsigned int SPAWNER_BUFFER_BINDING = 3;
@@ -57,9 +57,8 @@ constexpr unsigned int RK_MFOUR_BUFFER_BINDING = 10;
 constexpr unsigned int RENDERER_POSITION_ARRAY = 0;
 constexpr unsigned int RENDERER_SIZE_ARRAY = 1;
 
-
 // simulation
-constexpr double DT = 0.01;
+constexpr double DT = 0.016;
 constexpr double EPS2 = 0.001;
 constexpr float G = 1;
 
@@ -69,8 +68,70 @@ constexpr float TEMPERATURE = 30;
 
 // spawning
 constexpr float TOTAL_MASS = 0.5;
-constexpr unsigned int NUM_PARTICLES = 1000;
+constexpr unsigned int NUM_PARTICLES = 32000;
 const  glm::vec3 LOWER_BOUND = glm::vec3(-1,-1,-1);
 const  glm::vec3 UPPER_BOUND = glm::vec3(1,1,1);
+
+// work group size
+constexpr unsigned int FORCED_SIZE = 0;
+constexpr unsigned int THREADS_PER_CORE = 32;
+constexpr unsigned int THREAD_GOUP_SIZE = 128;
+constexpr unsigned int COMPUTE_CORES = 640;
+
+//-------------------------------------------------------------------
+// some help functions
+
+/**
+ * @brief calculates a workgroup size that fits the global invocation count based on some assumption on the gpu
+ * structure (THREADS_PER_CORE / THREAD_GOUP_SIZE / COMPUTE_CORES) Will probably waste a lot of potential gpu power
+ * if totalInvocations & THREADS_PER_CORE != 0 and you have other dispatch calls that could be executed in parallel.
+ *
+ */
+inline uint32_t calcWorkgroupSize(uint32_t totalInvocations)
+{
+    if(FORCED_SIZE!=0)
+        return FORCED_SIZE;
+
+    if(totalInvocations % THREAD_GOUP_SIZE == 0)
+    {
+        logINFO("WGSize") << "Selecting workgroup size 128 for " << totalInvocations
+                          << " total invocations. Resulting in " << totalInvocations / 128 << " groups";
+        return 128;
+    }
+    else if (totalInvocations % THREADS_PER_CORE == 0)
+    {
+        logINFO("WGSize") << "Selecting workgroup size 32 for " << totalInvocations
+                          << " total invocations. Resulting in " << totalInvocations / 32 << " groups";
+        return 32;
+    }
+    else if(totalInvocations <= 32)
+    {
+        logINFO("WGSize") << "Selecting workgroup size " << totalInvocations << " for " << totalInvocations
+                          << " total invocations. Resulting in 1 group";
+        return totalInvocations;
+    }
+
+    logWARNING("WGSize") << "Could not find a work group size dividable by " << THREADS_PER_CORE <<"!";
+
+    GLint maxInt;
+    glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE,0,&maxInt);
+    uint32_t max = static_cast<uint32_t>(maxInt);
+
+    // search for the divider of "totalInvocations" that is smaller than
+    uint32_t result=1;
+    for(uint32_t i=1; i < max; i++)
+    {
+        // check if it devides totalInvocations
+        if(totalInvocations % i == 0 && (totalInvocations/i) >= COMPUTE_CORES)
+        {
+            result = i;
+        }
+    }
+
+
+    logINFO("WGSize") << "Selecting workgroup size " << result << " for " << totalInvocations
+                      << " total invocations. Resulting in " << totalInvocations / result << " groups";
+    return result;
+}
 
 #endif //MPUTILS_DATATYPES_H_H
