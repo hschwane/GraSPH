@@ -7,6 +7,7 @@
 #include "ParticleSpawner.h"
 #include "ParticleRenderer.h"
 #include "DEsolver/SimpleDEsolver.h"
+#include "DEsolver/Leapfrog.h"
 
 constexpr int HEIGHT = 800;
 constexpr int WIDTH = 800;
@@ -35,7 +36,7 @@ int main()
     spawner.spawnParticles(NUM_PARTICLES,TOTAL_MASS,TEMPERATURE, 2);
     auto pb = spawner.getParticleBuffer();
     pb.bindBase(PARTICLE_BUFFER_BINDING,GL_SHADER_STORAGE_BUFFER);
-//
+
 //    std::vector<Particle> ptls;
 //    Particle a;
 //    a.position = {0.5,0,0,1};
@@ -72,18 +73,8 @@ int main()
     };
 
     //  create a simulator
-    SemiImplicitEuler simulation(accFunc,pb,NUM_PARTICLES,DT);
-
-    // leapfrog
-//    mpu::gph::ShaderProgram integShader({{PROJECT_SHADER_PATH"DEsolver/leapfrog.comp"}});
-//    integShader.uniform1ui("num_of_particles",  NUM_PARTICLES);
-//    integShader.uniform1f("dt",DT);
-//    integShader.uniform1f("vel_dt",DT/2.0);
-//    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-//    accShader.dispatch(NUM_PARTICLES,100);
-//    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-//    integShader.dispatch(NUM_PARTICLES,100);
-//    integShader.uniform1f("vel_dt",DT);
+    Leapfrog simulation(accFunc,pb,NUM_PARTICLES,DT);
+    simulation.start();
 
     // verlet
 //    mpu::gph::ShaderProgram integShader({{PROJECT_SHADER_PATH"DEsolver/verlet.comp"}});
@@ -231,7 +222,7 @@ int main()
 //            rkM1Buffer.bindBase( RK_MX_BUFFER_BINDING, GL_SHADER_STORAGE_BUFFER);
 //            integShader.dispatch(NUM_PARTICLES,500);
 
-            lag -= DT*2;
+            lag -= DT;
         }
 
         // render the particles
