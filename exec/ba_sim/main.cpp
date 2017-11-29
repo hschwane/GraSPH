@@ -8,6 +8,7 @@
 #include "ParticleRenderer.h"
 #include "DEsolver/SimpleDEsolver.h"
 #include "DEsolver/Leapfrog.h"
+#include "DEsolver/Verlet.h"
 
 constexpr int HEIGHT = 800;
 constexpr int WIDTH = 800;
@@ -73,23 +74,8 @@ int main()
     };
 
     //  create a simulator
-    Leapfrog simulation(accFunc,pb,NUM_PARTICLES,DT);
+    Verlet simulation(accFunc,pb,NUM_PARTICLES,DT);
     simulation.start();
-
-    // verlet
-//    mpu::gph::ShaderProgram integShader({{PROJECT_SHADER_PATH"DEsolver/verlet.comp"}});
-//    mpu::gph::ShaderProgram verletFirstShader({{PROJECT_SHADER_PATH"DEsolver/verletFirstStep.comp"}});
-//    integShader.uniform1ui("num_of_particles",  NUM_PARTICLES);
-//    verletFirstShader.uniform1ui("num_of_particles",  NUM_PARTICLES);
-//    integShader.uniform1f("dt",DT);
-//    verletFirstShader.uniform1f("dt",DT);
-//    mpu::gph::Buffer verletBuffer;
-//    verletBuffer.allocate<glm::vec4>(NUM_PARTICLES);
-//    verletBuffer.bindBase( VERLET_BUFFER_BINDING, GL_SHADER_STORAGE_BUFFER);
-//    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-//    accShader.dispatch(NUM_PARTICLES,100);
-//    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-//    verletFirstShader.dispatch(NUM_PARTICLES,100);
 
     // velocity verlet
 //    mpu::gph::ShaderProgram integShader({{PROJECT_SHADER_PATH"DEsolver/velocityVerlet.comp"}});

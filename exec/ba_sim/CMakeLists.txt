@@ -10,6 +10,7 @@ set(SOURCE_FILES
         ParticleRenderer.cpp
         DEsolver/SimpleDEsolver.cpp
         DEsolver/Leapfrog.cpp
+        DEsolver/Verlet.cpp
         )
 
 # find directories

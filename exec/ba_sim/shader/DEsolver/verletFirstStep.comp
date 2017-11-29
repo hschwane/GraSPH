@@ -15,15 +15,11 @@ layout(binding=VERLET_BUFFER_BINDING,std430) buffer VerletLastPositionBuffer
 
 layout(local_size_variable) in;
 
-uniform uint num_of_particles;
 uniform float dt;
 
 // This shader performs the first step of a verlet integration
 void main()
 {
-    if(gl_GlobalInvocationID.x >= num_of_particles)
-        return;
-
     vec4 currentPos = particles[gl_GlobalInvocationID.x].position;
     vec4 velocity = particles[gl_GlobalInvocationID.x].velocity;
     vec4 acceleration = particles[gl_GlobalInvocationID.x].acceleration;
