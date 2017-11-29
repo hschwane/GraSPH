@@ -9,6 +9,7 @@
 #include "DEsolver/SimpleDEsolver.h"
 #include "DEsolver/Leapfrog.h"
 #include "DEsolver/Verlet.h"
+#include "DEsolver/VelocityVerlet.h"
 
 constexpr int HEIGHT = 800;
 constexpr int WIDTH = 800;
@@ -74,22 +75,8 @@ int main()
     };
 
     //  create a simulator
-    Verlet simulation(accFunc,pb,NUM_PARTICLES,DT);
+    VelocityVerlet simulation(accFunc,pb,NUM_PARTICLES,DT);
     simulation.start();
-
-    // velocity verlet
-//    mpu::gph::ShaderProgram integShader({{PROJECT_SHADER_PATH"DEsolver/velocityVerlet.comp"}});
-//    integShader.uniform1ui("num_of_particles",  NUM_PARTICLES);
-//    integShader.uniform1f("dt",DT);
-//    integShader.uniform1f("vel_dt",0.0f);
-//    mpu::gph::Buffer verletBuffer;
-//    verletBuffer.allocate<glm::vec4>(NUM_PARTICLES);
-//    verletBuffer.bindBase( VERLET_BUFFER_BINDING, GL_SHADER_STORAGE_BUFFER);
-//    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-//    accShader.dispatch(NUM_PARTICLES,100);
-//    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-//    integShader.dispatch(NUM_PARTICLES,100);
-//    integShader.uniform1f("vel_dt",DT);
 
     // RK2-Midpoint
 //    mpu::gph::ShaderProgram integShader({{PROJECT_SHADER_PATH"DEsolver/RK2-Midpoint.comp"}});
@@ -148,6 +135,8 @@ int main()
         {
 
             simulation.advanceTime();
+
+
             /*
             // calculate a(t,p(t),v(t))
             glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);

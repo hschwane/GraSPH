@@ -15,7 +15,6 @@ layout(binding=VERLET_BUFFER_BINDING,std430) buffer VerletLastPositionBuffer
 
 layout(local_size_variable) in;
 
-uniform uint num_of_particles;
 uniform float dt;
 uniform float vel_dt;
 
@@ -40,9 +39,6 @@ uniform float vel_dt;
 // position: X_i+1
 void main()
 {
-    if(gl_GlobalInvocationID.x >= num_of_particles)
-        return;
-
     vec4 currPos = particles[gl_GlobalInvocationID.x].position;
     vec4 currVel = particles[gl_GlobalInvocationID.x].velocity;
     vec4 oldAcc = lastAcceleration[gl_GlobalInvocationID.x];
