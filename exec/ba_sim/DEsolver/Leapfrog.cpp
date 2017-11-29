@@ -16,11 +16,6 @@
 #include "Leapfrog.h"
 //--------------------
 
-// namespace
-//--------------------
-
-//--------------------
-
 // function definitions of the Leapfrog class
 //-------------------------------------------------------------------
 Leapfrog::Leapfrog() : Leapfrog(nullptr,mpu::gph::Buffer(),0,0)
@@ -36,7 +31,7 @@ Leapfrog::Leapfrog(std::function<void(void)> accelerator, mpu::gph::Buffer parti
                                 m_dt(dt)
 {
     m_shader.uniform1f("dt",dt);
-    m_shader.uniform1f("vel_dt",dt/2);
+    m_shader.uniform1f("vel_dt",dt);
     particleBuffer.bindBase(PARTICLE_BUFFER_BINDING, GL_SHADER_STORAGE_BUFFER);
 }
 
@@ -63,6 +58,7 @@ void Leapfrog::start()
 {
     m_calcAcceleration();
     glMemoryBarrier(GL_SHADER_STORAGE_BUFFER);
+    m_shader.uniform1f("vel_dt",m_dt/2);
     m_shader.dispatch(m_numParticles,m_wgSize);
     m_shader.uniform1f("vel_dt",m_dt);
 }
@@ -82,4 +78,5 @@ void Leapfrog::catchUpTime()
     m_shader.uniform1f("dt",0);
     m_shader.dispatch(m_numParticles,m_wgSize);
     m_shader.uniform1f("dt",m_dt);
+    m_shader.uniform1f("vel_dt",m_dt);
 }
