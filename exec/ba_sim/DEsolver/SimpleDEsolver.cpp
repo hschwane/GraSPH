@@ -43,7 +43,7 @@ void SimpleDEsolver::setDT(double dt)
 
 void SimpleDEsolver::setParticles(mpu::gph::Buffer particleBuffer, uint32_t number)
 {
-    particleBuffer.bindBase(PARTICLE_BUFFER_BINDING, GL_SHADER_STORAGE_BUFFER);
+    particleBuffer.bindBase(PARTICLE_BUFFER_BINDING, GL_SHADER_STORAGE_BARRIER_BIT);
     m_numParticles = number;
     m_wgSize = calcWorkgroupSize(number);
 }
@@ -51,7 +51,7 @@ void SimpleDEsolver::setParticles(mpu::gph::Buffer particleBuffer, uint32_t numb
 void SimpleDEsolver::advanceTime()
 {
     m_calcAcceleration();
-    glMemoryBarrier(GL_SHADER_STORAGE_BUFFER);
+    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
     m_shader.dispatch(m_numParticles,m_wgSize);
 }
 

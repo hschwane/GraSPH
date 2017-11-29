@@ -61,7 +61,7 @@ void VelocityVerlet::setParticles(mpu::gph::Buffer particleBuffer, uint32_t numb
 void VelocityVerlet::start()
 {
     m_calcAcceleration();
-    glMemoryBarrier(GL_SHADER_STORAGE_BUFFER);
+    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
     m_shader.uniform1f("vel_dt",0.0f);
     m_shader.dispatch(m_numParticles,m_wgSize);
     m_shader.uniform1f("vel_dt",m_dt);
@@ -70,7 +70,7 @@ void VelocityVerlet::start()
 void VelocityVerlet::advanceTime()
 {
     m_calcAcceleration();
-    glMemoryBarrier(GL_SHADER_STORAGE_BUFFER);
+    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
     m_shader.dispatch(m_numParticles,m_wgSize);
 }
 

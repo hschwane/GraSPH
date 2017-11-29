@@ -66,13 +66,13 @@ void Verlet::setParticles(mpu::gph::Buffer particleBuffer, uint32_t number)
 void Verlet::start()
 {
     m_calcAcceleration();
-    glMemoryBarrier(GL_SHADER_STORAGE_BUFFER);
+    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
     m_startShader.dispatch(m_numParticles,m_wgSize);
 }
 
 void Verlet::advanceTime()
 {
     m_calcAcceleration();
-    glMemoryBarrier(GL_SHADER_STORAGE_BUFFER);
+    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
     m_shader.dispatch(m_numParticles,m_wgSize);
 }

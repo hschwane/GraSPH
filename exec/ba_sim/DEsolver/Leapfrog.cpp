@@ -57,7 +57,7 @@ void Leapfrog::setParticles(mpu::gph::Buffer particleBuffer, uint32_t number)
 void Leapfrog::start()
 {
     m_calcAcceleration();
-    glMemoryBarrier(GL_SHADER_STORAGE_BUFFER);
+    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
     m_shader.uniform1f("vel_dt",m_dt/2);
     m_shader.dispatch(m_numParticles,m_wgSize);
     m_shader.uniform1f("vel_dt",m_dt);
@@ -66,14 +66,14 @@ void Leapfrog::start()
 void Leapfrog::advanceTime()
 {
     m_calcAcceleration();
-    glMemoryBarrier(GL_SHADER_STORAGE_BUFFER);
+    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
     m_shader.dispatch(m_numParticles,m_wgSize);
 }
 
 void Leapfrog::catchUpTime()
 {
     m_calcAcceleration();
-    glMemoryBarrier(GL_SHADER_STORAGE_BUFFER);
+    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
     m_shader.uniform1f("vel_dt",m_dt/2);
     m_shader.uniform1f("dt",0);
     m_shader.dispatch(m_numParticles,m_wgSize);
