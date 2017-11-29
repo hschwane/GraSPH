@@ -21,15 +21,11 @@ layout(binding=RK_OUT_BUFFER_BINDING,std430) buffer OutputBuffer
 
 layout(local_size_variable) in;
 
-uniform uint num_of_particles;
 uniform float dt;
 
 // This shader performs a semi-implicit euler step on one particle.
 void main()
 {
-    if(gl_GlobalInvocationID.x >= num_of_particles)
-        return;
-
     vec4 posIn = state[gl_GlobalInvocationID.x].position;
     vec4 dposIn = derivative[gl_GlobalInvocationID.x].velocity;
 

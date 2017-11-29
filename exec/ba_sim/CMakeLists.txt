@@ -12,6 +12,7 @@ set(SOURCE_FILES
         DEsolver/Leapfrog.cpp
         DEsolver/Verlet.cpp
         DEsolver/VelocityVerlet.cpp
+        DEsolver/RungeKutta4.cpp
         )
 
 # find directories

@@ -58,7 +58,7 @@ constexpr unsigned int RENDERER_POSITION_ARRAY = 0;
 constexpr unsigned int RENDERER_SIZE_ARRAY = 1;
 
 // simulation
-constexpr double DT = 0.001;
+constexpr double DT = 0.016;
 constexpr double EPS2 = 0.001;
 constexpr float G = 1;
 

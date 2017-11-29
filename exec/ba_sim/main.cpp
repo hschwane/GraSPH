@@ -10,6 +10,7 @@
 #include "DEsolver/Leapfrog.h"
 #include "DEsolver/Verlet.h"
 #include "DEsolver/VelocityVerlet.h"
+#include "DEsolver/RungeKutta4.h"
 
 constexpr int HEIGHT = 800;
 constexpr int WIDTH = 800;
@@ -75,7 +76,7 @@ int main()
     };
 
     //  create a simulator
-    VelocityVerlet simulation(accFunc,pb,NUM_PARTICLES,DT);
+    RungeKutta4 simulation(accFunc,pb,NUM_PARTICLES,DT);
     simulation.start();
 
     // RK2-Midpoint
@@ -88,22 +89,6 @@ int main()
 //    mpu::gph::Buffer rkM1Buffer;
 //    rkM1Buffer.allocate<Particle>(NUM_PARTICLES);
 //    rkM1Buffer.bindBase( RK_MX_BUFFER_BINDING, GL_SHADER_STORAGE_BUFFER);
-
-    // RK4
-//    mpu::gph::ShaderProgram integShader({{PROJECT_SHADER_PATH"DEsolver/RK4.comp"}});
-//    mpu::gph::ShaderProgram rkIntermediateShader({{PROJECT_SHADER_PATH"DEsolver/rkIntermediate.comp"}});
-//    integShader.uniform1ui("num_of_particles",  NUM_PARTICLES);
-//    rkIntermediateShader.uniform1ui("num_of_particles",  NUM_PARTICLES);
-//    integShader.uniform1f("dt",DT);
-//
-//    mpu::gph::Buffer rkM2Buffer;
-//    rkM2Buffer.allocate<Particle>(NUM_PARTICLES);
-//
-//    mpu::gph::Buffer rkM3Buffer;
-//    rkM3Buffer.allocate<Particle>(NUM_PARTICLES);
-//
-//    mpu::gph::Buffer rkM4Buffer;
-//    rkM4Buffer.allocate<Particle>(NUM_PARTICLES);
 
     // timing
     mpu::DeltaTimer timer;
@@ -136,53 +121,6 @@ int main()
 
             simulation.advanceTime();
 
-
-            /*
-            // calculate a(t,p(t),v(t))
-            glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-            accShader.dispatch(NUM_PARTICLES,500);
-
-            // calculate v(t+dt/2) and a(t+dt/2) (m2)
-            glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-            pb.bindBase(RK_STATE_IN_BUFFER_BINDING,GL_SHADER_STORAGE_BUFFER); // this contains pm1(t) vm1(t) and am1(t,pm1(t),vm1(t))
-            pb.bindBase(RK_DERIV_BUFFER_BINDING,GL_SHADER_STORAGE_BUFFER);
-            rkM2Buffer.bindBase(RK_OUT_BUFFER_BINDING,GL_SHADER_STORAGE_BUFFER); // pm2(t+dt/2) and vm2(t+dt/2) will be stored here
-            rkIntermediateShader.uniform1f("dt",DT/2);
-            rkIntermediateShader.dispatch(NUM_PARTICLES,500); // calculate pm2(t+dt/2) using vm1(t)*dt/2, calculate vm2(t+dt/2) using am1(t,p(t),v(t))*dt/2
-
-            glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-            rkM2Buffer.bindBase( PARTICLE_BUFFER_BINDING, GL_SHADER_STORAGE_BUFFER);
-            accShader.dispatch(NUM_PARTICLES,500);  // calculate am2(t+dt/2,pm2(t+dt/2),vm2(t+dt/2))
-
-            // calculate v(t+dt/2) and a(t+dt/2) again, but using the derivatives from m2
-            glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-            rkM2Buffer.bindBase(RK_DERIV_BUFFER_BINDING,GL_SHADER_STORAGE_BUFFER); // this contains vm2(t+dt/2) and am2(t+dt/2,pm2(t+dt/2,vm2(t+dt/2)) (and pm2(t+dt/2))
-            rkM3Buffer.bindBase(RK_OUT_BUFFER_BINDING,GL_SHADER_STORAGE_BUFFER); // pm3(t+dt/2) and vm3(t+dt/2) will be stored here
-            rkIntermediateShader.dispatch(NUM_PARTICLES,500); // calculate pm3(t+dt/2) using vm2(t+dt/2)*dt/2, calculate v(t+dt/2) using am2(t+dt/2, pm2(t+dt/2), vm2(t+dt/2))*dt/2
-
-            glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-            rkM3Buffer.bindBase( PARTICLE_BUFFER_BINDING, GL_SHADER_STORAGE_BUFFER);
-            accShader.dispatch(NUM_PARTICLES,500);  // calculate am3(t+dt/2,pm3(t+dt/2),vm3(t+dt/2))
-
-            // calculate v(t+dt) and a(t+dt) using derivatives from m3
-            glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-            rkM3Buffer.bindBase(RK_DERIV_BUFFER_BINDING,GL_SHADER_STORAGE_BUFFER); // this contains vm3(t+dt/2) and am3(t+dt/2,pm3(t+dt/2),vm3(t+dt/2))  (and pm3(t+dt/2))
-            rkM4Buffer.bindBase(RK_OUT_BUFFER_BINDING,GL_SHADER_STORAGE_BUFFER); // pm4(t+dt) and vm4(t+dt) will be stored here
-            rkIntermediateShader.uniform1f("dt",DT);
-            rkIntermediateShader.dispatch(NUM_PARTICLES,500); // calculate pm4(t+dt) using vm3(t+dt/2)*dt, calculate vm4(t+dt) using am3(t+dt/2,pm3(t+dt/2),vm3(t+dt/2))*dt
-
-            glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-            rkM4Buffer.bindBase( PARTICLE_BUFFER_BINDING, GL_SHADER_STORAGE_BUFFER);
-            accShader.dispatch(NUM_PARTICLES,500);  // calculate am4(t+dt/2,pm4(t+dt/2),vm4(t+dt/2))
-
-            // put everything together with proper weights
-            glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-            pb.bindBase(PARTICLE_BUFFER_BINDING,GL_SHADER_STORAGE_BUFFER);
-            rkM2Buffer.bindBase( RK_MTWO_BUFFER_BINDING, GL_SHADER_STORAGE_BUFFER);
-            rkM3Buffer.bindBase( RK_MTHREE_BUFFER_BINDING, GL_SHADER_STORAGE_BUFFER);
-            rkM4Buffer.bindBase( RK_MFOUR_BUFFER_BINDING, GL_SHADER_STORAGE_BUFFER);
-            integShader.dispatch(NUM_PARTICLES,500);
-*/
               // RK2
 //            glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 //            accShader.dispatch(NUM_PARTICLES,500);
