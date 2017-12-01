@@ -100,6 +100,8 @@ private:
  * Press right mouse button to enter rotation mode.
  * Move mouse to look around.
  * Use WASD ans QE to move camera around.
+ * Use SPACE to enable double speed, LEFT SHIFT for half speed.
+ * + and - to adjust speed
  * Do not destroy the window before destroying the controller.
  * There is no rotation along the Z axis. (+Y is up)
  *

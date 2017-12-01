@@ -133,6 +133,23 @@ void SimpleWASDController::updateTransform(Transform &transform, double dt)
             break;
     }
 
+    float mvspeed = m_movement_speed;
+    if(m_window.getKey(GLFW_KEY_SPACE) == GLFW_PRESS)
+        mvspeed*=2;
+    if(m_window.getKey(GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+        mvspeed*=0.5;
+
+    if(m_window.getKey(GLFW_KEY_RIGHT_BRACKET) == GLFW_PRESS)
+    {
+        m_movement_speed += m_movement_speed * 0.5 * dt;
+        logDEBUG2("Camera") << "Camera movement speed changed: " << m_movement_speed;
+    }
+    if(m_window.getKey(GLFW_KEY_SLASH) == GLFW_PRESS)
+    {
+        m_movement_speed -= m_movement_speed * 0.5 * dt;
+        logDEBUG2("Camera") << "Camera movement speed changed: " << m_movement_speed;
+    }
+
     // update position
     const auto two_key_check = [this](int key_fwd, int key_bwd) {
         return static_cast<float>(static_cast<int>(m_window.getKey(key_fwd) == GLFW_PRESS) - static_cast<int>(m_window.getKey(key_bwd) == GLFW_PRESS));
@@ -141,7 +158,7 @@ void SimpleWASDController::updateTransform(Transform &transform, double dt)
             two_key_check(GLFW_KEY_D, GLFW_KEY_A),
             two_key_check(GLFW_KEY_E, GLFW_KEY_Q),
             two_key_check(GLFW_KEY_S, GLFW_KEY_W)
-    }) * m_movement_speed * static_cast<float>(dt);
+    }) * mvspeed * static_cast<float>(dt);
 
     // update rotation
     if(m_window.getInputMode(GLFW_CURSOR) == GLFW_CURSOR_DISABLED)
