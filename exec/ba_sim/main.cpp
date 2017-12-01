@@ -76,19 +76,8 @@ int main()
     };
 
     //  create a simulator
-    RungeKutta4 simulation(accFunc,pb,NUM_PARTICLES,DT);
+    Leapfrog simulation(accFunc,pb,NUM_PARTICLES,DT);
     simulation.start();
-
-    // RK2-Midpoint
-//    mpu::gph::ShaderProgram integShader({{PROJECT_SHADER_PATH"DEsolver/RK2-Midpoint.comp"}});
-//    mpu::gph::ShaderProgram rkM1Shader({{PROJECT_SHADER_PATH"DEsolver/rkIntermediate.comp"}});
-//    integShader.uniform1ui("num_of_particles",  NUM_PARTICLES);
-//    rkM1Shader.uniform1ui("num_of_particles",  NUM_PARTICLES);
-//    integShader.uniform1f("dt",DT);
-//    rkM1Shader.uniform1f("dt",DT/2);
-//    mpu::gph::Buffer rkM1Buffer;
-//    rkM1Buffer.allocate<Particle>(NUM_PARTICLES);
-//    rkM1Buffer.bindBase( RK_MX_BUFFER_BINDING, GL_SHADER_STORAGE_BUFFER);
 
     // timing
     mpu::DeltaTimer timer;
@@ -98,12 +87,18 @@ int main()
 
     double lag = 0;
 
+    // TODO: add some cool bonus features:
+    //                  - different rendering / color modes
+    //                  - other fun, more complex spawning scenarios
+    // TODO: implement nvidias N-body with shared memory optimization
+
+
 
     bool runSim = false;
     while( window.update())
     {
 
-//        glFinish();
+        glFinish();
 
         dt = timer.getDeltaTime();
         camera.update(dt);
@@ -120,21 +115,6 @@ int main()
         {
 
             simulation.advanceTime();
-
-              // RK2
-//            glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-//            accShader.dispatch(NUM_PARTICLES,500);
-//            glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-//            rkM1Shader.dispatch(NUM_PARTICLES,500);
-//            rkM1Buffer.bindBase( PARTICLE_BUFFER_BINDING, GL_SHADER_STORAGE_BUFFER);
-//            glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-//            accShader.dispatch(NUM_PARTICLES,500);
-//
-//            glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-//            pb.bindBase( PARTICLE_BUFFER_BINDING,GL_SHADER_STORAGE_BUFFER);
-//            rkM1Buffer.bindBase( RK_MX_BUFFER_BINDING, GL_SHADER_STORAGE_BUFFER);
-//            integShader.dispatch(NUM_PARTICLES,500);
-
             lag -= DT;
         }
 
