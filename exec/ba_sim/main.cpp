@@ -30,8 +30,7 @@ int main()
 
     // set some gl options
     glClearColor(0, 0, 0, 1);
-//    glClearDepth(1.f);
-//    glEnable(GL_DEPTH_TEST);
+    glClearDepth(1.f);
     mpu::gph::enableVsync(false);
 
     // generate some particles
@@ -55,9 +54,13 @@ int main()
 
     // create a renderer
     ParticleRenderer renderer;
-    renderer.setViewportSize({WIDTH,HEIGHT});
     renderer.configureArrays(mpu::gph::offset_of(&Particle::position), mpu::gph::offset_of(&Particle::renderSize));
     renderer.setParticleBuffer<Particle>( pb, NUM_PARTICLES);
+    renderer.setShaderSettings(Falloff::ROOT);
+    renderer.enableAdditiveBlending(true);
+    renderer.setViewportSize({WIDTH,HEIGHT});
+    renderer.setColor({0.9,0.3,0.1,1});
+    renderer.setBrightness(1);
 
     // create camera
     mpu::gph::Camera camera(&window);
@@ -88,8 +91,9 @@ int main()
     double lag = 0;
 
     // TODO: add some cool bonus features:
-    //                  - different rendering / color modes
+    //
     //                  - other fun, more complex spawning scenarios
+    //                  - better controles
     // TODO: implement nvidias N-body with shared memory optimization
 
 
@@ -97,9 +101,6 @@ int main()
     bool runSim = false;
     while( window.update())
     {
-
-        glFinish();
-
         dt = timer.getDeltaTime();
         camera.update(dt);
 

@@ -15,7 +15,13 @@ out float radius;
 void main()
 {
 	gl_Position = model_view_projection * input_position;
+
+#ifdef PARTICLES_PERSPECTIVE
 	gl_PointSize = viewport_size.y * projection[1][1] * input_size / gl_Position.w;
+#else
+    gl_PointSize = input_size;
+#endif
+
 	center = (0.5 * gl_Position.xy/gl_Position.w +0.5) * viewport_size;
 	radius = gl_PointSize / 2;
 }

@@ -59,7 +59,7 @@ constexpr unsigned int RENDERER_SIZE_ARRAY = 1;
 
 // simulation
 constexpr double DT = 0.032;
-constexpr double EPS2 = 0.001;
+constexpr double EPS2 = 0.01;
 constexpr float G = 1;
 
 // particles
@@ -68,7 +68,7 @@ constexpr float TEMPERATURE = 30;
 
 // spawning
 constexpr float TOTAL_MASS = 0.005;
-constexpr unsigned int NUM_PARTICLES = 16384;
+constexpr unsigned int NUM_PARTICLES = 12800;
 const  glm::vec3 LOWER_BOUND = glm::vec3(-1,-1,-1);
 const  glm::vec3 UPPER_BOUND = glm::vec3(1,1,1);
 
