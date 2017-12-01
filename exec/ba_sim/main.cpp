@@ -63,8 +63,9 @@ int main()
     renderer.setBrightness(1);
 
     // create camera
-    mpu::gph::Camera camera(&window);
+    mpu::gph::Camera camera(std::make_shared<mpu::gph::SimpleWASDController>(&window,10,4));
     camera.setMVP(&renderer);
+    camera.setClip(0.001,100);
 
     // create shaders for acceleration
     mpu::gph::ShaderProgram accShader({{PROJECT_SHADER_PATH"Acceleration/naive-gravity.comp"}});
@@ -82,6 +83,8 @@ int main()
     Leapfrog simulation(accFunc,pb,NUM_PARTICLES,DT);
     simulation.start();
 
+    float brightness=1;
+
     // timing
     mpu::DeltaTimer timer;
     double dt;
@@ -91,9 +94,7 @@ int main()
     double lag = 0;
 
     // TODO: add some cool bonus features:
-    //
     //                  - other fun, more complex spawning scenarios
-    //                  - better controles
     // TODO: implement nvidias N-body with shared memory optimization
 
 
@@ -111,6 +112,13 @@ int main()
 
         if(window.getKey(GLFW_KEY_2) != GLFW_PRESS)
             glClear(GL_COLOR_BUFFER_BIT);
+
+        // make brightness adjustable
+        if(window.getKey(GLFW_KEY_KP_ADD) == GLFW_PRESS)
+            brightness += brightness *0.5*dt;
+        if(window.getKey(GLFW_KEY_KP_SUBTRACT) == GLFW_PRESS)
+            brightness -= brightness *0.5*dt;
+        renderer.setBrightness(brightness);
 
         while(lag >= DT)
         {
