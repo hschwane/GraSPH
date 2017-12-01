@@ -55,7 +55,7 @@
 #ifdef NDEBUG
     #define logDEBUG(MODULE) if(false) mpu::Log::getGlobal()(mpu::LogLvl::DEBUG, MPU_FILEPOS, MODULE)
     #define logDEBUG2(MODULE) if(false) mpu::Log::getGlobal()(mpu::LogLvl::DEBUG2, MPU_FILEPOS, MODULE)
-    #define assert_true(TEST,MODULE) if(false){ logERROR(TEST,MODULE) << MESSAGE ; }
+    #define assert_true(TEST,MODULE,MESSAGE)
 #else
 
     #define logDEBUG(MODULE) if(mpu::Log::noGlobal() || mpu::Log::getGlobal().getLogLevel() < mpu::LogLvl::DEBUG) ; \
