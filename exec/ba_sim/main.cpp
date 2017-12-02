@@ -56,8 +56,9 @@ int main()
     ParticleRenderer renderer;
     renderer.configureArrays(mpu::gph::offset_of(&Particle::position), mpu::gph::offset_of(&Particle::renderSize));
     renderer.setParticleBuffer<Particle>( pb, NUM_PARTICLES);
-    renderer.setShaderSettings(Falloff::ROOT);
-    renderer.enableAdditiveBlending(true);
+//    renderer.setShaderSettings(Falloff::ROOT);
+//    renderer.enableAdditiveBlending(true);
+    renderer.enableDepthTest(true);
     renderer.setViewportSize({WIDTH,HEIGHT});
     renderer.setColor({0.9,0.3,0.1,1});
     renderer.setBrightness(1);
@@ -65,18 +66,20 @@ int main()
     // create camera
     mpu::gph::Camera camera(std::make_shared<mpu::gph::SimpleWASDController>(&window,10,4));
     camera.setMVP(&renderer);
-    camera.setClip(0.001,100);
+    camera.setClip(0.1,100);
 
     // create shaders for acceleration
-    mpu::gph::ShaderProgram accShader({{PROJECT_SHADER_PATH"Acceleration/naive-gravity.comp"}});
+    mpu::gph::ShaderProgram accShader({{PROJECT_SHADER_PATH"Acceleration/nvidia-gravity.comp"}});
     accShader.uniform1f("smoothing_epsilon_squared",  EPS2);
     accShader.uniform1f("gravity_constant",  G);
-    accShader.uniform1ui("num_of_particles",  NUM_PARTICLES);
+//    accShader.uniform1ui("num_of_particles",  NUM_PARTICLES);
 
     uint32_t wgSize = calcWorkgroupSize(NUM_PARTICLES);
     auto accFunc = [accShader,wgSize](){
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-        accShader.dispatch(NUM_PARTICLES,wgSize);
+        //accShader.dispatch(NUM_PARTICLES,wgSize);
+        accShader.use();
+        glDispatchCompute(NUM_PARTICLES/128,1,1);
     };
 
     //  create a simulator
@@ -93,10 +96,16 @@ int main()
 
     double lag = 0;
 
-    // TODO: add some cool bonus features:
-    //                  - other fun, more complex spawning scenarios
-    // TODO: implement nvidias N-body with shared memory optimization
 
+    // TODO: add fixed group size dispatch for shader class
+    // TODO: add gpu stopwatch
+    // TODO: performance structure of arrays
+    // TODO: put mass into position
+    // TODO: performance: work group size calculator
+    // TODO: performance test one shader two buffers vs two shaders
+    // TODO: 2D mode
+    // TODO: fix spawner
+    // TODO: other fun  spawning scenarios
 
 
     bool runSim = false;
@@ -111,7 +120,7 @@ int main()
             lag = 0;
 
         if(window.getKey(GLFW_KEY_2) != GLFW_PRESS)
-            glClear(GL_COLOR_BUFFER_BIT);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // make brightness adjustable
         if(window.getKey(GLFW_KEY_KP_ADD) == GLFW_PRESS)

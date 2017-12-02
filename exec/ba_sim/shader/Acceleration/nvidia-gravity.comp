@@ -1,0 +1,60 @@
+#version 450 core
+//#extension GL_ARB_compute_variable_group_size : require
+
+#include "common.glsl"
+#include "softGravity.glsl"
+
+layout(binding=PARTICLE_BUFFER_BINDING,std430) buffer ParticleBuffer
+{
+    Particle particles[];
+};
+
+layout(local_size_x=128,local_size_y=1,local_size_z=1) in;
+
+uniform float gravity_constant;
+uniform float smoothing_epsilon_squared;
+
+shared vec4 pos[gl_WorkGroupSize.x];
+shared float mass[gl_WorkGroupSize.x];
+
+// interact one particle with p others
+void calculateTileRow( in vec4 myPosition, inout vec4 acc)
+{
+    for(uint i=0; i<gl_WorkGroupSize.x; i++)
+    {
+        acc += interaction(myPosition, pos[i],
+                    mass[i], smoothing_epsilon_squared);
+    }
+}
+
+// This shader updates a particles acceleration by interacting with all other particles,
+// using shared memory to speed up memory access
+void main()
+{
+    // cache my position in local memory
+    vec4 myPosition = particles[gl_GlobalInvocationID.x].position;
+    vec4 myAcc = vec4(0,0,0,0);
+
+    // loop over tiles in a row
+    // calculate the interactions of a particle with gl_WorkGroupSize.x particles in one tile
+    // repeat until all interactions in all tiles are calculatedsss
+    uint N = gl_NumWorkGroups.x * gl_WorkGroupSize.x; // total number of particles
+    for(uint i = 0, tile = 0; i < N; i+=gl_WorkGroupSize.x,tile++) // while i is smaller than the number of particles
+    {
+        // fill fields in shared memory
+        uint idx = gl_WorkGroupSize.x * tile + gl_LocalInvocationID.x;
+        pos[gl_LocalInvocationID.x] = particles[idx].position;
+        mass[gl_LocalInvocationID.x] = particles[idx].mass;
+        // sync
+        memoryBarrierShared();
+        barrier();
+        // calculate the row up to here
+        calculateTileRow(myPosition,myAcc);
+        // sync
+        memoryBarrierShared();
+        barrier();
+    }
+
+    // write back the acceleration
+    particles[gl_GlobalInvocationID.x].acceleration = myAcc; //* gravity_constant;
+}
