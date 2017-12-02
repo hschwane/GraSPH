@@ -109,6 +109,10 @@ namespace gph {
 		void dispatch(glm::u32vec2 invocations, glm::u32vec2 group_size) const; //!< start a 2D ompute shader run
 		void dispatch(glm::uvec3 invocations, glm::uvec3 group_size) const; //!< start a 3D compute shader run
 
+        void dispatch(uint32_t groups) const; //!< start a 1D compute shader run using a fixed group size
+        void dispatch(glm::u32vec2 groups) const; //!< start a 2D compute shader run using a fixed group size
+        void dispatch(glm::uvec3 groups) const; //!< start a 3D compute shader run using a fixed group size
+
         // uniform upload functions --------------------------------------------
 
         // upload vector of ints

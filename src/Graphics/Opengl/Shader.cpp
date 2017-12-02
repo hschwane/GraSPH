@@ -128,6 +128,24 @@ namespace gph {
 		);
 	}
 
+	void ShaderProgram::dispatch(uint32_t groups) const
+	{
+		use();
+		glDispatchCompute(groups,1,1);
+	}
+
+	void ShaderProgram::dispatch(glm::u32vec2 groups) const
+	{
+		use();
+		glDispatchCompute(groups.x,groups.y,1);
+	}
+
+	void ShaderProgram::dispatch(glm::uvec3 groups) const
+	{
+		use();
+		glDispatchCompute(groups.x,groups.y,groups.z);
+	}
+
 	void ShaderProgram::uniform1i(const std::string_view uniform, const int32_t value) const
 	{
 		glProgramUniform1i(*this, uniformLocation(uniform), value);
