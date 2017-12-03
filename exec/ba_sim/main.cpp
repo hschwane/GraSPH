@@ -56,8 +56,8 @@ int main()
     ParticleRenderer renderer;
     renderer.configureArrays(mpu::gph::offset_of(&Particle::position), mpu::gph::offset_of(&Particle::renderSize));
     renderer.setParticleBuffer<Particle>( pb, NUM_PARTICLES);
-//    renderer.setShaderSettings(Falloff::ROOT);
-//    renderer.enableAdditiveBlending(true);
+    renderer.setShaderSettings(Falloff::LINEAR);
+    renderer.enableAdditiveBlending(true);
     renderer.enableDepthTest(true);
     renderer.setViewportSize({WIDTH,HEIGHT});
     renderer.setColor({0.9,0.3,0.1,1});
@@ -69,17 +69,17 @@ int main()
     camera.setClip(0.1,100);
 
     // create shaders for acceleration
-    mpu::gph::ShaderProgram accShader({{PROJECT_SHADER_PATH"Acceleration/nvidia-gravity.comp"}});
+    uint32_t accWgSize = calcWorkgroupSize(NUM_PARTICLES);
+    mpu::gph::ShaderProgram accShader({{PROJECT_SHADER_PATH"Acceleration/nvidia-gravity.comp"}},
+                                      {{"WGSIZE",{mpu::toString(accWgSize)}},
+                                       {"NUM_PARTICLES",{mpu::toString(NUM_PARTICLES)}}});
     accShader.uniform1f("smoothing_epsilon_squared",  EPS2);
     accShader.uniform1f("gravity_constant",  G);
-//    accShader.uniform1ui("num_of_particles",  NUM_PARTICLES);
 
     uint32_t wgSize = calcWorkgroupSize(NUM_PARTICLES);
     auto accFunc = [accShader,wgSize](){
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-        //accShader.dispatch(NUM_PARTICLES,wgSize);
-        accShader.use();
-        glDispatchCompute(NUM_PARTICLES/128,1,1);
+        accShader.dispatch(NUM_PARTICLES/wgSize);
     };
 
     //  create a simulator
@@ -97,7 +97,6 @@ int main()
     double lag = 0;
 
 
-    // TODO: add fixed group size dispatch for shader class
     // TODO: add gpu stopwatch
     // TODO: performance structure of arrays
     // TODO: put mass into position
@@ -114,7 +113,7 @@ int main()
         dt = timer.getDeltaTime();
         camera.update(dt);
 
-        if(window.getKey(GLFW_KEY_1) == GLFW_PRESS && dt < 0.5)
+        if(window.getKey(GLFW_KEY_1) == GLFW_PRESS && lag < 0.4)
             lag += dt;
         else
             lag = 0;
