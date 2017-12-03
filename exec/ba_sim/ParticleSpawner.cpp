@@ -31,14 +31,19 @@ void ParticleSpawner::spawnParticles(const uint32_t numParticles, const float to
     logINFO("Spawner") << "Spawning " << numParticles << " in a cube volume from " << glm::to_string(lowerBound)
                        << " to " << glm::to_string(upperBound);
 
-    m_numParticles = numParticles;
+    // generate a particle buffer
+    m_particleBuffer.reallocateAll(numParticles, m_bufferFlags);
+    m_particleBuffer.bindAll(PARTICLE_BUFFER_BINDING, GL_SHADER_STORAGE_BUFFER);
+
+    logDEBUG("Spawner") << "Buffer created and bound at PARTICLE_BUFFER_BINDING.";
+
     m_totalMass = totalMass;
 
     // calculate particle attributes
-    m_particleMass = m_totalMass / m_numParticles;
+    m_particleMass = m_totalMass / m_particleBuffer.size();
     glm::vec3 cubeSize = upperBound - lowerBound;
     m_totalVolume = cubeSize.x * cubeSize.y * cubeSize.z;
-    m_particleVolume = m_totalVolume / m_numParticles;
+    m_particleVolume = m_totalVolume / m_particleBuffer.size();
     m_particleDensity = m_particleMass / m_particleVolume;
 
     logINFO("Spawner") << "Total volume: " << m_totalVolume;
@@ -47,23 +52,14 @@ void ParticleSpawner::spawnParticles(const uint32_t numParticles, const float to
                        << " density=" << m_particleDensity << "; temperature=" << temp
                        << "; renderSize=" << PARTICLE_RENDER_SIZE;
 
-    // generate a particle buffer
-    m_particleBuffer.recreate();
-    m_particleBuffer.allocate<Particle>( m_numParticles, m_bufferFlags);
-    m_particleBuffer.bindBase(SPAWNER_BUFFER_BINDING, GL_SHADER_STORAGE_BUFFER);
-
-    logDEBUG("Spawner") << "Buffer created and bound at binding " <<  SPAWNER_BUFFER_BINDING;
-
     // call the shader to do the work
     m_cubeSpawnShader.uniform3f("upper_bound",upperBound);
     m_cubeSpawnShader.uniform3f("lower_bound",lowerBound);
     m_cubeSpawnShader.uniform1f("mass",m_particleMass);
     m_cubeSpawnShader.uniform1f("density",m_particleDensity);
     m_cubeSpawnShader.uniform1f("temperature",temp);
-    m_cubeSpawnShader.uniform1f("render_size",PARTICLE_RENDER_SIZE);
-    m_cubeSpawnShader.uniform1ui("num_of_particles",m_numParticles);
     m_cubeSpawnShader.uniform1ui("random_seed", std::time(nullptr)); // time as pseudo random seed
-    m_cubeSpawnShader.dispatch(numParticles,SPAWNER_GROUP_SIZE);
+    m_cubeSpawnShader.dispatch(m_particleBuffer.size(),calcWorkgroupSize(m_particleBuffer.size()));
 }
 
 void ParticleSpawner::spawnParticles(const uint32_t numParticles, const float totalMass, const float temp,
@@ -72,13 +68,18 @@ void ParticleSpawner::spawnParticles(const uint32_t numParticles, const float to
     logINFO("Spawner") << "Spawning " << numParticles << " in a sphere volume at position " << glm::to_string(center)
                        << " with radius " << radius;
 
-    m_numParticles = numParticles;
+    // generate a particle buffer
+    m_particleBuffer.reallocateAll(numParticles, m_bufferFlags);
+    m_particleBuffer.bindAll(PARTICLE_BUFFER_BINDING, GL_SHADER_STORAGE_BUFFER);
+
+    logDEBUG("Spawner") << "Buffer created and bound at PARTICLE_BUFFER_BINDING.";
+
     m_totalMass = totalMass;
 
     // calculate particle attributes
-    m_particleMass = m_totalMass / m_numParticles;
+    m_particleMass = m_totalMass / m_particleBuffer.size();
     m_totalVolume = 3.0/3.0 * M_PI * std::pow(radius,3);
-    m_particleVolume = m_totalVolume / m_numParticles;
+    m_particleVolume = m_totalVolume / m_particleBuffer.size();
     m_particleDensity = m_particleMass / m_particleVolume;
 
     logINFO("Spawner") << "Total volume: " << m_totalVolume;
@@ -87,23 +88,12 @@ void ParticleSpawner::spawnParticles(const uint32_t numParticles, const float to
                        << "; density=" << m_particleDensity << "; temperature=" << temp
                        << "; renderSize=" << PARTICLE_RENDER_SIZE;
 
-    // generate a particle buffer
-    m_particleBuffer.recreate();
-    m_particleBuffer.allocate<Particle>( m_numParticles, m_bufferFlags);
-    m_particleBuffer.bindBase(SPAWNER_BUFFER_BINDING, GL_SHADER_STORAGE_BUFFER);
-
-    logDEBUG("Spawner") << "Buffer created and bound at binding " <<  SPAWNER_BUFFER_BINDING;
-
     // call the shader to do the work
     m_sphereSpawnShader.uniform3f("center",center);
     m_sphereSpawnShader.uniform1f("radius",radius);
     m_sphereSpawnShader.uniform1f("mass",m_particleMass);
     m_sphereSpawnShader.uniform1f("density",m_particleDensity);
     m_sphereSpawnShader.uniform1f("temperature",temp);
-    m_sphereSpawnShader.uniform1f("render_size",PARTICLE_RENDER_SIZE);
-    m_sphereSpawnShader.uniform1ui("num_of_particles",m_numParticles);
     m_sphereSpawnShader.uniform1ui("random_seed", std::time(nullptr)); // time as pseudo random seed
-    m_sphereSpawnShader.dispatch(numParticles,SPAWNER_GROUP_SIZE);
-
-    logDEBUG("Spawner") << "Generation";
+    m_sphereSpawnShader.dispatch(m_particleBuffer.size(),calcWorkgroupSize(m_particleBuffer.size()));
 }

@@ -4,9 +4,19 @@
 #include "common.glsl"
 #include "random.glsl"
 
-layout(binding=SPAWNER_BUFFER_BINDING,std430) buffer ParticleBuffer
+layout(binding=PARTICLE_POSITION_BUFFER_BINDING,std430) buffer ParticlePositions
 {
-    Particle particles[];
+    vec4 positions[];
+};
+
+layout(binding=PARTICLE_VELOCITY_BUFFER_BINDING,std430) buffer ParticleVelocities
+{
+    vec4 velocities[];
+};
+
+layout(binding=PARTICLE_ACCELERATION_BUFFER_BINDING,std430) buffer ParticleAccelerations
+{
+    vec4 accelerations[];
 };
 
 layout(local_size_variable) in;
@@ -16,7 +26,6 @@ uniform vec3 lower_bound;
 uniform float mass;
 uniform float density;
 uniform float temperature;
-uniform float render_size;
 uniform uint num_of_particles;
 
 uniform uint random_seed;
@@ -29,13 +38,9 @@ void main()
     // generate a random position
     uint seed = random_seed*gl_GlobalInvocationID.x;
     vec3 randomPos = (rand3(seed) * (upper_bound - lower_bound)+lower_bound);
-    particles[gl_GlobalInvocationID.x].position = vec4(randomPos ,1);
+    positions[gl_GlobalInvocationID.x] = vec4(randomPos,mass);
 
     // set all the attributes
-    particles[gl_GlobalInvocationID.x].velocity = vec4(0,0,0,0);
-    particles[gl_GlobalInvocationID.x].acceleration = vec4(0,0,0,0);
-    particles[gl_GlobalInvocationID.x].mass = mass;
-    particles[gl_GlobalInvocationID.x].density = density;
-    particles[gl_GlobalInvocationID.x].temperature = temperature;
-    particles[gl_GlobalInvocationID.x].renderSize = render_size;
+    velocities[gl_GlobalInvocationID.x] = vec4(0,0,0,0);
+    accelerations[gl_GlobalInvocationID.x] = vec4(0,0,0,0);
 }

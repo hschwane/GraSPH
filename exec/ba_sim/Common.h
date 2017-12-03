@@ -23,20 +23,25 @@
 //-------------------------------------------------------------------
 /**
  * @brief ParticleBuffer contains a set of openGL buffers that contain all the particle attributes
+ * size is only updated when reallocate all is used.
  */
 struct ParticleBuffer
 {
 public:
-    void allocateAll(uint32_t numParticles)
+
+    typedef glm::vec4 posType;
+    typedef glm::vec4 velType;
+    typedef glm::vec4 accType;
+
+    void reallocateAll(uint32_t numParticles, GLbitfield flags = 0)
     {
         positionBuffer.recreate();
-        positionBuffer.allocate<glm::vec4>(numParticles);
+        positionBuffer.allocate<posType>(numParticles,flags);
         velocityBuffer.recreate();
-        velocityBuffer.allocate<glm::vec4>(numParticles);
+        velocityBuffer.allocate<velType>(numParticles,flags);
         accelerationBuffer.recreate();
-        accelerationBuffer.allocate<glm::vec4>(numParticles);
-        renderSizeBuffer.recreate();
-        renderSizeBuffer.allocate<GLfloat>(numParticles);
+        accelerationBuffer.allocate<accType>(numParticles,flags);
+        m_numberOfParticles=numParticles;
     };
 
     void bindAll( uint32_t binding, GLenum target)
@@ -44,29 +49,29 @@ public:
         positionBuffer.bindBase(binding++,target);
         velocityBuffer.bindBase(binding++,target);
         accelerationBuffer.bindBase(binding++,target);
-        renderSizeBuffer.bindBase(binding,target);
     }
+
+    uint32_t size(){return m_numberOfParticles;} //!< returns the nimber of particles
 
     mpu::gph::Buffer positionBuffer;
     mpu::gph::Buffer velocityBuffer;
     mpu::gph::Buffer accelerationBuffer;
-    mpu::gph::Buffer renderSizeBuffer;
+private:
+    uint32_t m_numberOfParticles;
 };
 
 //-------------------------------------------------------------------
 // global variables for settings TODO: move to init file / gui eventually
 
-// gl
-constexpr unsigned int RENDERER_BUFFER_BINDING = 1;
+// buffer bindings
+constexpr unsigned int RENDERER_POSITION_BUFFER_BINDING = 0;
 
 constexpr unsigned int PARTICLE_BUFFER_BINDING = 2;
 constexpr unsigned int PARTICLE_POSITION_BUFFER_BINDING = 2;
 constexpr unsigned int PARTICLE_VELOCITY_BUFFER_BINDING = 3;
 constexpr unsigned int PARTICLE_ACCELERATION_BUFFER_BINDING = 4;
-constexpr unsigned int PARTICLE_RENDERSIZE_BUFFER_BINDING = 5;
 
 constexpr unsigned int VERLET_BUFFER_BINDING = 4;
-
 constexpr unsigned int RK_STATE_IN_BUFFER_BINDING = 5;
 constexpr unsigned int RK_DERIV_BUFFER_BINDING = 6;
 constexpr unsigned int RK_OUT_BUFFER_BINDING = 7;
@@ -75,7 +80,6 @@ constexpr unsigned int RK_MTHREE_BUFFER_BINDING = 9;
 constexpr unsigned int RK_MFOUR_BUFFER_BINDING = 10;
 
 constexpr unsigned int RENDERER_POSITION_ARRAY = 0;
-constexpr unsigned int RENDERER_SIZE_ARRAY = 1;
 
 // simulation
 constexpr double DT = 0.034;
