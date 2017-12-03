@@ -22,28 +22,48 @@
 
 //-------------------------------------------------------------------
 /**
- * @brief Particle struct representing one particle
+ * @brief ParticleBuffer contains a set of openGL buffers that contain all the particle attributes
  */
-struct Particle
+struct ParticleBuffer
 {
-    glm::vec4 position{0,0,0,1};
-    glm::vec4 velocity{0};
-    glm::vec4 acceleration{0};
-    float mass{0};
-    float density{0};
-    float temperature{0};
-    float renderSize{0};
+public:
+    void allocateAll(uint32_t numParticles)
+    {
+        positionBuffer.recreate();
+        positionBuffer.allocate<glm::vec4>(numParticles);
+        velocityBuffer.recreate();
+        velocityBuffer.allocate<glm::vec4>(numParticles);
+        accelerationBuffer.recreate();
+        accelerationBuffer.allocate<glm::vec4>(numParticles);
+        renderSizeBuffer.recreate();
+        renderSizeBuffer.allocate<GLfloat>(numParticles);
+    };
+
+    void bindAll( uint32_t binding, GLenum target)
+    {
+        positionBuffer.bindBase(binding++,target);
+        velocityBuffer.bindBase(binding++,target);
+        accelerationBuffer.bindBase(binding++,target);
+        renderSizeBuffer.bindBase(binding,target);
+    }
+
+    mpu::gph::Buffer positionBuffer;
+    mpu::gph::Buffer velocityBuffer;
+    mpu::gph::Buffer accelerationBuffer;
+    mpu::gph::Buffer renderSizeBuffer;
 };
 
 //-------------------------------------------------------------------
 // global variables for settings TODO: move to init file / gui eventually
 
 // gl
-constexpr unsigned int SPAWNER_GROUP_SIZE = 200;
 constexpr unsigned int RENDERER_BUFFER_BINDING = 1;
 
-constexpr unsigned int SPAWNER_BUFFER_BINDING = 3;
 constexpr unsigned int PARTICLE_BUFFER_BINDING = 2;
+constexpr unsigned int PARTICLE_POSITION_BUFFER_BINDING = 2;
+constexpr unsigned int PARTICLE_VELOCITY_BUFFER_BINDING = 3;
+constexpr unsigned int PARTICLE_ACCELERATION_BUFFER_BINDING = 4;
+constexpr unsigned int PARTICLE_RENDERSIZE_BUFFER_BINDING = 5;
 
 constexpr unsigned int VERLET_BUFFER_BINDING = 4;
 
