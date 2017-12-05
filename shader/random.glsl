@@ -98,5 +98,7 @@ vec3 randSphere(float u, float v, float r, float radius)
     float cosPhi = 2*v-1.f;
     float sinPhi = sqrt(max(0, 1- cosPhi*cosPhi));
 
+    r = pow(r,0.33333333);
+
     return vec3( r*radius*cosTheta*sinPhi, r*radius*sinTheta*sinPhi, r*radius*cosPhi);
 }
