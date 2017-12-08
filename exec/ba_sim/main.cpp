@@ -37,7 +37,6 @@ int main()
     ParticleSpawner spawner;
     spawner.spawnParticles(NUM_PARTICLES,TOTAL_MASS,TEMPERATURE, 2);
     auto pb = spawner.getParticleBuffer();
-    pb.bindBase(PARTICLE_BUFFER_BINDING,GL_SHADER_STORAGE_BUFFER);
 
 //    std::vector<Particle> ptls;
 //    Particle a;
@@ -54,11 +53,10 @@ int main()
 
     // create a renderer
     ParticleRenderer renderer;
-    renderer.configureArrays(mpu::gph::offset_of(&Particle::position), mpu::gph::offset_of(&Particle::renderSize));
-    renderer.setParticleBuffer<Particle>( pb, NUM_PARTICLES);
+    renderer.setParticleBuffer(pb);
     renderer.setShaderSettings(Falloff::LINEAR);
     renderer.enableAdditiveBlending(true);
-    renderer.enableDepthTest(true);
+    renderer.enableDepthTest(false);
     renderer.setViewportSize({WIDTH,HEIGHT});
     renderer.setColor({0.9,0.3,0.1,1});
     renderer.setBrightness(1);
@@ -83,8 +81,8 @@ int main()
     };
 
     //  create a simulator
-    Leapfrog simulation(accFunc,pb,NUM_PARTICLES,DT);
-    simulation.start();
+//    Leapfrog simulation(accFunc,pb,NUM_PARTICLES,DT);
+//    simulation.start();
 
     float brightness=1;
 
@@ -131,7 +129,7 @@ int main()
         while(lag >= DT)
         {
 
-            simulation.advanceTime();
+//            simulation.advanceTime();
             lag -= DT;
         }
 

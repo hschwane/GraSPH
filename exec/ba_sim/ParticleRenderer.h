@@ -59,10 +59,7 @@ public:
 
     void draw();
 
-    void configureArrays(GLuint positionOffset, GLuint rendersizeOffset);
-
-    template <typename particle_type>
-    void setParticleBuffer(mpu::gph::Buffer buffer, uint32_t numOfParticles);
+    void setParticleBuffer(ParticleBuffer buffer); //!< set the particle buffer to be used in rendering
 
     void setViewportSize(glm::uvec2 viewport); //!< update the viewport size
 
@@ -70,6 +67,7 @@ public:
 
     void enableAdditiveBlending(bool enable); //!< add particle colors onto each other for blending
     void enableDepthTest(bool enable); //!< enable or disable depth testing
+    void setSize(float size); //!< set the size the particles should be rendered with
     void setColor(glm::vec4 c); //!< set the color of the paricles
     void setBrightness(float b); //!< set the brightness of the particles (usefull with additive blending)
 
@@ -80,16 +78,7 @@ private:
     glm::vec2 m_vpSize{0};
     glm::vec4 m_color{1,1,1,1};
     float m_brightness{1};
+    float m_size{0.05};
 };
-
-template<typename particle_type>
-void ParticleRenderer::setParticleBuffer(mpu::gph::Buffer buffer, uint32_t numOfParticles)
-{
-    m_vao.setBuffer(RENDERER_BUFFER_BINDING,buffer,0,sizeof(particle_type));
-    m_numOfParticles = numOfParticles;
-    logINFO("Renderer") << "Set Buffer for renderer.";
-    logDEBUG("Renderer") << "Buffer containing " << m_numOfParticles << " particles of size " << sizeof(particle_type);
-}
-
 
 #endif //MPUTILS_PARTICLERENDERER_H
