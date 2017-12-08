@@ -78,7 +78,7 @@ private:
     glm::vec2 m_vpSize{0};
     glm::vec4 m_color{1,1,1,1};
     float m_brightness{1};
-    float m_size{0.05};
+    float m_size{1};
 };
 
 #endif //MPUTILS_PARTICLERENDERER_H

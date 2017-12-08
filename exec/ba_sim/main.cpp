@@ -51,15 +51,25 @@ int main()
 //    mpu::gph::Buffer pb(ptls);
 //    pb.bindBase(PARTICLE_BUFFER_BINDING,GL_SHADER_STORAGE_BUFFER);
 
+//    ParticleBuffer pb;
+//    pb.reallocateAll(3);
+//    pb.positionBuffer.recreate();
+//    std::vector<glm::vec4> pos;
+//    pos.push_back({1,1,1,0});
+//    pos.push_back({0,0,0,0});
+//    pos.push_back({-1,-1,-1,25});
+//    pb.positionBuffer.allocate(pos,0);
+
     // create a renderer
     ParticleRenderer renderer;
     renderer.setParticleBuffer(pb);
-    renderer.setShaderSettings(Falloff::LINEAR);
+    renderer.setShaderSettings(Falloff::ROOT);
     renderer.enableAdditiveBlending(true);
     renderer.enableDepthTest(false);
     renderer.setViewportSize({WIDTH,HEIGHT});
     renderer.setColor({0.9,0.3,0.1,1});
     renderer.setBrightness(1);
+    renderer.setSize(PARTICLE_RENDER_SIZE);
 
     // create camera
     mpu::gph::Camera camera(std::make_shared<mpu::gph::SimpleWASDController>(&window,10,4));
@@ -67,18 +77,18 @@ int main()
     camera.setClip(0.1,100);
 
     // create shaders for acceleration
-    uint32_t accWgSize = calcWorkgroupSize(NUM_PARTICLES);
-    mpu::gph::ShaderProgram accShader({{PROJECT_SHADER_PATH"Acceleration/nvidia-gravity.comp"}},
-                                      {{"WGSIZE",{mpu::toString(accWgSize)}},
-                                       {"NUM_PARTICLES",{mpu::toString(NUM_PARTICLES)}}});
-    accShader.uniform1f("smoothing_epsilon_squared",  EPS2);
-    accShader.uniform1f("gravity_constant",  G);
+//    uint32_t accWgSize = calcWorkgroupSize(NUM_PARTICLES);
+//    mpu::gph::ShaderProgram accShader({{PROJECT_SHADER_PATH"Acceleration/nvidia-gravity.comp"}},
+//                                      {{"WGSIZE",{mpu::toString(accWgSize)}},
+//                                       {"NUM_PARTICLES",{mpu::toString(NUM_PARTICLES)}}});
+//    accShader.uniform1f("smoothing_epsilon_squared",  EPS2);
+//    accShader.uniform1f("gravity_constant",  G);
 
-    uint32_t wgSize = calcWorkgroupSize(NUM_PARTICLES);
-    auto accFunc = [accShader,wgSize](){
-        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-        accShader.dispatch(NUM_PARTICLES/wgSize);
-    };
+//    uint32_t wgSize = calcWorkgroupSize(NUM_PARTICLES);
+//    auto accFunc = [accShader,wgSize](){
+//        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+//        accShader.dispatch(NUM_PARTICLES/wgSize);
+//    };
 
     //  create a simulator
 //    Leapfrog simulation(accFunc,pb,NUM_PARTICLES,DT);

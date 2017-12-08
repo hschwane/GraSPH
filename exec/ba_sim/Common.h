@@ -46,12 +46,12 @@ public:
 
     void bindAll( uint32_t binding, GLenum target)
     {
-        positionBuffer.bindBase(binding++,target);
-        velocityBuffer.bindBase(binding++,target);
-        accelerationBuffer.bindBase(binding++,target);
+        positionBuffer.bindBase(binding,target);
+        velocityBuffer.bindBase(binding+1,target);
+        accelerationBuffer.bindBase(binding+2,target);
     }
 
-    uint32_t size(){return m_numberOfParticles;} //!< returns the nimber of particles
+    uint32_t size(){return m_numberOfParticles;} //!< returns the number of particles
 
     mpu::gph::Buffer positionBuffer;
     mpu::gph::Buffer velocityBuffer;
@@ -92,7 +92,7 @@ constexpr float TEMPERATURE = 30;
 
 // spawning
 constexpr float TOTAL_MASS = 0.01;
-constexpr unsigned int NUM_PARTICLES = 40960;
+constexpr unsigned int NUM_PARTICLES = 300;
 const  glm::vec3 LOWER_BOUND = glm::vec3(-1,-1,-1);
 const  glm::vec3 UPPER_BOUND = glm::vec3(1,1,1);
 

@@ -8,11 +8,11 @@ set(SOURCE_FILES
         main.cpp
         ParticleSpawner.cpp
         ParticleRenderer.cpp
-        DEsolver/SimpleDEsolver.cpp
-        DEsolver/Leapfrog.cpp
-        DEsolver/Verlet.cpp
-        DEsolver/VelocityVerlet.cpp
-        DEsolver/RungeKutta4.cpp
+#        DEsolver/SimpleDEsolver.cpp
+#        DEsolver/Leapfrog.cpp
+#        DEsolver/Verlet.cpp
+#        DEsolver/VelocityVerlet.cpp
+#        DEsolver/RungeKutta4.cpp
         )
 
 # find directories

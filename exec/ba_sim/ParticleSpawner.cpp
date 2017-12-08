@@ -59,6 +59,7 @@ void ParticleSpawner::spawnParticles(const uint32_t numParticles, const float to
     m_cubeSpawnShader.uniform1f("density",m_particleDensity);
     m_cubeSpawnShader.uniform1f("temperature",temp);
     m_cubeSpawnShader.uniform1ui("random_seed", std::time(nullptr)); // time as pseudo random seed
+    m_sphereSpawnShader.uniform1ui("num_of_particles", m_particleBuffer.size());
     m_cubeSpawnShader.dispatch(m_particleBuffer.size(),calcWorkgroupSize(m_particleBuffer.size()));
 }
 
@@ -95,5 +96,6 @@ void ParticleSpawner::spawnParticles(const uint32_t numParticles, const float to
     m_sphereSpawnShader.uniform1f("density",m_particleDensity);
     m_sphereSpawnShader.uniform1f("temperature",temp);
     m_sphereSpawnShader.uniform1ui("random_seed", std::time(nullptr)); // time as pseudo random seed
+    m_sphereSpawnShader.uniform1ui("num_of_particles", m_particleBuffer.size());
     m_sphereSpawnShader.dispatch(m_particleBuffer.size(),calcWorkgroupSize(m_particleBuffer.size()));
 }
