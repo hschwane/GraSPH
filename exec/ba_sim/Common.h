@@ -73,13 +73,13 @@ constexpr unsigned int PARTICLE_POSITION_BUFFER_BINDING = 2;
 constexpr unsigned int PARTICLE_VELOCITY_BUFFER_BINDING = 3;
 constexpr unsigned int PARTICLE_ACCELERATION_BUFFER_BINDING = 4;
 
-constexpr unsigned int VERLET_BUFFER_BINDING = 4;
-constexpr unsigned int RK_STATE_IN_BUFFER_BINDING = 5;
-constexpr unsigned int RK_DERIV_BUFFER_BINDING = 6;
-constexpr unsigned int RK_OUT_BUFFER_BINDING = 7;
-constexpr unsigned int RK_MTWO_BUFFER_BINDING = 8;
-constexpr unsigned int RK_MTHREE_BUFFER_BINDING = 9;
-constexpr unsigned int RK_MFOUR_BUFFER_BINDING = 10;
+constexpr unsigned int VERLET_BUFFER_BINDING = 5;
+constexpr unsigned int RK_STATE_IN_BUFFER_BINDING = 6;
+constexpr unsigned int RK_DERIV_BUFFER_BINDING = 7;
+constexpr unsigned int RK_OUT_BUFFER_BINDING = 8;
+constexpr unsigned int RK_MTWO_BUFFER_BINDING = 9;
+constexpr unsigned int RK_MTHREE_BUFFER_BINDING = 10;
+constexpr unsigned int RK_MFOUR_BUFFER_BINDING = 11;
 
 constexpr unsigned int RENDERER_POSITION_ARRAY = 0;
 

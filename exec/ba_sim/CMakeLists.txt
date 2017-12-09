@@ -10,7 +10,7 @@ set(SOURCE_FILES
         ParticleRenderer.cpp
 #        DEsolver/SimpleDEsolver.cpp
         DEsolver/Leapfrog.cpp
-#        DEsolver/Verlet.cpp
+        DEsolver/Verlet.cpp
 #        DEsolver/VelocityVerlet.cpp
 #        DEsolver/RungeKutta4.cpp
         )

@@ -8,7 +8,7 @@
 #include "ParticleRenderer.h"
 //#include "DEsolver/SimpleDEsolver.h"
 #include "DEsolver/Leapfrog.h"
-//#include "DEsolver/Verlet.h"
+#include "DEsolver/Verlet.h"
 //#include "DEsolver/VelocityVerlet.h"
 //#include "DEsolver/RungeKutta4.h"
 
@@ -70,7 +70,7 @@ int main()
     };
 
     //  create a simulator
-    Leapfrog simulation(accFunc,pb,DT);
+    Verlet simulation(accFunc,pb,DT);
     simulation.start();
 
     float brightness=1;
