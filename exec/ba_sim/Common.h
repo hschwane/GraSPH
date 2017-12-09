@@ -94,14 +94,14 @@ constexpr float TEMPERATURE = 30;
 
 // spawning
 constexpr float TOTAL_MASS = 0.01;
-constexpr unsigned int NUM_PARTICLES = 12800;
+constexpr unsigned int NUM_PARTICLES = 36992;
 const  glm::vec3 LOWER_BOUND = glm::vec3(-1,-1,-1);
 const  glm::vec3 UPPER_BOUND = glm::vec3(1,1,1);
 
 // work group size
 constexpr unsigned int FORCED_SIZE = 0;
 constexpr unsigned int THREADS_PER_CORE = 32;
-constexpr unsigned int THREAD_GROUPING_SIZE = 128;
+constexpr unsigned int THREAD_GROUPING_SIZE = 64;
 constexpr unsigned int COMPUTE_CORES = 640;
 
 //-------------------------------------------------------------------

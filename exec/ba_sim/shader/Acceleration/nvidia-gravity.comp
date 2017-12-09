@@ -1,12 +1,17 @@
 #version 450 core
-//#extension GL_ARB_compute_variable_group_size : require
+// we have to use a fixed work group size here
 
 #include "common.glsl"
 #include "softGravity.glsl"
 
-layout(binding=PARTICLE_BUFFER_BINDING,std430) buffer ParticleBuffer
+layout(binding=PARTICLE_POSITION_BUFFER_BINDING,std430) buffer ParticlePositions
 {
-    Particle particles[];
+    vec4 positions[];
+};
+
+layout(binding=PARTICLE_ACCELERATION_BUFFER_BINDING,std430) buffer ParticleAccelerations
+{
+    vec4 accelerations[];
 };
 
 layout(local_size_x=WGSIZE,local_size_y=1,local_size_z=1) in;
@@ -15,15 +20,13 @@ uniform float gravity_constant;
 uniform float smoothing_epsilon_squared;
 
 shared vec4 pos[gl_WorkGroupSize.x];
-shared float mass[gl_WorkGroupSize.x];
 
 // interact one particle with p others
-void calculateTileRow( in vec4 myPosition, inout vec4 acc)
+void calculateTileRow( in vec4 myPosition, inout vec3 acc)
 {
     for(uint i=0; i<gl_WorkGroupSize.x; i++)
     {
-        acc += interaction(myPosition, pos[i],
-                    mass[i], smoothing_epsilon_squared);
+        acc += interaction(myPosition, pos[i], smoothing_epsilon_squared);
     }
 }
 
@@ -32,8 +35,8 @@ void calculateTileRow( in vec4 myPosition, inout vec4 acc)
 void main()
 {
     // cache my position in local memory
-    vec4 myPosition = particles[gl_GlobalInvocationID.x].position;
-    vec4 myAcc = vec4(0,0,0,0);
+    vec4 myPosition = positions[gl_GlobalInvocationID.x];
+    vec3 myAcc = vec3(0,0,0);
 
     // loop over tiles in a row
     // calculate the interactions of a particle with gl_WorkGroupSize.x particles in one tile
@@ -42,8 +45,7 @@ void main()
     {
         // fill fields in shared memory
         uint idx = gl_WorkGroupSize.x * tile + gl_LocalInvocationID.x;
-        pos[gl_LocalInvocationID.x] = particles[idx].position;
-        mass[gl_LocalInvocationID.x] = particles[idx].mass;
+        pos[gl_LocalInvocationID.x] = positions[idx];
         // sync
         memoryBarrierShared();
         barrier();
@@ -55,5 +57,5 @@ void main()
     }
 
     // write back the acceleration
-    particles[gl_GlobalInvocationID.x].acceleration = myAcc; //* gravity_constant;
+    accelerations[gl_GlobalInvocationID.x] = vec4(myAcc * gravity_constant,0);
 }

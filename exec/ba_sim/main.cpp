@@ -78,7 +78,7 @@ int main()
 
     // create shaders for acceleration
     uint32_t accWgSize = calcWorkgroupSize(NUM_PARTICLES);
-    mpu::gph::ShaderProgram accShader({{PROJECT_SHADER_PATH"Acceleration/naive-gravity.comp"}},
+    mpu::gph::ShaderProgram accShader({{PROJECT_SHADER_PATH"Acceleration/nvidia-gravity.comp"}},
                                       {{"WGSIZE",{mpu::toString(accWgSize)}},
                                        {"NUM_PARTICLES",{mpu::toString(NUM_PARTICLES)}}});
     accShader.uniform1f("smoothing_epsilon_squared",  EPS2);
@@ -87,8 +87,8 @@ int main()
     uint32_t wgSize = calcWorkgroupSize(NUM_PARTICLES);
     auto accFunc = [accShader,wgSize](){
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-//        accShader.dispatch(NUM_PARTICLES/wgSize);
-        accShader.dispatch(NUM_PARTICLES,wgSize);
+        accShader.dispatch(NUM_PARTICLES/wgSize);
+//        accShader.dispatch(NUM_PARTICLES,wgSize);
     };
 
     //  create a simulator
@@ -139,7 +139,6 @@ int main()
 
         while(lag >= DT)
         {
-
             simulation.advanceTime();
             lag -= DT;
         }
