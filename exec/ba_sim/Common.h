@@ -146,12 +146,11 @@ inline uint32_t calcWorkgroupSize(uint32_t totalInvocations)
     for(uint32_t i=1; i < max; i++)
     {
         // check if it devides totalInvocations
-        if(totalInvocations % i == 0 && (totalInvocations/i) >= COMPUTE_CORES)
+        if(totalInvocations % i == 0 && ((totalInvocations/i) >= COMPUTE_CORES || i < THREADS_PER_CORE))
         {
             result = i;
         }
     }
-
 
     logINFO("WGSize") << "Selecting workgroup size " << result << " for " << totalInvocations
                       << " total invocations. Resulting in " << totalInvocations / result << " groups";
