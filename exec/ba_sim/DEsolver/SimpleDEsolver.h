@@ -33,11 +33,11 @@ class SimpleDEsolver : public DEsolver
 {
 public:
     SimpleDEsolver(std::string shaderPath);
-    SimpleDEsolver(std::string shaderPath, std::function<void(void)> accelerator, mpu::gph::Buffer particleBuffer, uint32_t number, double dt);
+    SimpleDEsolver(std::string shaderPath, std::function<void(void)> accelerator, ParticleBuffer particleBuffer, double dt);
     virtual ~SimpleDEsolver() override = default;
     void setAccelerator(std::function<void(void)> accelerator) override;
     void setDT(double dt) override;
-    void setParticles(mpu::gph::Buffer particleBuffer, uint32_t number) override;
+    void setParticles(ParticleBuffer particleBuffer) override;
 
     void advanceTime() override;
 
@@ -61,7 +61,7 @@ class ExplicitEuler : public SimpleDEsolver
 {
 public:
     ExplicitEuler() : SimpleDEsolver(PROJECT_SHADER_PATH"DEsolver/explicit-euler.comp"){}
-    ExplicitEuler(std::function<void(void)> accelerator, mpu::gph::Buffer particleBuffer, uint32_t number, double dt) : SimpleDEsolver(PROJECT_SHADER_PATH"DEsolver/explicit-euler.comp",accelerator,particleBuffer,number,dt) {}
+    ExplicitEuler(std::function<void(void)> accelerator, ParticleBuffer particleBuffer, double dt) : SimpleDEsolver(PROJECT_SHADER_PATH"DEsolver/explicit-euler.comp",accelerator,particleBuffer,dt) {}
     virtual ~ExplicitEuler() override = default;
 };
 
@@ -77,7 +77,7 @@ class SemiImplicitEuler : public SimpleDEsolver
 {
 public:
     SemiImplicitEuler() : SimpleDEsolver(PROJECT_SHADER_PATH"DEsolver/semi-implicit-euler.comp"){}
-    SemiImplicitEuler(std::function<void(void)> accelerator, mpu::gph::Buffer particleBuffer, uint32_t number, double dt) : SimpleDEsolver(PROJECT_SHADER_PATH"DEsolver/semi-implicit-euler.comp",accelerator,particleBuffer,number,dt) {}
+    SemiImplicitEuler(std::function<void(void)> accelerator, ParticleBuffer particleBuffer, double dt) : SimpleDEsolver(PROJECT_SHADER_PATH"DEsolver/semi-implicit-euler.comp",accelerator,particleBuffer,dt) {}
     virtual ~SemiImplicitEuler() override = default;
 };
 

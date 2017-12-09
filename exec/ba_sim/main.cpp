@@ -6,7 +6,7 @@
 #include "Common.h"
 #include "ParticleSpawner.h"
 #include "ParticleRenderer.h"
-//#include "DEsolver/SimpleDEsolver.h"
+#include "DEsolver/SimpleDEsolver.h"
 #include "DEsolver/Leapfrog.h"
 #include "DEsolver/Verlet.h"
 #include "DEsolver/VelocityVerlet.h"
@@ -70,7 +70,7 @@ int main()
     };
 
     //  create a simulator
-    VelocityVerlet simulation(accFunc,pb,DT);
+    SemiImplicitEuler simulation(accFunc,pb,DT);
     simulation.start();
 
     float brightness=1;
