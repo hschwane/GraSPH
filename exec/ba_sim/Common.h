@@ -19,7 +19,6 @@
 #include <Log/Log.h>
 //--------------------
 
-
 //-------------------------------------------------------------------
 /**
  * @brief ParticleBuffer contains a set of openGL buffers that contain all the particle attributes

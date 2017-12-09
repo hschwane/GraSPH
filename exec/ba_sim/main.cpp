@@ -9,7 +9,7 @@
 //#include "DEsolver/SimpleDEsolver.h"
 #include "DEsolver/Leapfrog.h"
 #include "DEsolver/Verlet.h"
-//#include "DEsolver/VelocityVerlet.h"
+#include "DEsolver/VelocityVerlet.h"
 //#include "DEsolver/RungeKutta4.h"
 
 constexpr int HEIGHT = 800;
@@ -70,7 +70,7 @@ int main()
     };
 
     //  create a simulator
-    Verlet simulation(accFunc,pb,DT);
+    VelocityVerlet simulation(accFunc,pb,DT);
     simulation.start();
 
     float brightness=1;
