@@ -57,7 +57,7 @@ inline DEsolverFlag operator&(const DEsolverFlag lhs, const DEsolverFlag rhs)
  * The function should operate on the buffer currently bound to the PARTICLE_BUFFER_BINDING.
  * Then set the disired delta time with setDT() be aware that some solvers might not like it if you change dt
  * between simulation steps.
- * Now set the buffer containing the particles using setParticles() with a buffer object and the total number of particles.
+ * Now set the buffer containing the particles using setParticles() with a ParticleBuffer object.
  * Finally use advanceTime to advance the simulation.
  * Some solvers require you to use the start() function before performing the first step. You can check by calling isSelfStarting.
  *
@@ -74,7 +74,7 @@ public:
 
     virtual void setAccelerator(std::function<void(void)> accelerator)=0; //!< set the function used to calculate the acceleration
     virtual void setDT(double dt)=0; //!< set the timestep
-    virtual void setParticles(mpu::gph::Buffer particleBuffer, uint32_t number)=0; //!< set the particle buffer to be simulated
+    virtual void setParticles(ParticleBuffer particleBuffer)=0; //!< set the particle buffer to be simulated
 
     virtual void start(){}  //!< start the solver if it is not self starting
     virtual void advanceTime()=0; //!< advance the time by dt

@@ -6,11 +6,11 @@
 #include "Common.h"
 #include "ParticleSpawner.h"
 #include "ParticleRenderer.h"
-#include "DEsolver/SimpleDEsolver.h"
+//#include "DEsolver/SimpleDEsolver.h"
 #include "DEsolver/Leapfrog.h"
-#include "DEsolver/Verlet.h"
-#include "DEsolver/VelocityVerlet.h"
-#include "DEsolver/RungeKutta4.h"
+//#include "DEsolver/Verlet.h"
+//#include "DEsolver/VelocityVerlet.h"
+//#include "DEsolver/RungeKutta4.h"
 
 constexpr int HEIGHT = 800;
 constexpr int WIDTH = 800;
@@ -87,12 +87,13 @@ int main()
     uint32_t wgSize = calcWorkgroupSize(NUM_PARTICLES);
     auto accFunc = [accShader,wgSize](){
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-        accShader.dispatch(NUM_PARTICLES/wgSize);
+//        accShader.dispatch(NUM_PARTICLES/wgSize);
+        accShader.dispatch(NUM_PARTICLES,wgSize);
     };
 
     //  create a simulator
-//    Leapfrog simulation(accFunc,pb,NUM_PARTICLES,DT);
-//    simulation.start();
+    Leapfrog simulation(accFunc,pb,DT);
+    simulation.start();
 
     float brightness=1;
 
@@ -139,7 +140,7 @@ int main()
         while(lag >= DT)
         {
 
-//            simulation.advanceTime();
+            simulation.advanceTime();
             lag -= DT;
         }
 

@@ -33,6 +33,8 @@ public:
     typedef glm::vec4 velType;
     typedef glm::vec4 accType;
 
+    ParticleBuffer()= default;
+
     void reallocateAll(uint32_t numParticles, GLbitfield flags = 0)
     {
         positionBuffer.recreate();

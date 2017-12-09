@@ -18,21 +18,22 @@
 
 // function definitions of the Leapfrog class
 //-------------------------------------------------------------------
-Leapfrog::Leapfrog() : Leapfrog(nullptr,mpu::gph::Buffer(),0,0)
+Leapfrog::Leapfrog() : Leapfrog(nullptr,ParticleBuffer(),0)
 {
 
 }
 
-Leapfrog::Leapfrog(std::function<void(void)> accelerator, mpu::gph::Buffer particleBuffer, uint32_t number,
-                   double dt) : DEsolver(DEsolverFlag::REQUIRE_ONE_ACC),
+Leapfrog::Leapfrog(std::function<void(void)> accelerator, ParticleBuffer particleBuffer, double dt)
+                              : DEsolver(DEsolverFlag::REQUIRE_ONE_ACC),
                                 m_shader({{PROJECT_SHADER_PATH"DEsolver/leapfrog.comp"}}),
                                 m_calcAcceleration(accelerator),
-                                m_numParticles(number), m_wgSize(calcWorkgroupSize(number)),
+                                m_numParticles(particleBuffer.size()),
+                                m_wgSize(calcWorkgroupSize(particleBuffer.size())),
                                 m_dt(dt)
 {
     m_shader.uniform1f("dt",dt);
     m_shader.uniform1f("vel_dt",dt);
-    particleBuffer.bindBase(PARTICLE_BUFFER_BINDING, GL_SHADER_STORAGE_BUFFER);
+    particleBuffer.bindAll(PARTICLE_BUFFER_BINDING, GL_SHADER_STORAGE_BUFFER);
 }
 
 void Leapfrog::setAccelerator(std::function<void(void)> accelerator)
@@ -47,11 +48,11 @@ void Leapfrog::setDT(double dt)
     m_shader.uniform1f("vel_dt",dt);
 }
 
-void Leapfrog::setParticles(mpu::gph::Buffer particleBuffer, uint32_t number)
+void Leapfrog::setParticles(ParticleBuffer particleBuffer)
 {
-    particleBuffer.bindBase(PARTICLE_BUFFER_BINDING, GL_SHADER_STORAGE_BUFFER);
-    m_numParticles = number;
-    m_wgSize = calcWorkgroupSize(number);
+    particleBuffer.bindAll(PARTICLE_BUFFER_BINDING, GL_SHADER_STORAGE_BUFFER);
+    m_numParticles = particleBuffer.size();
+    m_wgSize = calcWorkgroupSize(particleBuffer.size());
 }
 
 void Leapfrog::start()
