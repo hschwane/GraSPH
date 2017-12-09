@@ -38,28 +38,6 @@ int main()
     spawner.spawnParticles(NUM_PARTICLES,TOTAL_MASS,TEMPERATURE, 2);
     auto pb = spawner.getParticleBuffer();
 
-//    std::vector<Particle> ptls;
-//    Particle a;
-//    a.position = {0.5,0,0,1};
-//    a.velocity = {0,0,0,0};
-//    a.acceleration = {0,0,0,0};
-//    a.renderSize = 0.008;
-//    a.mass=0.25;
-//    ptls.push_back(a);
-//    a.position = {-0.5,0,0,1};
-//    ptls.push_back(a);
-//    mpu::gph::Buffer pb(ptls);
-//    pb.bindBase(PARTICLE_BUFFER_BINDING,GL_SHADER_STORAGE_BUFFER);
-
-//    ParticleBuffer pb;
-//    pb.reallocateAll(3);
-//    pb.positionBuffer.recreate();
-//    std::vector<glm::vec4> pos;
-//    pos.push_back({1,1,1,0});
-//    pos.push_back({0,0,0,0});
-//    pos.push_back({-1,-1,-1,25});
-//    pb.positionBuffer.allocate(pos,0);
-
     // create a renderer
     ParticleRenderer renderer;
     renderer.setParticleBuffer(pb);
