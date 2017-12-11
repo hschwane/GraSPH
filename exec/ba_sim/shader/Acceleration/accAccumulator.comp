@@ -1,0 +1,21 @@
+#version 450 core
+#extension GL_ARB_compute_variable_group_size : require
+
+#include "common.glsl"
+
+layout(binding=PARTICLE_ACCELERATION_BUFFER_BINDING,std430) buffer ParticleAccelerations
+{
+    vec4 accelerations[];
+};
+
+layout(local_size_variable) in;
+
+void main()
+{
+    vec4 acc = vec4(0,0,0,0);
+    for(uint i=0; i < ACCELERATIONS_PER_PARTICLE; i++)
+    {
+        acc += accelerations[NUM_PARTICLES * i + gl_GlobalInvocationID.x];
+    }
+    accelerations[gl_GlobalInvocationID.x] = acc;
+}

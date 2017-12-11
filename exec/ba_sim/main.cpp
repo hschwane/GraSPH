@@ -16,7 +16,6 @@ constexpr int WIDTH = 800;
 
 int main()
 {
-
     // initialise log
     mpu::Log mainLog(mpu::ALL, mpu::ConsoleSink());
 
@@ -33,9 +32,10 @@ int main()
     mpu::gph::enableVsync(false);
 
     // generate some particles
+    ParticleBuffer pb(NUM_PARTICLES,THREADS_PER_PARTICLE);
     ParticleSpawner spawner;
-    spawner.spawnParticles(NUM_PARTICLES,TOTAL_MASS,TEMPERATURE, 2);
-    auto pb = spawner.getParticleBuffer();
+    spawner.setBuffer(pb);
+    spawner.spawnParticles(TOTAL_MASS,TEMPERATURE, 2);
 
     // create a renderer
     ParticleRenderer renderer;
@@ -54,18 +54,28 @@ int main()
     camera.setClip(0.1,100);
 
     // create shaders for acceleration
-    uint32_t accWgSize = calcWorkgroupSize(NUM_PARTICLES);
+    uint32_t accWgSize = 128;//calcWorkgroupSize(NUM_PARTICLES*THREADS_PER_PARTICLE);
     mpu::gph::ShaderProgram accShader({{PROJECT_SHADER_PATH"Acceleration/nvidia-gravity.comp"}},
-                                      {{"WGSIZE",{mpu::toString(accWgSize)}},
-                                       {"NUM_PARTICLES",{mpu::toString(NUM_PARTICLES)}}});
+                                      {
+                                       {"WGSIZE",{mpu::toString(accWgSize)}},
+                                       {"NUM_PARTICLES",{mpu::toString(NUM_PARTICLES)}},
+                                       {"TILES_PER_THREAD",{mpu::toString(NUM_PARTICLES / accWgSize / THREADS_PER_PARTICLE)}}
+                                      });
     accShader.uniform1f("smoothing_epsilon_squared",  EPS2);
     accShader.uniform1f("gravity_constant",  G);
 
-    uint32_t wgSize = calcWorkgroupSize(NUM_PARTICLES);
-    auto accFunc = [accShader,wgSize](){
+    uint32_t accumWgSize = calcWorkgroupSize(NUM_PARTICLES);
+    mpu::gph::ShaderProgram accAccum({{PROJECT_SHADER_PATH"Acceleration/accAccumulator.comp"}},
+                                      {
+                                       {"NUM_PARTICLES",{mpu::toString(NUM_PARTICLES)}},
+                                       {"ACCELERATIONS_PER_PARTICLE",{mpu::toString(THREADS_PER_PARTICLE)}}
+                                      });
+
+    auto accFunc = [accShader,accWgSize,accAccum,accumWgSize](){
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-        accShader.dispatch(NUM_PARTICLES/wgSize);
-//        accShader.dispatch(NUM_PARTICLES,wgSize);
+        accShader.dispatch(NUM_PARTICLES*THREADS_PER_PARTICLE/accWgSize);
+        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+        accAccum.dispatch(NUM_PARTICLES,accumWgSize);
     };
 
     //  create a simulator
@@ -83,11 +93,8 @@ int main()
     double lag = 0;
 
 
+    // TODO: better accumulator
     // TODO: add gpu stopwatch
-    // TODO: performance structure of arrays
-    // TODO: put mass into position
-    // TODO: performance: work group size calculator
-    // TODO: performance test one shader two buffers vs two shaders
     // TODO: 2D mode
     // TODO: fix spawner
     // TODO: other fun  spawning scenarios
