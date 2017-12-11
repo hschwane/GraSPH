@@ -38,9 +38,9 @@ class ParticleSpawner
 {
 public:
     ParticleSpawner(); //!< constructor will compile shader
-    void spawnParticles(uint32_t numParticles, float totalMass, float temp,
+    void spawnParticles(float totalMass, float temp,
                         const glm::vec3& upperBound, const glm::vec3& lowerBound); //!< spawns particles in a cube
-    void spawnParticles(uint32_t numParticles, float totalMass, float temp,
+    void spawnParticles(float totalMass, float temp,
                         float radius, const glm::vec3& center={0,0,0} ); //!< spawns particles in a sphere
 
     // getter
@@ -51,13 +51,12 @@ public:
     float getParticleVolume()const{return m_particleVolume;} //!< returns the volume each particle represent
     float getParticleDensity()const{return m_particleDensity;} //!< returns the density of each particle
 
-    void setBufferFlags(uint32_t flags){m_bufferFlags = flags;}; //!< set the flags the particle buffer will be created with
+    void setBuffer(ParticleBuffer buffer){m_particleBuffer=buffer;} //!< set the buffer that is filled with particles
 
 private:
     mpu::gph::ShaderProgram m_cubeSpawnShader; //!< shader for spawning particles in a cube
     mpu::gph::ShaderProgram m_sphereSpawnShader; //!< shader for spawning particles in a spere
 
-    uint32_t m_bufferFlags{0}; //!< the flags the particle buffer will be created with
     ParticleBuffer m_particleBuffer; //!< the buffer where the particles are stored
 
     // info about the last created particles

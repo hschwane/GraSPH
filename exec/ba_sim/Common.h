@@ -33,16 +33,25 @@ public:
     typedef glm::vec4 accType;
 
     ParticleBuffer()= default;
+    explicit ParticleBuffer(uint32_t numParticles, uint32_t accMulti = 1, GLbitfield flags = 0)
+    {
+        positionBuffer.allocate<posType>(numParticles,flags);
+        velocityBuffer.allocate<velType>(numParticles,flags);
+        accelerationBuffer.allocate<accType>(numParticles*accMulti,flags);
+        m_numberOfParticles=numParticles;
+        m_accMulti = accMulti;
+    }
 
-    void reallocateAll(uint32_t numParticles, GLbitfield flags = 0)
+    void reallocateAll(uint32_t numParticles, uint32_t accMulti = 1, GLbitfield flags = 0)
     {
         positionBuffer.recreate();
         positionBuffer.allocate<posType>(numParticles,flags);
         velocityBuffer.recreate();
         velocityBuffer.allocate<velType>(numParticles,flags);
         accelerationBuffer.recreate();
-        accelerationBuffer.allocate<accType>(numParticles,flags);
+        accelerationBuffer.allocate<accType>(numParticles*accMulti,flags);
         m_numberOfParticles=numParticles;
+        m_accMulti = accMulti;
     };
 
     void bindAll( uint32_t binding, GLenum target)
@@ -53,12 +62,14 @@ public:
     }
 
     uint32_t size(){return m_numberOfParticles;} //!< returns the number of particles
+    uint32_t accPerParticle(){ return m_accMulti;} //!< returns the number of different accelerations that can be stored per particle
 
     mpu::gph::Buffer positionBuffer;
     mpu::gph::Buffer velocityBuffer;
     mpu::gph::Buffer accelerationBuffer;
 private:
     uint32_t m_numberOfParticles;
+    uint32_t m_accMulti;
 };
 
 //-------------------------------------------------------------------
@@ -77,7 +88,7 @@ constexpr unsigned int RENDERER_POSITION_ARRAY = 0;
 
 // simulation
 constexpr double DT = 0.034;
-constexpr double EPS2 = 0.01;
+constexpr double EPS2 = 0.001;
 constexpr float G = 1;
 
 // particles
