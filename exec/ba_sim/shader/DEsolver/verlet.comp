@@ -3,9 +3,14 @@
 
 #include "common.glsl"
 
-layout(binding=PARTICLE_BUFFER_BINDING,std430) buffer ParticleBuffer
+layout(binding=PARTICLE_POSITION_BUFFER_BINDING,std430) buffer ParticlePositions
 {
-    Particle particles[];
+    vec4 positions[];
+};
+
+layout(binding=PARTICLE_ACCELERATION_BUFFER_BINDING,std430) buffer ParticleAccelerations
+{
+    vec4 accelerations[];
 };
 
 layout(binding=VERLET_BUFFER_BINDING,std430) buffer VerletLastPositionBuffer
@@ -22,13 +27,13 @@ uniform float dt;
 // and call verletFirstStep to perform the first integration step.
 void main()
 {
-    vec4 currentPos = particles[gl_GlobalInvocationID.x].position;
+    vec4 currentPos = positions[gl_GlobalInvocationID.x];
     vec4 lastPos = lastPosition[gl_GlobalInvocationID.x];
-    vec4 acceleration = particles[gl_GlobalInvocationID.x].acceleration;
+    vec4 acceleration = accelerations[gl_GlobalInvocationID.x];
 
     vec4 newPos = currentPos + currentPos - lastPos + acceleration * dt*dt;
 
     lastPosition[gl_GlobalInvocationID.x] = currentPos;
-    particles[gl_GlobalInvocationID.x].position = newPos;
-    particles[gl_GlobalInvocationID.x].acceleration = vec4(0,0,0,0);
+    positions[gl_GlobalInvocationID.x] = newPos;
+    accelerations[gl_GlobalInvocationID.x] = vec4(0,0,0,0);
 }

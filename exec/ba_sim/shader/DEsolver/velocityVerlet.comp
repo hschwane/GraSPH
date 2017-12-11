@@ -3,9 +3,19 @@
 
 #include "common.glsl"
 
-layout(binding=PARTICLE_BUFFER_BINDING,std430) buffer ParticleBuffer
+layout(binding=PARTICLE_POSITION_BUFFER_BINDING,std430) buffer ParticlePositions
 {
-    Particle particles[];
+    vec4 positions[];
+};
+
+layout(binding=PARTICLE_VELOCITY_BUFFER_BINDING,std430) buffer ParticleVelocities
+{
+    vec4 velocities[];
+};
+
+layout(binding=PARTICLE_ACCELERATION_BUFFER_BINDING,std430) buffer ParticleAccelerations
+{
+    vec4 accelerations[];
 };
 
 layout(binding=VERLET_BUFFER_BINDING,std430) buffer VerletLastPositionBuffer
@@ -39,16 +49,16 @@ uniform float vel_dt;
 // position: X_i+1
 void main()
 {
-    vec4 currPos = particles[gl_GlobalInvocationID.x].position;
-    vec4 currVel = particles[gl_GlobalInvocationID.x].velocity;
+    vec4 currPos = positions[gl_GlobalInvocationID.x];
+    vec4 currVel = velocities[gl_GlobalInvocationID.x];
     vec4 oldAcc = lastAcceleration[gl_GlobalInvocationID.x];
-    vec4 currAcc = particles[gl_GlobalInvocationID.x].acceleration;
+    vec4 currAcc = accelerations[gl_GlobalInvocationID.x];
 
     vec4 newVel = currVel + 0.5*(currAcc+oldAcc)*vel_dt;
     vec4 newPos = currPos + newVel*dt + 0.5 * currAcc*dt*dt;
 
-    particles[gl_GlobalInvocationID.x].position = newPos;
-    particles[gl_GlobalInvocationID.x].velocity = newVel;
+    positions[gl_GlobalInvocationID.x] = newPos;
+    velocities[gl_GlobalInvocationID.x] = newVel;
     lastAcceleration[gl_GlobalInvocationID.x] = currAcc;
-    particles[gl_GlobalInvocationID.x].acceleration = vec4(0,0,0,0);
+    accelerations[gl_GlobalInvocationID.x] = vec4(0,0,0,0);
 }

@@ -27,9 +27,9 @@ ParticleRenderer::ParticleRenderer()
 {
     glEnable(GL_PROGRAM_POINT_SIZE);
     m_vao.enableArray(RENDERER_POSITION_ARRAY);
-    m_vao.enableArray(RENDERER_SIZE_ARRAY);
     m_renderShader.uniform4f("color", m_color);
     m_renderShader.uniform1f("brightness", m_brightness);
+    m_renderShader.uniform1f("render_size", m_size);
 }
 
 void ParticleRenderer::draw()
@@ -41,16 +41,14 @@ void ParticleRenderer::draw()
     glDrawArrays(GL_POINTS, 0, m_numOfParticles);
 }
 
-void ParticleRenderer::configureArrays(GLuint positionOffset, GLuint rendersizeOffset)
+void ParticleRenderer::setParticleBuffer(ParticleBuffer buffer)
 {
-    m_vao.setAttribFormat(RENDERER_POSITION_ARRAY, 4, positionOffset);
-    m_vao.addBinding(RENDERER_POSITION_ARRAY, RENDERER_BUFFER_BINDING);
+    m_vao.setBuffer(RENDERER_POSITION_BUFFER_BINDING,buffer.positionBuffer,0,sizeof(ParticleBuffer::posType));
+    m_vao.setAttribFormat(RENDERER_POSITION_ARRAY, 3, 0);
+    m_vao.addBinding(RENDERER_POSITION_ARRAY, RENDERER_POSITION_BUFFER_BINDING);
+    m_numOfParticles = buffer.size();
 
-    m_vao.setAttribFormat(RENDERER_SIZE_ARRAY, 1, rendersizeOffset);
-    m_vao.addBinding(RENDERER_SIZE_ARRAY, RENDERER_BUFFER_BINDING);
-
-    logINFO("Renderer") << "Reconfigured vertex arrays.";
-    logDEBUG("Renderer") << "PositionOffset: " << positionOffset << " renderSize Offset: " << rendersizeOffset;
+    logINFO("Renderer") << "Set buffer for rendering and reconfigured vertex arrays. Buffer containing " << m_numOfParticles << " Particles.";
 }
 
 void ParticleRenderer::setViewportSize(glm::uvec2 viewport)
@@ -94,6 +92,7 @@ void ParticleRenderer::setShaderSettings( Falloff style, bool perspectiveSize, b
     m_renderShader.uniform2f("viewport_size", m_vpSize);
     m_renderShader.uniform4f("color", m_color);
     m_renderShader.uniform1f("brightness", m_brightness);
+    m_renderShader.uniform1f("render_size", m_size);
 }
 
 void ParticleRenderer::enableAdditiveBlending(bool enable)
@@ -124,4 +123,10 @@ void ParticleRenderer::enableDepthTest(bool enable)
         glEnable(GL_DEPTH_TEST);
     else
         glDisable(GL_DEPTH_TEST);
+}
+
+void ParticleRenderer::setSize(float size)
+{
+    m_size = size;
+    m_renderShader.uniform1f("render_size", m_size);
 }

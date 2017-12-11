@@ -3,9 +3,19 @@
 
 #include "common.glsl"
 
-layout(binding=PARTICLE_BUFFER_BINDING,std430) buffer ParticleBuffer
+layout(binding=PARTICLE_POSITION_BUFFER_BINDING,std430) buffer ParticlePositions
 {
-    Particle particles[];
+    vec4 positions[];
+};
+
+layout(binding=PARTICLE_VELOCITY_BUFFER_BINDING,std430) buffer ParticleVelocities
+{
+    vec4 velocities[];
+};
+
+layout(binding=PARTICLE_ACCELERATION_BUFFER_BINDING,std430) buffer ParticleAccelerations
+{
+    vec4 accelerations[];
 };
 
 layout(local_size_variable) in;
@@ -15,8 +25,9 @@ uniform float dt;
 // This shader performs a semi-implicit euler step on one particle.
 void main()
 {
-    particles[gl_GlobalInvocationID.x].velocity += particles[gl_GlobalInvocationID.x].acceleration * dt;
-    particles[gl_GlobalInvocationID.x].position += particles[gl_GlobalInvocationID.x].velocity * dt;
+    vec4 vel = velocities[gl_GlobalInvocationID.x] + accelerations[gl_GlobalInvocationID.x] * dt;
+    positions[gl_GlobalInvocationID.x] += vel * dt;
 
-    particles[gl_GlobalInvocationID.x].acceleration = vec4(0,0,0,0);
+    velocities[gl_GlobalInvocationID.x] = vel;
+    accelerations[gl_GlobalInvocationID.x] = vec4(0,0,0,0);
 }

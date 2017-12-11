@@ -19,43 +19,61 @@
 #include <Log/Log.h>
 //--------------------
 
-
 //-------------------------------------------------------------------
 /**
- * @brief Particle struct representing one particle
+ * @brief ParticleBuffer contains a set of openGL buffers that contain all the particle attributes
+ * size is only updated when reallocate all is used.
  */
-struct Particle
+struct ParticleBuffer
 {
-    glm::vec4 position{0,0,0,1};
-    glm::vec4 velocity{0};
-    glm::vec4 acceleration{0};
-    float mass{0};
-    float density{0};
-    float temperature{0};
-    float renderSize{0};
+public:
+
+    typedef glm::vec4 posType;
+    typedef glm::vec4 velType;
+    typedef glm::vec4 accType;
+
+    ParticleBuffer()= default;
+
+    void reallocateAll(uint32_t numParticles, GLbitfield flags = 0)
+    {
+        positionBuffer.recreate();
+        positionBuffer.allocate<posType>(numParticles,flags);
+        velocityBuffer.recreate();
+        velocityBuffer.allocate<velType>(numParticles,flags);
+        accelerationBuffer.recreate();
+        accelerationBuffer.allocate<accType>(numParticles,flags);
+        m_numberOfParticles=numParticles;
+    };
+
+    void bindAll( uint32_t binding, GLenum target)
+    {
+        positionBuffer.bindBase(binding,target);
+        velocityBuffer.bindBase(binding+1,target);
+        accelerationBuffer.bindBase(binding+2,target);
+    }
+
+    uint32_t size(){return m_numberOfParticles;} //!< returns the number of particles
+
+    mpu::gph::Buffer positionBuffer;
+    mpu::gph::Buffer velocityBuffer;
+    mpu::gph::Buffer accelerationBuffer;
+private:
+    uint32_t m_numberOfParticles;
 };
 
 //-------------------------------------------------------------------
 // global variables for settings TODO: move to init file / gui eventually
 
-// gl
-constexpr unsigned int SPAWNER_GROUP_SIZE = 200;
-constexpr unsigned int RENDERER_BUFFER_BINDING = 1;
+// buffer bindings
+constexpr unsigned int RENDERER_POSITION_BUFFER_BINDING = 0;
 
-constexpr unsigned int SPAWNER_BUFFER_BINDING = 3;
 constexpr unsigned int PARTICLE_BUFFER_BINDING = 2;
+constexpr unsigned int PARTICLE_POSITION_BUFFER_BINDING = 2;
+constexpr unsigned int PARTICLE_VELOCITY_BUFFER_BINDING = 3;
+constexpr unsigned int PARTICLE_ACCELERATION_BUFFER_BINDING = 4;
 
-constexpr unsigned int VERLET_BUFFER_BINDING = 4;
-
-constexpr unsigned int RK_STATE_IN_BUFFER_BINDING = 5;
-constexpr unsigned int RK_DERIV_BUFFER_BINDING = 6;
-constexpr unsigned int RK_OUT_BUFFER_BINDING = 7;
-constexpr unsigned int RK_MTWO_BUFFER_BINDING = 8;
-constexpr unsigned int RK_MTHREE_BUFFER_BINDING = 9;
-constexpr unsigned int RK_MFOUR_BUFFER_BINDING = 10;
-
+constexpr unsigned int VERLET_BUFFER_BINDING = 5;
 constexpr unsigned int RENDERER_POSITION_ARRAY = 0;
-constexpr unsigned int RENDERER_SIZE_ARRAY = 1;
 
 // simulation
 constexpr double DT = 0.034;
@@ -68,7 +86,7 @@ constexpr float TEMPERATURE = 30;
 
 // spawning
 constexpr float TOTAL_MASS = 0.01;
-constexpr unsigned int NUM_PARTICLES = 40960;
+constexpr unsigned int NUM_PARTICLES = 35328;
 const  glm::vec3 LOWER_BOUND = glm::vec3(-1,-1,-1);
 const  glm::vec3 UPPER_BOUND = glm::vec3(1,1,1);
 
@@ -122,12 +140,11 @@ inline uint32_t calcWorkgroupSize(uint32_t totalInvocations)
     for(uint32_t i=1; i < max; i++)
     {
         // check if it devides totalInvocations
-        if(totalInvocations % i == 0 && (totalInvocations/i) >= COMPUTE_CORES)
+        if(totalInvocations % i == 0 && ((totalInvocations/i) >= COMPUTE_CORES || i < THREADS_PER_CORE))
         {
             result = i;
         }
     }
-
 
     logINFO("WGSize") << "Selecting workgroup size " << result << " for " << totalInvocations
                       << " total invocations. Resulting in " << totalInvocations / result << " groups";

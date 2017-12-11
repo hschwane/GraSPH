@@ -36,11 +36,11 @@ class Verlet : public DEsolver
 {
 public:
     Verlet();
-    Verlet(std::function<void(void)> accelerator, mpu::gph::Buffer particleBuffer, uint32_t number, double dt);
+    Verlet(std::function<void(void)> accelerator, ParticleBuffer particleBuffer, double dt);
     virtual ~Verlet() override = default;
     void setAccelerator(std::function<void(void)> accelerator) override;
     void setDT(double dt) override;
-    void setParticles(mpu::gph::Buffer particleBuffer, uint32_t number) override;
+    void setParticles(ParticleBuffer particleBuffer) override;
 
     void start() override;
     void advanceTime() override;

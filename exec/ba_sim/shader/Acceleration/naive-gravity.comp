@@ -4,35 +4,41 @@
 #include "common.glsl"
 #include "softGravity.glsl"
 
-layout(binding=PARTICLE_BUFFER_BINDING,std430) buffer ParticleBuffer
+layout(binding=PARTICLE_POSITION_BUFFER_BINDING,std430) buffer ParticlePositions
 {
-    Particle particles[];
+    vec4 positions[];
+};
+
+layout(binding=PARTICLE_ACCELERATION_BUFFER_BINDING,std430) buffer ParticleAccelerations
+{
+    vec4 accelerations[];
 };
 
 layout(local_size_variable) in;
 
-uniform uint num_of_particles;
 uniform float gravity_constant;
 uniform float smoothing_epsilon_squared;
+
+#ifdef NUM_PARTICLES
+    uniform uint num_of_particles= NUM_PARTICLES;
+#else
+    uniform uint num_of_particles;
+#endif
 
 // This shader updates a particles acceleration by interacting with all other particles in
 // a naive implementation.
 void main()
 {
-    if(gl_GlobalInvocationID.x >= num_of_particles)
-        return;
-
     // cache my position in local memory
-    vec4 myPosition = particles[gl_GlobalInvocationID.x].position;
-    vec4 myAcc = vec4(0,0,0,0);
+    vec4 myPosition = positions[gl_GlobalInvocationID.x];
+    vec3 myAcc = vec3(0,0,0);
 
     // interact with all other particles
     for(uint i=0; i<num_of_particles; i++)
     {
-            myAcc += interaction(myPosition, particles[i].position,
-                            particles[i].mass, smoothing_epsilon_squared);
+            myAcc += interaction(myPosition, positions[i], smoothing_epsilon_squared);
     }
 
     // write back the acceleration
-    particles[gl_GlobalInvocationID.x].acceleration = myAcc; //* gravity_constant;
+    accelerations[gl_GlobalInvocationID.x] = vec4(myAcc * gravity_constant, 0);
 }

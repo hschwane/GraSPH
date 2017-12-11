@@ -22,7 +22,7 @@
 //-------------------------------------------------------------------
 
 /**
- * class SemiImplicitEuler
+ * class Leapfrog
  *
  * usage:
  * Perform leapfrog integration. Veloctiy will always be v(t-1/2dt) while Position is p(t).
@@ -35,11 +35,11 @@ class Leapfrog : public DEsolver
 {
 public:
     Leapfrog();
-    Leapfrog(std::function<void(void)> accelerator, mpu::gph::Buffer particleBuffer, uint32_t number, double dt);
+    Leapfrog(std::function<void(void)> accelerator, ParticleBuffer particleBuffer, double dt);
     virtual ~Leapfrog() override = default;
     void setAccelerator(std::function<void(void)> accelerator) override;
     void setDT(double dt) override;
-    void setParticles(mpu::gph::Buffer particleBuffer, uint32_t number) override;
+    void setParticles(ParticleBuffer particleBuffer) override;
 
     void start() override;
     void advanceTime() override;

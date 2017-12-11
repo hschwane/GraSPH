@@ -10,7 +10,6 @@
 #include "DEsolver/Leapfrog.h"
 #include "DEsolver/Verlet.h"
 #include "DEsolver/VelocityVerlet.h"
-#include "DEsolver/RungeKutta4.h"
 
 constexpr int HEIGHT = 800;
 constexpr int WIDTH = 800;
@@ -37,31 +36,17 @@ int main()
     ParticleSpawner spawner;
     spawner.spawnParticles(NUM_PARTICLES,TOTAL_MASS,TEMPERATURE, 2);
     auto pb = spawner.getParticleBuffer();
-    pb.bindBase(PARTICLE_BUFFER_BINDING,GL_SHADER_STORAGE_BUFFER);
-
-//    std::vector<Particle> ptls;
-//    Particle a;
-//    a.position = {0.5,0,0,1};
-//    a.velocity = {0,0,0,0};
-//    a.acceleration = {0,0,0,0};
-//    a.renderSize = 0.008;
-//    a.mass=0.25;
-//    ptls.push_back(a);
-//    a.position = {-0.5,0,0,1};
-//    ptls.push_back(a);
-//    mpu::gph::Buffer pb(ptls);
-//    pb.bindBase(PARTICLE_BUFFER_BINDING,GL_SHADER_STORAGE_BUFFER);
 
     // create a renderer
     ParticleRenderer renderer;
-    renderer.configureArrays(mpu::gph::offset_of(&Particle::position), mpu::gph::offset_of(&Particle::renderSize));
-    renderer.setParticleBuffer<Particle>( pb, NUM_PARTICLES);
+    renderer.setParticleBuffer(pb);
     renderer.setShaderSettings(Falloff::LINEAR);
     renderer.enableAdditiveBlending(true);
-    renderer.enableDepthTest(true);
+    renderer.enableDepthTest(false);
     renderer.setViewportSize({WIDTH,HEIGHT});
     renderer.setColor({0.9,0.3,0.1,1});
     renderer.setBrightness(1);
+    renderer.setSize(PARTICLE_RENDER_SIZE);
 
     // create camera
     mpu::gph::Camera camera(std::make_shared<mpu::gph::SimpleWASDController>(&window,10,4));
@@ -80,10 +65,11 @@ int main()
     auto accFunc = [accShader,wgSize](){
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
         accShader.dispatch(NUM_PARTICLES/wgSize);
+//        accShader.dispatch(NUM_PARTICLES,wgSize);
     };
 
     //  create a simulator
-    Leapfrog simulation(accFunc,pb,NUM_PARTICLES,DT);
+    Leapfrog simulation(accFunc,pb,DT);
     simulation.start();
 
     float brightness=1;
@@ -130,7 +116,6 @@ int main()
 
         while(lag >= DT)
         {
-
             simulation.advanceTime();
             lag -= DT;
         }

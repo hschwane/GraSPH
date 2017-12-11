@@ -16,19 +16,20 @@
 
 // function definitions of the SimpleDEsolver class
 //-------------------------------------------------------------------
-SimpleDEsolver::SimpleDEsolver(std::string shaderPath) : SimpleDEsolver(shaderPath,nullptr,mpu::gph::Buffer(),0,0)
+SimpleDEsolver::SimpleDEsolver(std::string shaderPath) : SimpleDEsolver(shaderPath,nullptr,ParticleBuffer(),0)
 {
 }
 
-SimpleDEsolver::SimpleDEsolver(std::string shaderPath,std::function<void(void)> accelerator, mpu::gph::Buffer particleBuffer, uint32_t number,
-                               double dt) : DEsolver(DEsolverFlag::REQUIRE_ONE_ACC | DEsolverFlag::IS_SELF_STARTING),
+SimpleDEsolver::SimpleDEsolver(std::string shaderPath,std::function<void(void)> accelerator, ParticleBuffer particleBuffer, double dt)
+                                          : DEsolver(DEsolverFlag::REQUIRE_ONE_ACC | DEsolverFlag::IS_SELF_STARTING),
                                             m_shader({{shaderPath}}),
                                             m_calcAcceleration(accelerator),
-                                            m_numParticles(number), m_wgSize(calcWorkgroupSize(number))
+                                            m_numParticles(particleBuffer.size()),
+                                            m_wgSize(calcWorkgroupSize(particleBuffer.size()))
 
 {
     m_shader.uniform1f("dt",dt);
-    particleBuffer.bindBase(PARTICLE_BUFFER_BINDING, GL_SHADER_STORAGE_BUFFER);
+    particleBuffer.bindAll(PARTICLE_BUFFER_BINDING, GL_SHADER_STORAGE_BUFFER);
 }
 
 void SimpleDEsolver::setAccelerator(std::function<void(void)> accelerator)
@@ -41,11 +42,11 @@ void SimpleDEsolver::setDT(double dt)
     m_shader.uniform1f("dt",dt);
 }
 
-void SimpleDEsolver::setParticles(mpu::gph::Buffer particleBuffer, uint32_t number)
+void SimpleDEsolver::setParticles(ParticleBuffer particleBuffer)
 {
-    particleBuffer.bindBase(PARTICLE_BUFFER_BINDING, GL_SHADER_STORAGE_BARRIER_BIT);
-    m_numParticles = number;
-    m_wgSize = calcWorkgroupSize(number);
+    particleBuffer.bindAll(PARTICLE_BUFFER_BINDING, GL_SHADER_STORAGE_BARRIER_BIT);
+    m_numParticles = particleBuffer.size();
+    m_wgSize = calcWorkgroupSize(particleBuffer.size());
 }
 
 void SimpleDEsolver::advanceTime()
