@@ -435,7 +435,7 @@ namespace glsl {
 			bool first_replacement = true;
 			while (true) {
 				const auto begin = text_ptr;
-				while (isalpha(*text_ptr) || *text_ptr == '_')
+				while (isalnum(*text_ptr) || *text_ptr == '_')
 					++text_ptr;
 
 				const auto begin_params = skipSpace(text_ptr);
@@ -474,7 +474,7 @@ namespace glsl {
 				bool enable_test_macro = true;
 				while (!line.empty() && ((!enable_test_macro || !isMacro(text_ptr, processed)) && text_ptr != &line[line.size() - 1]))
 				{
-					if (!(isalpha(*text_ptr) || *text_ptr == '_'))
+					if (!(isalnum(*text_ptr) || *text_ptr == '_'))
 						enable_test_macro = true;
 					else
 						enable_test_macro = false;
@@ -596,6 +596,10 @@ namespace glsl {
 						{
 							unique_includes.emplace(current_file);
 							text_ptr = skipToLineEnd(text_ptr);
+						}
+						else
+						{
+							result << "#pragma ";
 						}
                         // TODO: It is possible to add custom pragmas
 					}

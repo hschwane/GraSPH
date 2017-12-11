@@ -197,8 +197,6 @@ namespace gph {
 
             auto processed = glsl::process(mapped_shader.second.first.path_to_file, shader_include_paths, definitions);
 
-			//auto source = mcpp::preprocess(mapped_shader.second.first.path_to_file, shader_include_paths, definitions);
-
 			const auto sources = processed.contents.data();
 
 			glShaderSource(shader_handle, 1, &sources, nullptr);
