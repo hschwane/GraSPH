@@ -10,7 +10,6 @@
 #include "DEsolver/Leapfrog.h"
 #include "DEsolver/Verlet.h"
 #include "DEsolver/VelocityVerlet.h"
-//#include "DEsolver/RungeKutta4.h"
 
 constexpr int HEIGHT = 800;
 constexpr int WIDTH = 800;
@@ -70,7 +69,7 @@ int main()
     };
 
     //  create a simulator
-    SemiImplicitEuler simulation(accFunc,pb,DT);
+    Leapfrog simulation(accFunc,pb,DT);
     simulation.start();
 
     float brightness=1;

@@ -73,13 +73,6 @@ constexpr unsigned int PARTICLE_VELOCITY_BUFFER_BINDING = 3;
 constexpr unsigned int PARTICLE_ACCELERATION_BUFFER_BINDING = 4;
 
 constexpr unsigned int VERLET_BUFFER_BINDING = 5;
-constexpr unsigned int RK_STATE_IN_BUFFER_BINDING = 6;
-constexpr unsigned int RK_DERIV_BUFFER_BINDING = 7;
-constexpr unsigned int RK_OUT_BUFFER_BINDING = 8;
-constexpr unsigned int RK_MTWO_BUFFER_BINDING = 9;
-constexpr unsigned int RK_MTHREE_BUFFER_BINDING = 10;
-constexpr unsigned int RK_MFOUR_BUFFER_BINDING = 11;
-
 constexpr unsigned int RENDERER_POSITION_ARRAY = 0;
 
 // simulation
@@ -93,14 +86,14 @@ constexpr float TEMPERATURE = 30;
 
 // spawning
 constexpr float TOTAL_MASS = 0.01;
-constexpr unsigned int NUM_PARTICLES = 36992;
+constexpr unsigned int NUM_PARTICLES = 35328;
 const  glm::vec3 LOWER_BOUND = glm::vec3(-1,-1,-1);
 const  glm::vec3 UPPER_BOUND = glm::vec3(1,1,1);
 
 // work group size
 constexpr unsigned int FORCED_SIZE = 0;
 constexpr unsigned int THREADS_PER_CORE = 32;
-constexpr unsigned int THREAD_GROUPING_SIZE = 64;
+constexpr unsigned int THREAD_GROUPING_SIZE = 128;
 constexpr unsigned int COMPUTE_CORES = 640;
 
 //-------------------------------------------------------------------
