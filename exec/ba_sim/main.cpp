@@ -55,7 +55,7 @@ int main()
 
     // create shaders for acceleration
     uint32_t accWgSize = 128;//calcWorkgroupSize(NUM_PARTICLES*THREADS_PER_PARTICLE);
-    mpu::gph::ShaderProgram accShader({{PROJECT_SHADER_PATH"Acceleration/nvidia-gravity.comp"}},
+    mpu::gph::ShaderProgram accShader({{PROJECT_SHADER_PATH"Acceleration/nBodyGravity/nvidia-gravity.comp"}},
                                       {
                                        {"WGSIZE",{mpu::toString(accWgSize)}},
                                        {"NUM_PARTICLES",{mpu::toString(NUM_PARTICLES)}},
