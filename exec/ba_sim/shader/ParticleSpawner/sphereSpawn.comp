@@ -19,6 +19,11 @@ layout(binding=PARTICLE_ACCELERATION_BUFFER_BINDING,std430) buffer ParticleAccel
     vec4 accelerations[];
 };
 
+layout(binding=PARTICLE_HYDRO_BUFFER_BINDING,std430) buffer ParticleHydro
+{
+    vec2 hydro[];
+};
+
 layout(local_size_variable) in;
 
 uniform vec3 center;
@@ -41,4 +46,5 @@ void main()
     // set all the attributes
     velocities[gl_GlobalInvocationID.x] = vec4(0,0,0,0);
     accelerations[gl_GlobalInvocationID.x] = vec4(0,0,0,0);
+    hydro[gl_GlobalInvocationID.x] = vec2(0,0);
 }
