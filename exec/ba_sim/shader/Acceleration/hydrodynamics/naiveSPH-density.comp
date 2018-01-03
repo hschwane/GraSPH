@@ -41,15 +41,15 @@ void main()
     // interact with all other particles
     for(uint i=0; i<num_of_particles; i++)
     {
-            ipos = positions[i];
+            vec4 iPos = positions[i];
 
             // check the distance
-            vec3 r = myPosition.xyz - ipos.xyz;
+            vec3 r = myPosition.xyz - iPos.xyz;
             float r2 = dot(r,r);
 
             // add mass weigthend by the kernel to calculate density
             // use the poly 6 kernel presented by müller et al
-            density += (r2 < h2) ? ipos.w * poly6scale * pow(h2 - r2,3) : 0;
+            density += (r2 < h2) ? iPos.w * poly6scale * pow(h2 - r2,3) : 0;
     }
 
     // write back density and pressure

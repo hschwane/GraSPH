@@ -1,0 +1,64 @@
+#version 450 core
+#extension GL_ARB_compute_variable_group_size : require
+
+#include "common.glsl"
+#include "mathConst.glsl"
+
+layout(binding=PARTICLE_POSITION_BUFFER_BINDING,std430) buffer ParticlePositions
+{
+    POS_TYPE positions[];
+};
+
+layout(binding=PARTICLE_ACCELERATION_BUFFER_BINDING,std430) buffer ParticleAccelerations
+{
+    vec4 accelerations[];
+};
+
+layout(binding=PARTICLE_HYDRO_BUFFER_BINDING,std430) buffer ParticleHydro
+{
+    HYDRO_TYPE hydro[];
+};
+
+layout(local_size_variable) in;
+
+uniform float smoothing_length;
+
+#ifdef NUM_PARTICLES
+    uniform uint num_of_particles= NUM_PARTICLES;
+#else
+    uniform uint num_of_particles;
+#endif
+
+// This shader updates a particles acceleration based on the pressure gradient calculated by
+// using the sph-method over its neightbours
+void main()
+{
+    // cache my particle attributes in local memory
+    vec4 myPosition = positions[gl_GlobalInvocationID.x];
+    vec2 myHydro = hydro[gl_GlobalInvocationID.x];
+
+    // calculate some values that are the same for all loop iterations
+    float pressureOverDensity2 = (myHydro.x / (myHydro.y*myHydro.y));
+    float spikyScale = -45 / (PI * pow(h,6));
+
+    // calculate acceleration based on the pressure gradient
+    vec3 acc = vec3(0,0,0);
+
+    // interact with all other particles
+    for(uint i=0; i<num_of_particles; i++)
+    {
+            vec4 iPos = positions[i];
+            vec2 iHydro = hydro[i];
+
+            // check the distance
+            vec3 r = myPosition.xyz - ipos.xyz;
+            float dist = length(r);
+
+            // add the influence of particle i to the pressure gradient
+            // use the gradient of the spiky kernel by Müller et al
+            acc -= (dist < smoothing_length) ? iPos.w * ((iHydro.x / (iHydro.y*iHydro.y)) + pressureOverDensity2) * spikyScale * (smoothing_length - dist)*r : vec3(0,0,0);
+    }
+
+    // write back acceleration
+    accelerations[gl_GlobalInvocationID.x] = vec4(acc,0);
+}
