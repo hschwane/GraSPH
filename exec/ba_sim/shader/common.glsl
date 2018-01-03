@@ -1,10 +1,10 @@
 #pragma once
 
 // types from the prticle bufffer
-#define POS_TYPE vec4
+#define POS_TYPE vec4 // w is mass
 #define VEL_TYPE vec4
 #define ACC_TYPE vec4
-#define HYDRO_TYPE vec2
+#define HYDRO_TYPE vec2 // x is presure, y is density
 
 
 // buffer bindings

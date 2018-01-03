@@ -1,0 +1,57 @@
+#version 450 core
+#extension GL_ARB_compute_variable_group_size : require
+
+#include "common.glsl"
+#include "mathConst.glsl"
+
+layout(binding=PARTICLE_POSITION_BUFFER_BINDING,std430) buffer ParticlePositions
+{
+    POS_TYPE positions[];
+};
+
+layout(binding=PARTICLE_HYDRO_BUFFER_BINDING,std430) buffer ParticleHydro
+{
+    HYDRO_TYPE hydro[];
+};
+
+layout(local_size_variable) in;
+
+uniform float smoothing_length;
+uniform float entropy;
+
+#ifdef NUM_PARTICLES
+    uniform uint num_of_particles= NUM_PARTICLES;
+#else
+    uniform uint num_of_particles;
+#endif
+
+// This shader updates a particles density and pressure values by iterating over all other particles
+// in a naive manner. Also a fixed smoothing length is used and  Pressure is only a function of density
+void main()
+{
+    // cache my position in local memory
+    vec4 myPosition = positions[gl_GlobalInvocationID.x];
+
+    // calculate some values that are the same for all loop iterations
+    float h2 = smoothing_length*smoothing_length;
+    float poly6scale = 315 / (64* PI * pow(h,9));
+
+    float density = 0;
+
+    // interact with all other particles
+    for(uint i=0; i<num_of_particles; i++)
+    {
+            ipos = positions[i];
+
+            // check the distance
+            vec3 r = myPosition.xyz - ipos.xyz;
+            float r2 = dot(r,r);
+
+            // add mass weigthend by the kernel to calculate density
+            // use the poly 6 kernel presented by müller et al
+            density += (r2 < h2) ? ipos.w * poly6scale * pow(h2 - r2,3) : 0;
+    }
+
+    // write back density and pressure
+    hydro[gl_GlobalInvocationID.x] = vec2(density*entropy,density);
+}

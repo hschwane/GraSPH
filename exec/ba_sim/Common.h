@@ -28,7 +28,7 @@ struct ParticleBuffer
 {
 public:
 
-    typedef glm::vec4 posType;
+    typedef glm::vec4 posType; // w is mass
     typedef glm::vec4 velType;
     typedef glm::vec4 accType;
     typedef glm::vec2 hydrodynamicsType; // x is pressure, y is density
