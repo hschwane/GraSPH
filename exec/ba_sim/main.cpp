@@ -78,26 +78,30 @@ int main()
 //        accAccum.dispatch(NUM_PARTICLES,accumWgSize);
 //    };
 
-    float h = .5;
-    float S = 1;
+    float h = 0.25;
+    float k = 30;
+    float rest_density = 5;
+    float visc = 0.006;
 
     // create hydrodynamics based acceleration function
     mpu::gph::ShaderProgram densityShader({{PROJECT_SHADER_PATH"Acceleration/hydrodynamics/naiveSPH-density.comp"}});
     densityShader.uniform1ui("num_of_particles",NUM_PARTICLES);
     densityShader.uniform1f("smoothing_length",h);
-    densityShader.uniform1f("entropy",S);
+    densityShader.uniform1f("k",k);
+    densityShader.uniform1f("rest_density",rest_density);
 
     mpu::gph::ShaderProgram pressureShader({{PROJECT_SHADER_PATH"Acceleration/hydrodynamics/naiveSPH-pressureAcc.comp"}});
     pressureShader.uniform1ui("num_of_particles",NUM_PARTICLES);
     pressureShader.uniform1f("smoothing_length",h);
+    pressureShader.uniform1f("visc", visc);
 
     mpu::gph::ShaderProgram boundaryShader({{PROJECT_SHADER_PATH"Acceleration/hydrodynamics/simpleBoxBoundary.comp"}});
     boundaryShader.uniform3f("upper_bound", glm::vec3(3,3,3));
     boundaryShader.uniform3f("lower_bound", glm::vec3(-3,-3,-3));
-    boundaryShader.uniform1f("reflectiveness", 0.3);
+    boundaryShader.uniform1f("reflectiveness", .4);
 
     uint32_t wgSize=calcWorkgroupSize(NUM_PARTICLES);
-    auto accFunc = [densityShader,pressureShader,boundaryShader,wgSize](){
+    auto accFunc = [densityShader,pressureShader,wgSize,boundaryShader](){
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
         densityShader.dispatch(NUM_PARTICLES,wgSize);
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);

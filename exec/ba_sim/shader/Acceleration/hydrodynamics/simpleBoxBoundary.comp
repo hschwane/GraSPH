@@ -35,39 +35,39 @@ void main()
     if(myPosition.x > upper_bound.x)
     {
         myPosition.x = upper_bound.x;
-        myVelocity.x= -myVelocity.x * reflectiveness;
+        myVelocity.x= -myVelocity.x * reflectiveness * abs(normalize(myAcc).x);
         myAcc.x=min(myAcc.x,0);
     }
     else if(myPosition.x < lower_bound.x)
     {
         myPosition.x = lower_bound.x;
-        myVelocity.x=-myVelocity.x * reflectiveness;
+        myVelocity.x=-myVelocity.x * reflectiveness * abs(normalize(myAcc).x);
         myAcc.x=max(myAcc.x,0);
     }
 
     if(myPosition.y > upper_bound.y)
     {
         myPosition.y = upper_bound.y;
-        myVelocity.y=-myVelocity.y * reflectiveness;
+        myVelocity.y=-myVelocity.y * reflectiveness * abs(normalize(myAcc).y);
         myAcc.y=min(myAcc.y,0);
     }
     else if(myPosition.y < lower_bound.y)
     {
         myPosition.y = lower_bound.y;
-        myVelocity.y=-myVelocity.y * reflectiveness;
+        myVelocity.y=-myVelocity.y * reflectiveness * abs(normalize(myAcc).y);
         myAcc.y=max(myAcc.y,0);
     }
 
     if(myPosition.z > upper_bound.z)
     {
         myPosition.z = upper_bound.z;
-        myVelocity.z=-myVelocity.z * reflectiveness;
+        myVelocity.z=-myVelocity.z * reflectiveness * abs(normalize(myAcc).z);
         myAcc.z=min(myAcc.z,0);
     }
     else if(myPosition.z < lower_bound.z)
     {
         myPosition.z = lower_bound.z;
-        myVelocity.z=-myVelocity.z * reflectiveness;
+        myVelocity.z=-myVelocity.z * reflectiveness * abs(normalize(myAcc).z);
         myAcc.z=max(myAcc.z,0);
     }
 

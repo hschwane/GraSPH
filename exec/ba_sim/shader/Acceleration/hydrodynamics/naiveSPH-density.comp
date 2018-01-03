@@ -17,7 +17,8 @@ layout(binding=PARTICLE_HYDRO_BUFFER_BINDING,std430) buffer ParticleHydro
 layout(local_size_variable) in;
 
 uniform float smoothing_length;
-uniform float entropy;
+uniform float k;
+uniform float rest_density;
 
 #ifdef NUM_PARTICLES
     uniform uint num_of_particles= NUM_PARTICLES;
@@ -52,6 +53,8 @@ void main()
             density += (r2 < h2) ? iPos.w * poly6scale * pow(h2 - r2,3) : 0;
     }
 
+    float pressure = k*(pow(density / rest_density,7) -1);
+
     // write back density and pressure
-    hydro[gl_GlobalInvocationID.x] = vec2((density)*entropy,density);
+    hydro[gl_GlobalInvocationID.x] = vec2(pressure,density);
 }
