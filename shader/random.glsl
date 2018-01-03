@@ -2,7 +2,6 @@
 
 #include "mathConst.glsl"
 
-
 // ----------------------------------------------------------------------------
 // some helper functions
 
@@ -101,3 +100,4 @@ vec3 randSphere(float u, float v, float r, float radius)
 
     return vec3( r*radius*cosTheta*sinPhi, r*radius*sinTheta*sinPhi, r*radius*cosPhi);
 }
+
