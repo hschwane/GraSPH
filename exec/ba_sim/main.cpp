@@ -41,10 +41,10 @@ int main()
     ParticleRenderer renderer;
     renderer.setParticleBuffer(pb);
     renderer.setShaderSettings(Falloff::LINEAR);
-    renderer.enableAdditiveBlending(true);
-    renderer.enableDepthTest(false);
+    renderer.enableAdditiveBlending(false);
+    renderer.enableDepthTest(true);
     renderer.setViewportSize({WIDTH,HEIGHT});
-    renderer.setColor({0.9,0.3,0.1,1});
+    renderer.setColor({1,1,1,1});
     renderer.setBrightness(1);
     renderer.setSize(PARTICLE_RENDER_SIZE);
 
@@ -78,8 +78,8 @@ int main()
 //        accAccum.dispatch(NUM_PARTICLES,accumWgSize);
 //    };
 
-    float h = 0.3;
-    float S = 0.1;
+    float h = .5;
+    float S = 1;
 
     // create hydrodynamics based acceleration function
     mpu::gph::ShaderProgram densityShader({{PROJECT_SHADER_PATH"Acceleration/hydrodynamics/naiveSPH-density.comp"}});
@@ -91,12 +91,18 @@ int main()
     pressureShader.uniform1ui("num_of_particles",NUM_PARTICLES);
     pressureShader.uniform1f("smoothing_length",h);
 
+    mpu::gph::ShaderProgram boundaryShader({{PROJECT_SHADER_PATH"Acceleration/hydrodynamics/simpleBoxBoundary.comp"}});
+    boundaryShader.uniform3f("upper_bound", glm::vec3(5,5,5));
+    boundaryShader.uniform3f("lower_bound", glm::vec3(-5,-5,-5));
+
     uint32_t wgSize=calcWorkgroupSize(NUM_PARTICLES);
-    auto accFunc = [densityShader,pressureShader,wgSize,pb](){
+    auto accFunc = [densityShader,pressureShader,boundaryShader,wgSize](){
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
         densityShader.dispatch(NUM_PARTICLES,wgSize);
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
         pressureShader.dispatch(NUM_PARTICLES,wgSize);
+        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+        boundaryShader.dispatch(NUM_PARTICLES,wgSize);
     };
 
     //  create a simulator
@@ -169,7 +175,7 @@ int main()
         while(lag >= DT)
         {
             simulation.advanceTime();
-            lag -= DT;
+            lag -= DT*4;
         }
 
         // render the particles

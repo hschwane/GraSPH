@@ -59,6 +59,8 @@ void main()
             acc -= (dist < smoothing_length) ? iPos.w * ((iHydro.x / (iHydro.y*iHydro.y)) + myPressureOverDensity2) * spikyScale * (smoothing_length - dist)*r : vec3(0,0,0);
     }
 
+    acc += vec3(0,-10,0);
+
     // write back acceleration
     accelerations[gl_GlobalInvocationID.x] = vec4(acc,0);
 }

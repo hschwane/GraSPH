@@ -1,0 +1,78 @@
+#version 450 core
+#extension GL_ARB_compute_variable_group_size : require
+
+#include "common.glsl"
+
+layout(binding=PARTICLE_POSITION_BUFFER_BINDING,std430) buffer ParticlePositions
+{
+    vec4 positions[];
+};
+
+layout(binding=PARTICLE_VELOCITY_BUFFER_BINDING,std430) buffer ParticleVelocities
+{
+    vec4 velocities[];
+};
+
+layout(binding=PARTICLE_ACCELERATION_BUFFER_BINDING,std430) buffer ParticleAccelerations
+{
+    vec4 accelerations[];
+};
+
+layout(local_size_variable) in;
+
+uniform vec3 upper_bound;
+uniform vec3 lower_bound;
+
+// forces the particles to stay inside an axis aligned box
+void main()
+{
+    // cache my position in local memory
+    vec4 myPosition = positions[gl_GlobalInvocationID.x];
+    vec4 myVelocity = velocities[gl_GlobalInvocationID.x];
+    vec4 myAcc = accelerations[gl_GlobalInvocationID.x];
+
+    const float reflectionFactor = 1;
+
+    if(myPosition.x > upper_bound.x)
+    {
+        myPosition.x = upper_bound.x;
+        myVelocity.x= -myVelocity.x * reflectionFactor;
+        myAcc.x=min(myAcc.x,0);
+    }
+    else if(myPosition.x < lower_bound.x)
+    {
+        myPosition.x = lower_bound.x;
+        myVelocity.x=-myVelocity.x * reflectionFactor;
+        myAcc.x=max(myAcc.x,0);
+    }
+
+    if(myPosition.y > upper_bound.y)
+    {
+        myPosition.y = upper_bound.y;
+        myVelocity.y=-myVelocity.y * reflectionFactor;
+        myAcc.y=min(myAcc.y,0);
+    }
+    else if(myPosition.y < lower_bound.y)
+    {
+        myPosition.y = lower_bound.y;
+        myVelocity.y=-myVelocity.y * reflectionFactor;
+        myAcc.y=max(myAcc.y,0);
+    }
+
+    if(myPosition.z > upper_bound.z)
+    {
+        myPosition.z = upper_bound.z;
+        myVelocity.z=-myVelocity.z * reflectionFactor;
+        myAcc.z=min(myAcc.z,0);
+    }
+    else if(myPosition.z < lower_bound.z)
+    {
+        myPosition.z = lower_bound.z;
+        myVelocity.z=-myVelocity.z * reflectionFactor;
+        myAcc.z=max(myAcc.z,0);
+    }
+
+    positions[gl_GlobalInvocationID.x] = myPosition;
+    velocities[gl_GlobalInvocationID.x] = myVelocity;
+    accelerations[gl_GlobalInvocationID.x] = myAcc;
+}
