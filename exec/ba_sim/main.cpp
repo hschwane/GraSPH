@@ -92,8 +92,9 @@ int main()
     pressureShader.uniform1f("smoothing_length",h);
 
     mpu::gph::ShaderProgram boundaryShader({{PROJECT_SHADER_PATH"Acceleration/hydrodynamics/simpleBoxBoundary.comp"}});
-    boundaryShader.uniform3f("upper_bound", glm::vec3(5,5,5));
-    boundaryShader.uniform3f("lower_bound", glm::vec3(-5,-5,-5));
+    boundaryShader.uniform3f("upper_bound", glm::vec3(3,3,3));
+    boundaryShader.uniform3f("lower_bound", glm::vec3(-3,-3,-3));
+    boundaryShader.uniform1f("reflectiveness", 0.3);
 
     uint32_t wgSize=calcWorkgroupSize(NUM_PARTICLES);
     auto accFunc = [densityShader,pressureShader,boundaryShader,wgSize](){
