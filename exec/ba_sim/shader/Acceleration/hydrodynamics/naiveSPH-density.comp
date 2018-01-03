@@ -6,12 +6,12 @@
 
 layout(binding=PARTICLE_POSITION_BUFFER_BINDING,std430) buffer ParticlePositions
 {
-    POS_TYPE positions[];
+    vec4 positions[];
 };
 
 layout(binding=PARTICLE_HYDRO_BUFFER_BINDING,std430) buffer ParticleHydro
 {
-    HYDRO_TYPE hydro[];
+    vec2 hydro[];
 };
 
 layout(local_size_variable) in;
@@ -34,7 +34,7 @@ void main()
 
     // calculate some values that are the same for all loop iterations
     float h2 = smoothing_length*smoothing_length;
-    float poly6scale = 315 / (64* PI * pow(h,9));
+    float poly6scale = 315 / (64* PI * pow(smoothing_length,9));
 
     float density = 0;
 
