@@ -42,8 +42,8 @@ int main()
     ParticleRenderer renderer;
     renderer.setParticleBuffer(pb);
     renderer.setShaderSettings(Falloff::LINEAR);
-    renderer.enableAdditiveBlending(true);
-    renderer.enableDepthTest(false);
+    renderer.enableAdditiveBlending(false);
+    renderer.enableDepthTest(true);
     renderer.setViewportSize({WIDTH,HEIGHT});
     renderer.setColor({1,1,1,1});
     renderer.setBrightness(1);
@@ -80,9 +80,9 @@ int main()
 //    };
 
     float h = 0.3;
-    float k = 40;
+    float k = 800;
     float rest_density = 100;
-    float visc = 0.005;
+    float visc = 0.01;
 
     // create hydrodynamics based acceleration function
     mpu::gph::ShaderProgram densityShader({{PROJECT_SHADER_PATH"Acceleration/hydrodynamics/naiveSPH-density.comp"}});
