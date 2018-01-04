@@ -54,7 +54,8 @@ void main()
     }
 
 //    float pressure = k*(pow(density / rest_density,7) -1);
-    float pressure = k*(density - rest_density);
+//    float pressure = k*(density - rest_density);
+    float pressure = k*density;
 
     // write back density and pressure
     hydro[gl_GlobalInvocationID.x] = vec2(pressure,density);
