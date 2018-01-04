@@ -36,7 +36,7 @@ int main()
     ParticleBuffer pb(NUM_PARTICLES,THREADS_PER_PARTICLE);
     ParticleSpawner spawner;
     spawner.setBuffer(pb);
-    spawner.spawnParticles(TOTAL_MASS,TEMPERATURE, 2.3);
+    spawner.spawnParticles(TOTAL_MASS,TEMPERATURE, 2.42);
 
     // create a renderer
     ParticleRenderer renderer;
@@ -79,10 +79,10 @@ int main()
 //        accAccum.dispatch(NUM_PARTICLES,accumWgSize);
 //    };
 
-    float h = 0.4;
-    float k = 100;
+    float h = 0.3;
+    float k = 800;
     float rest_density = 100;
-    float visc = 0.01;
+    float visc = 0.015;
 
     // create hydrodynamics based acceleration function
     mpu::gph::ShaderProgram densityShader({{PROJECT_SHADER_PATH"Acceleration/hydrodynamics/naiveSPH-density.comp"}});
