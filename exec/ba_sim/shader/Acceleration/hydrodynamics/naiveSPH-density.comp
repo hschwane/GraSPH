@@ -53,7 +53,8 @@ void main()
             density += (r2 < h2) ? iPos.w * poly6scale * pow(h2 - r2,3) : 0;
     }
 
-    float pressure = k*(pow(density / rest_density,7) -1);
+//    float pressure = k*(pow(density / rest_density,7) -1);
+    float pressure = k*(density - rest_density);
 
     // write back density and pressure
     hydro[gl_GlobalInvocationID.x] = vec2(pressure,density);

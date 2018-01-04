@@ -2,6 +2,7 @@
 #include <Log/ConsoleSink.h>
 #include <Timer/DeltaTimer.h>
 #include <Graphics/Graphics.h>
+#include <numeric>
 
 #include "Common.h"
 #include "ParticleSpawner.h"
@@ -35,7 +36,7 @@ int main()
     ParticleBuffer pb(NUM_PARTICLES,THREADS_PER_PARTICLE);
     ParticleSpawner spawner;
     spawner.setBuffer(pb);
-    spawner.spawnParticles(TOTAL_MASS,TEMPERATURE, 2);
+    spawner.spawnParticles(TOTAL_MASS,TEMPERATURE, 2.3);
 
     // create a renderer
     ParticleRenderer renderer;
@@ -78,10 +79,10 @@ int main()
 //        accAccum.dispatch(NUM_PARTICLES,accumWgSize);
 //    };
 
-    float h = 0.25;
-    float k = 30;
-    float rest_density = 5;
-    float visc = 0.006;
+    float h = 0.4;
+    float k = 100;
+    float rest_density = 100;
+    float visc = 0.01;
 
     // create hydrodynamics based acceleration function
     mpu::gph::ShaderProgram densityShader({{PROJECT_SHADER_PATH"Acceleration/hydrodynamics/naiveSPH-density.comp"}});
@@ -96,7 +97,7 @@ int main()
     pressureShader.uniform1f("visc", visc);
 
     mpu::gph::ShaderProgram boundaryShader({{PROJECT_SHADER_PATH"Acceleration/hydrodynamics/simpleBoxBoundary.comp"}});
-    boundaryShader.uniform3f("upper_bound", glm::vec3(3,3,3));
+    boundaryShader.uniform3f("upper_bound", glm::vec3(3,5,3));
     boundaryShader.uniform3f("lower_bound", glm::vec3(-3,-3,-3));
     boundaryShader.uniform1f("reflectiveness", .4);
 
@@ -165,22 +166,18 @@ int main()
         if(window.getKey(GLFW_KEY_P) == GLFW_PRESS)
         {
             glMemoryBarrier(GL_ALL_BARRIER_BITS);
-            std::vector<glm::vec2> hdata = pb.hydrodynamicsBuffer.read<glm::vec2>(10,0);
+            std::vector<glm::vec2> hdata = pb.hydrodynamicsBuffer.read<glm::vec2>(pb.size(),0);
 
-            logDEBUG("PARTICLE_HYDRO_DATA") << glm::to_string(hdata[1]) << "\n"
-                                            << glm::to_string(hdata[2]) << "\n"
-                                            << glm::to_string(hdata[3]) << "\n"
-                                            << glm::to_string(hdata[4]) << "\n"
-                                            << glm::to_string(hdata[5]) << "\n"
-                                            << glm::to_string(hdata[6]) << "\n"
-                                            << glm::to_string(hdata[7]) << "\n"
-                                            << glm::to_string(hdata[8]) << "\n";
+            glm::vec2 sum = std::accumulate( hdata.begin(), hdata.end(),glm::vec2(0,0));
+            sum /= pb.size();
+
+            logDEBUG("Particle data") << "Mean density: " << sum.y << " Mean Pressure: " << sum.x;
         }
 
         while(lag >= DT)
         {
             simulation.advanceTime();
-            lag -= DT*4;
+            lag -= DT*8;
         }
 
         // render the particles
