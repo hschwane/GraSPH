@@ -1,0 +1,71 @@
+#version 450 core
+// we have to use a fixed work group size here
+
+#include "common.glsl"
+#include "mathConst.glsl"
+
+layout(binding=PARTICLE_POSITION_BUFFER_BINDING,std430) buffer ParticlePositions
+{
+    vec4 positions[];
+};
+
+layout(binding=PARTICLE_HYDRO_BUFFER_BINDING,std430) buffer ParticleHydro
+{
+    vec2 hydro[];
+};
+
+layout(local_size_x=WGSIZE,local_size_y=1,local_size_z=1) in;
+
+uniform float smoothing_length;
+uniform float k;
+uniform float rest_density;
+
+shared vec4 pos[gl_WorkGroupSize.x];
+
+// some values that only depend on uniforms
+float h2 = smoothing_length*smoothing_length;
+float poly6scale = 315 / (64* PI * pow(smoothing_length,9));
+
+// interact one particle with p others
+void calculateTileRow( const in vec4 myPosition, inout float density)
+{
+    for(uint i=0; i<gl_WorkGroupSize.x; i++)
+    {
+        vec3 r = myPosition.xyz - pos[i].xyz;
+        float r2 = dot(r,r);
+
+        density += (r2 < h2) ? pos[i].w * poly6scale * pow(h2 - r2,3) : 0;
+    }
+}
+
+// This shader updates a particles acceleration by interacting with all other particles,
+// using shared memory to speed up memory access
+void main()
+{
+    const vec4 myPosition = positions[gl_GlobalInvocationID.x]; // load my position to local memory
+    float density =0; // lets sum up the density here
+
+    // loop over tiles in a row for as many tiles one thread is configured to calculate
+    // calculate the interactions of a particle with gl_WorkGroupSize.x particles in one tile
+    // repeat until all interactions in all tiles are calculatedsss
+    for(uint tile = 0; tile < NUM_PARTICLES/gl_WorkGroupSize.x; tile++)
+    {
+        // fill fields in shared memory
+        pos[gl_LocalInvocationID.x] = positions[gl_WorkGroupSize.x * tile + gl_LocalInvocationID.x];
+        // sync
+        memoryBarrierShared();
+        barrier();
+        // calculate the row up to here
+        calculateTileRow(myPosition,density);
+        // sync
+        memoryBarrierShared();
+        barrier();
+    }
+
+//    float pressure = k*(pow(density / rest_density,7) -1);
+    float pressure = k*(density - rest_density);
+//    float pressure = k*density;
+
+    // write back density and pressure
+    hydro[gl_GlobalInvocationID.x] = vec2(pressure,density);
+}

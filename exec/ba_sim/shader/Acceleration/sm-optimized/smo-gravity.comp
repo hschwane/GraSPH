@@ -44,8 +44,7 @@ void main()
     for(uint tile = 0; tile < TILES_PER_THREAD; tile++)
     {
         // fill fields in shared memory
-        uint idx = gl_WorkGroupSize.x * (startTile + tile) + gl_LocalInvocationID.x;
-        pos[gl_LocalInvocationID.x] = positions[idx];
+        pos[gl_LocalInvocationID.x] = positions[gl_WorkGroupSize.x * (startTile + tile) + gl_LocalInvocationID.x];
         // sync
         memoryBarrierShared();
         barrier();

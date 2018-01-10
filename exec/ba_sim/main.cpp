@@ -85,8 +85,13 @@ int main()
     float visc = 0.04;
 
     // create hydrodynamics based acceleration function
-    mpu::gph::ShaderProgram densityShader({{PROJECT_SHADER_PATH"Acceleration/naiv/naive-SPHdensity.comp"}});
-    densityShader.uniform1ui("num_of_particles",NUM_PARTICLES);
+    uint32_t wgSize=calcWorkgroupSize(NUM_PARTICLES);
+    mpu::gph::ShaderProgram densityShader({{PROJECT_SHADER_PATH"Acceleration/sm-optimized/smo-SPHdensity.comp"}},
+                                          {
+                                                  {"WGSIZE",{mpu::toString(wgSize)}},
+                                                  {"NUM_PARTICLES",{mpu::toString(NUM_PARTICLES)}}
+                                          });
+
     densityShader.uniform1f("smoothing_length",h);
     densityShader.uniform1f("k",k);
     densityShader.uniform1f("rest_density",rest_density);
@@ -101,10 +106,10 @@ int main()
     boundaryShader.uniform3f("lower_bound", glm::vec3(-3,-3,-3));
     boundaryShader.uniform1f("reflectiveness", .4);
 
-    uint32_t wgSize=calcWorkgroupSize(NUM_PARTICLES);
+
     auto accFunc = [densityShader,pressureShader,wgSize,boundaryShader](){
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-        densityShader.dispatch(NUM_PARTICLES,wgSize);
+        densityShader.dispatch(NUM_PARTICLES/wgSize);
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
         pressureShader.dispatch(NUM_PARTICLES,wgSize);
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
