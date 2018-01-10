@@ -56,7 +56,7 @@ int main()
 
     // create shaders for acceleration
 //    uint32_t accWgSize = 128;//calcWorkgroupSize(NUM_PARTICLES*THREADS_PER_PARTICLE);
-//    mpu::gph::ShaderProgram accShader({{PROJECT_SHADER_PATH"Acceleration/nBodyGravity/nvidia-gravity.comp"}},
+//    mpu::gph::ShaderProgram accShader({{PROJECT_SHADER_PATH"Acceleration/nBodyGravity/smo-gravity.comp"}},
 //                                      {
 //                                       {"WGSIZE",{mpu::toString(accWgSize)}},
 //                                       {"NUM_PARTICLES",{mpu::toString(NUM_PARTICLES)}},
@@ -85,18 +85,18 @@ int main()
     float visc = 0.04;
 
     // create hydrodynamics based acceleration function
-    mpu::gph::ShaderProgram densityShader({{PROJECT_SHADER_PATH"Acceleration/hydrodynamics/naiveSPH-density.comp"}});
+    mpu::gph::ShaderProgram densityShader({{PROJECT_SHADER_PATH"Acceleration/naiv/naive-SPHdensity.comp"}});
     densityShader.uniform1ui("num_of_particles",NUM_PARTICLES);
     densityShader.uniform1f("smoothing_length",h);
     densityShader.uniform1f("k",k);
     densityShader.uniform1f("rest_density",rest_density);
 
-    mpu::gph::ShaderProgram pressureShader({{PROJECT_SHADER_PATH"Acceleration/hydrodynamics/naiveSPH-pressureAcc.comp"}});
+    mpu::gph::ShaderProgram pressureShader({{PROJECT_SHADER_PATH"Acceleration/naiv/naive-SPHpressureAcc.comp"}});
     pressureShader.uniform1ui("num_of_particles",NUM_PARTICLES);
     pressureShader.uniform1f("smoothing_length",h);
     pressureShader.uniform1f("visc", visc);
 
-    mpu::gph::ShaderProgram boundaryShader({{PROJECT_SHADER_PATH"Acceleration/hydrodynamics/simpleBoxBoundary.comp"}});
+    mpu::gph::ShaderProgram boundaryShader({{PROJECT_SHADER_PATH"Acceleration/simpleBoxBoundary.comp"}});
     boundaryShader.uniform3f("upper_bound", glm::vec3(3,5,3));
     boundaryShader.uniform3f("lower_bound", glm::vec3(-3,-3,-3));
     boundaryShader.uniform1f("reflectiveness", .4);
