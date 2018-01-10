@@ -80,9 +80,9 @@ int main()
 //    };
 
     float h = 0.3;
-    float k = 800;
+    float k = 200;
     float rest_density = 100;
-    float visc = 0.01;
+    float visc = 0.04;
 
     // create hydrodynamics based acceleration function
     mpu::gph::ShaderProgram densityShader({{PROJECT_SHADER_PATH"Acceleration/hydrodynamics/naiveSPH-density.comp"}});
@@ -113,6 +113,7 @@ int main()
 
     //  create a simulator
     Leapfrog simulation(accFunc,pb,DT);
+//    accFunc();
     simulation.start();
 
     float brightness=1;
