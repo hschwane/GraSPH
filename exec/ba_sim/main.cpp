@@ -91,15 +91,18 @@ int main()
                                                   {"WGSIZE",{mpu::toString(wgSize)}},
                                                   {"NUM_PARTICLES",{mpu::toString(NUM_PARTICLES)}}
                                           });
-
     densityShader.uniform1f("smoothing_length",h);
     densityShader.uniform1f("k",k);
     densityShader.uniform1f("rest_density",rest_density);
 
-    mpu::gph::ShaderProgram pressureShader({{PROJECT_SHADER_PATH"Acceleration/naiv/naive-SPHpressureAcc.comp"}});
-    pressureShader.uniform1ui("num_of_particles",NUM_PARTICLES);
+    mpu::gph::ShaderProgram pressureShader({{PROJECT_SHADER_PATH"Acceleration/sm-optimized/smo-SPHpressureAcc.comp"}},
+                                           {
+                                                   {"WGSIZE",{mpu::toString(wgSize)}},
+                                                   {"NUM_PARTICLES",{mpu::toString(NUM_PARTICLES)}}
+                                           });
     pressureShader.uniform1f("smoothing_length",h);
     pressureShader.uniform1f("visc", visc);
+    pressureShader.uniform3f("g",glm::vec3(0,-9,0));
 
     mpu::gph::ShaderProgram boundaryShader({{PROJECT_SHADER_PATH"Acceleration/simpleBoxBoundary.comp"}});
     boundaryShader.uniform3f("upper_bound", glm::vec3(3,5,3));
@@ -111,14 +114,13 @@ int main()
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
         densityShader.dispatch(NUM_PARTICLES/wgSize);
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-        pressureShader.dispatch(NUM_PARTICLES,wgSize);
+        pressureShader.dispatch(NUM_PARTICLES/wgSize);
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
         boundaryShader.dispatch(NUM_PARTICLES,wgSize);
     };
 
     //  create a simulator
     Leapfrog simulation(accFunc,pb,DT);
-//    accFunc();
     simulation.start();
 
     float brightness=1;

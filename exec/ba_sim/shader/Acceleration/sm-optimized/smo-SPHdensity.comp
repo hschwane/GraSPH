@@ -31,8 +31,8 @@ void calculateTileRow( const in vec4 myPosition, inout float density)
 {
     for(uint i=0; i<gl_WorkGroupSize.x; i++)
     {
-        vec3 r = myPosition.xyz - pos[i].xyz;
-        float r2 = dot(r,r);
+        const vec3 r = myPosition.xyz - pos[i].xyz;
+        const float r2 = dot(r,r);
 
         density += (r2 < h2) ? pos[i].w * poly6scale * pow(h2 - r2,3) : 0;
     }
