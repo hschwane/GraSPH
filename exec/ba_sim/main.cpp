@@ -33,7 +33,7 @@ int main()
     mpu::gph::enableVsync(false);
 
     // generate some particles
-    ParticleBuffer pb(NUM_PARTICLES,THREADS_PER_PARTICLE);
+    ParticleBuffer pb(NUM_PARTICLES,THREADS_PER_PARTICLE,THREADS_PER_PARTICLE);
     ParticleSpawner spawner;
     spawner.setBuffer(pb);
     spawner.spawnParticles(TOTAL_MASS,TEMPERATURE, 2.42);
@@ -85,15 +85,25 @@ int main()
     float visc = 0.04;
 
     // create hydrodynamics based acceleration function
-    uint32_t wgSize=calcWorkgroupSize(NUM_PARTICLES);
+    uint32_t densityWgSize= 64;//calcWorkgroupSize(NUM_PARTICLES*THREADS_PER_PARTICLE);
     mpu::gph::ShaderProgram densityShader({{PROJECT_SHADER_PATH"Acceleration/sm-optimized/smo-SPHdensity.comp"}},
                                           {
-                                                  {"WGSIZE",{mpu::toString(wgSize)}},
-                                                  {"NUM_PARTICLES",{mpu::toString(NUM_PARTICLES)}}
+                                            {"WGSIZE",{mpu::toString(densityWgSize)}},
+                                            {"NUM_PARTICLES",{mpu::toString(NUM_PARTICLES)}},
+                                            {"TILES_PER_THREAD",{mpu::toString(NUM_PARTICLES / densityWgSize / THREADS_PER_PARTICLE)}}
                                           });
     densityShader.uniform1f("smoothing_length",h);
     densityShader.uniform1f("k",k);
     densityShader.uniform1f("rest_density",rest_density);
+
+    uint32_t wgSize=calcWorkgroupSize(NUM_PARTICLES);
+    mpu::gph::ShaderProgram hydroAccum({{PROJECT_SHADER_PATH"Acceleration/hydroAccumulator.comp"}},
+                                  {
+                                   {"NUM_PARTICLES",{mpu::toString(NUM_PARTICLES)}},
+                                   {"HYDROS_PER_PARTICLE",{mpu::toString(THREADS_PER_PARTICLE)}}
+                                  });
+    hydroAccum.uniform1f("k",k);
+    hydroAccum.uniform1f("rest_density",rest_density);
 
     mpu::gph::ShaderProgram pressureShader({{PROJECT_SHADER_PATH"Acceleration/sm-optimized/smo-SPHpressureAcc.comp"}},
                                            {
@@ -110,9 +120,11 @@ int main()
     boundaryShader.uniform1f("reflectiveness", .4);
 
 
-    auto accFunc = [densityShader,pressureShader,wgSize,boundaryShader](){
+    auto accFunc = [densityShader,pressureShader,wgSize,densityWgSize,hydroAccum,boundaryShader](){
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-        densityShader.dispatch(NUM_PARTICLES/wgSize);
+        densityShader.dispatch(NUM_PARTICLES*THREADS_PER_PARTICLE/densityWgSize);
+        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+        hydroAccum.dispatch(NUM_PARTICLES,wgSize);
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
         pressureShader.dispatch(NUM_PARTICLES/wgSize);
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
