@@ -109,7 +109,8 @@ constexpr float TEMPERATURE = 30;
 // spawning
 constexpr float TOTAL_MASS = 5000;
 constexpr unsigned int NUM_PARTICLES = 16000;
-constexpr unsigned int THREADS_PER_PARTICLE = 5;
+constexpr unsigned int DENSITY_THREADS_PER_PARTICLE = 5;
+constexpr unsigned int ACCEL_THREADS_PER_PARTICLE = 2;
 const  glm::vec3 LOWER_BOUND = glm::vec3(-1,-1,-1);
 const  glm::vec3 UPPER_BOUND = glm::vec3(1,1,1);
 
