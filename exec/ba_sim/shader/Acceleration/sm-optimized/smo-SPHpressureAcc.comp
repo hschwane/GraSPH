@@ -57,10 +57,13 @@ void calculateTileRow( const in vec4 myPosition, const in vec2 myHydro, const in
 // using shared memory to speed up memory access
 void main()
 {
+    const uint startTile = TILES_PER_THREAD * uint(gl_GlobalInvocationID.x / NUM_PARTICLES); // there can be multiple threads per particle, so where do we start calculating?
+
     // cache my particle attributes in local memory
-    const vec4 myPosition = positions[gl_GlobalInvocationID.x];
-    const vec2 myHydro = hydro[gl_GlobalInvocationID.x];
-    const vec4 myVel = velocities[gl_GlobalInvocationID.x];
+    const uint myIdx = gl_GlobalInvocationID.x % NUM_PARTICLES;
+    const vec4 myPosition = positions[myIdx];
+    const vec2 myHydro = hydro[myIdx];
+    const vec4 myVel = velocities[myIdx];
     vec3 acc = vec3(0,0,0); // lets sum up the acceleration here
 
     // calculate some values that are the same for all loop iterations
@@ -69,10 +72,10 @@ void main()
     // loop over tiles in a row for as many tiles one thread is configured to calculate
     // calculate the interactions of a particle with gl_WorkGroupSize.x particles in one tile
     // repeat until all interactions in all tiles are calculatedsss
-    for(uint tile = 0; tile < NUM_PARTICLES/gl_WorkGroupSize.x; tile++)
+    for(uint tile = 0; tile < TILES_PER_THREAD; tile++)
     {
         // fill fields in shared memory
-        uint idx=gl_WorkGroupSize.x * tile + gl_LocalInvocationID.x;
+        const uint idx=gl_WorkGroupSize.x * (startTile + tile) + gl_LocalInvocationID.x;
         pos[gl_LocalInvocationID.x] = positions[idx];
         hyd[gl_LocalInvocationID.x] = hydro[idx];
         vel[gl_LocalInvocationID.x] = velocities[idx].xyz;

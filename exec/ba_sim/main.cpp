@@ -3,6 +3,7 @@
 #include <Timer/DeltaTimer.h>
 #include <Graphics/Graphics.h>
 #include <numeric>
+#include <Timer/Stopwatch.h>
 
 #include "Common.h"
 #include "ParticleSpawner.h"
@@ -105,14 +106,22 @@ int main()
     hydroAccum.uniform1f("k",k);
     hydroAccum.uniform1f("rest_density",rest_density);
 
+    uint32_t pressWgSize = 64;
     mpu::gph::ShaderProgram pressureShader({{PROJECT_SHADER_PATH"Acceleration/sm-optimized/smo-SPHpressureAcc.comp"}},
                                            {
-                                                   {"WGSIZE",{mpu::toString(wgSize)}},
-                                                   {"NUM_PARTICLES",{mpu::toString(NUM_PARTICLES)}}
+                                                   {"WGSIZE",{mpu::toString(pressWgSize)}},
+                                                   {"NUM_PARTICLES",{mpu::toString(NUM_PARTICLES)}},
+                                                   {"TILES_PER_THREAD",{mpu::toString(NUM_PARTICLES / pressWgSize / THREADS_PER_PARTICLE)}}
                                            });
     pressureShader.uniform1f("smoothing_length",h);
     pressureShader.uniform1f("visc", visc);
     pressureShader.uniform3f("g",glm::vec3(0,-9,0));
+
+    mpu::gph::ShaderProgram accAccum({{PROJECT_SHADER_PATH"Acceleration/accAccumulator.comp"}},
+                                      {
+                                       {"NUM_PARTICLES",{mpu::toString(NUM_PARTICLES)}},
+                                       {"ACCELERATIONS_PER_PARTICLE",{mpu::toString(THREADS_PER_PARTICLE)}}
+                                      });
 
     mpu::gph::ShaderProgram boundaryShader({{PROJECT_SHADER_PATH"Acceleration/simpleBoxBoundary.comp"}});
     boundaryShader.uniform3f("upper_bound", glm::vec3(3,5,3));
@@ -120,13 +129,15 @@ int main()
     boundaryShader.uniform1f("reflectiveness", .4);
 
 
-    auto accFunc = [densityShader,pressureShader,wgSize,densityWgSize,hydroAccum,boundaryShader](){
+    auto accFunc = [densityShader,pressureShader,wgSize,densityWgSize,pressWgSize,hydroAccum,accAccum,boundaryShader](){
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
         densityShader.dispatch(NUM_PARTICLES*THREADS_PER_PARTICLE/densityWgSize);
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
         hydroAccum.dispatch(NUM_PARTICLES,wgSize);
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-        pressureShader.dispatch(NUM_PARTICLES/wgSize);
+        pressureShader.dispatch(NUM_PARTICLES*THREADS_PER_PARTICLE/pressWgSize);
+        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+        accAccum.dispatch(NUM_PARTICLES,wgSize);
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
         boundaryShader.dispatch(NUM_PARTICLES,wgSize);
     };
