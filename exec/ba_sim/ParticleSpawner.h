@@ -23,6 +23,19 @@
 
 //-------------------------------------------------------------------
 /**
+ * struct Sphere
+ *
+ * Defines a sphere to be passed to the particle Spawners spawn methods.
+ */
+struct Sphere
+{
+    float radius; // the radius of the sphere
+    glm::vec3 center; // the center of the sphere
+    float frac; // the fraction of total particles to be placed in this sphere
+};
+
+//-------------------------------------------------------------------
+/**
  * class ParticleSpawner
  *
  * usage:
@@ -38,10 +51,11 @@ class ParticleSpawner
 {
 public:
     ParticleSpawner(); //!< constructor will compile shader
-    void spawnParticles(float totalMass, float temp,
-                        const glm::vec3& upperBound, const glm::vec3& lowerBound); //!< spawns particles in a cube
-    void spawnParticles(float totalMass, float temp,
-                        float radius, const glm::vec3& center={0,0,0} ); //!< spawns particles in a sphere
+    void spawnParticlesCube(const float totalMass, const float temp,
+                            const glm::vec3 &upperBound, const glm::vec3 &lowerBound); //!< spawns particles in a cube
+    void spawnParticlesSphere(const float totalMass, const float temp,
+                              const float radius, const glm::vec3 &center = {0, 0, 0}); //!< spawns particles in a sphere
+    void spawnParticlesMultiSphere(const float totalMass, const std::vector<Sphere> spheres); //!< spawns particles in a multiple spheres
 
     // getter
     ParticleBuffer getParticleBuffer()const{return m_particleBuffer;} //!< returns the particle buffer for use by rendering and simulation classes

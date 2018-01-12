@@ -35,7 +35,10 @@ int main()
     ParticleBuffer pb(NUM_PARTICLES,THREADS_PER_PARTICLE);
     ParticleSpawner spawner;
     spawner.setBuffer(pb);
-    spawner.spawnParticles(TOTAL_MASS,TEMPERATURE, 2);
+    spawner.spawnParticlesMultiSphere(TOTAL_MASS, {{1.5,{1.5,-.8,-.2},0.2},
+                                                   {1.5,{-1.5,-.5,-.3},0.2},
+                                                   {1.5,{0,1.5,-.5},0.2},
+                                                   {3,{0,0,0},0.4}});
 
     // create a renderer
     ParticleRenderer renderer;

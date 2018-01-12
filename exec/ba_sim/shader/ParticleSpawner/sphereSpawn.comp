@@ -24,9 +24,8 @@ layout(local_size_variable) in;
 uniform vec3 center;
 uniform float radius;
 uniform float mass;
-uniform float density;
-uniform float temperature;
 uniform uint num_of_particles;
+uniform uint particle_offset =0;
 
 uniform uint random_seed;
 
@@ -36,9 +35,9 @@ void main()
     uint seed = random_seed*gl_GlobalInvocationID.x;
     vec2 hammersley = genHammersleySet(seed, num_of_particles);
     vec3 randomPos = randSphere( hammersley.x, hammersley.y,rand(seed),radius);
-    positions[gl_GlobalInvocationID.x] = vec4(randomPos + center, mass);
+    positions[gl_GlobalInvocationID.x+particle_offset] = vec4(randomPos + center, mass);
 
     // set all the attributes
-    velocities[gl_GlobalInvocationID.x] = vec4(0,0,0,0);
-    accelerations[gl_GlobalInvocationID.x] = vec4(0,0,0,0);
+    velocities[gl_GlobalInvocationID.x+particle_offset] = vec4(0,0,0,0);
+    accelerations[gl_GlobalInvocationID.x+particle_offset] = vec4(0,0,0,0);
 }
