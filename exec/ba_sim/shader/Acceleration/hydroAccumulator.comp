@@ -21,7 +21,8 @@ void main()
         density += hydro[NUM_PARTICLES * i + gl_GlobalInvocationID.x].y;
     }
 
-    float pressure = k*(density - rest_density);
+//    float pressure = k*(density - rest_density);
+    float pressure = k*density;
 
     hydro[gl_GlobalInvocationID.x] = vec2(pressure,density);
 }

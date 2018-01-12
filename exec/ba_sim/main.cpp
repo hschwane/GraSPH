@@ -37,16 +37,16 @@ int main()
     ParticleBuffer pb(NUM_PARTICLES,ACCEL_THREADS_PER_PARTICLE,DENSITY_THREADS_PER_PARTICLE);
     ParticleSpawner spawner;
     spawner.setBuffer(pb);
-    spawner.spawnParticles(TOTAL_MASS,TEMPERATURE, 2.42);
+    spawner.spawnParticles(TOTAL_MASS,TEMPERATURE, 5);
 
     // create a renderer
     ParticleRenderer renderer;
     renderer.setParticleBuffer(pb);
     renderer.setShaderSettings(Falloff::LINEAR);
-    renderer.enableAdditiveBlending(false);
-    renderer.enableDepthTest(true);
+    renderer.enableAdditiveBlending(true);
+    renderer.enableDepthTest(false);
     renderer.setViewportSize({WIDTH,HEIGHT});
-    renderer.setColor({1,1,1,1});
+    renderer.setColor({0.9,0.3,0.1,1});
     renderer.setBrightness(1);
     renderer.setSize(PARTICLE_RENDER_SIZE);
 
@@ -80,10 +80,9 @@ int main()
 //        accAccum.dispatch(NUM_PARTICLES,accumWgSize);
 //    };
 
-    float h = 0.3;
-    float k = 200;
+    float h = .2;
+    float k = 0.02;
     float rest_density = 100;
-    float visc = 0.04;
 
     // create hydrodynamics based acceleration function
     uint32_t densityWgSize= 64;//calcWorkgroupSize(NUM_PARTICLES*THREADS_PER_PARTICLE);
@@ -107,15 +106,15 @@ int main()
     hydroAccum.uniform1f("rest_density",rest_density);
 
     uint32_t pressWgSize = 128;
-    mpu::gph::ShaderProgram pressureShader({{PROJECT_SHADER_PATH"Acceleration/sm-optimized/smo-SPHpressureAcc.comp"}},
+    mpu::gph::ShaderProgram pressureShader({{PROJECT_SHADER_PATH"Acceleration/sm-optimized/smo-SPHpressureAccGravity.comp"}},
                                            {
                                                    {"WGSIZE",{mpu::toString(pressWgSize)}},
                                                    {"NUM_PARTICLES",{mpu::toString(NUM_PARTICLES)}},
                                                    {"TILES_PER_THREAD",{mpu::toString(NUM_PARTICLES / pressWgSize / ACCEL_THREADS_PER_PARTICLE)}}
                                            });
     pressureShader.uniform1f("smoothing_length",h);
-    pressureShader.uniform1f("visc", visc);
-    pressureShader.uniform3f("g",glm::vec3(0,-9,0));
+    pressureShader.uniform1f("gravity_constant",G);
+    pressureShader.uniform1f("smoothing_epsilon_squared",EPS2);
 
     mpu::gph::ShaderProgram accAccum({{PROJECT_SHADER_PATH"Acceleration/accAccumulator.comp"}},
                                       {
@@ -138,8 +137,8 @@ int main()
         pressureShader.dispatch(NUM_PARTICLES*ACCEL_THREADS_PER_PARTICLE/pressWgSize);
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
         accAccum.dispatch(NUM_PARTICLES,wgSize);
-        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-        boundaryShader.dispatch(NUM_PARTICLES,wgSize);
+//        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+//        boundaryShader.dispatch(NUM_PARTICLES,wgSize);
     };
 
     //  create a simulator
@@ -208,7 +207,7 @@ int main()
         while(lag >= DT)
         {
             simulation.advanceTime();
-            lag -= DT*8;
+            lag -= DT*4;
         }
 
         // render the particles
