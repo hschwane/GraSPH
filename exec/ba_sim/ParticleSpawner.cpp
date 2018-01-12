@@ -21,6 +21,7 @@
 //-------------------------------------------------------------------
 ParticleSpawner::ParticleSpawner()
         : m_cubeSpawnShader({{PROJECT_SHADER_PATH"ParticleSpawner/cubeSpawn.comp"}}),
+          m_initialVelocityShader({{PROJECT_SHADER_PATH"ParticleSpawner/initialVelocity.comp"}}),
           m_sphereSpawnShader({{PROJECT_SHADER_PATH"ParticleSpawner/sphereSpawn.comp"}})
 {
 }
@@ -135,4 +136,13 @@ void ParticleSpawner::spawnParticlesMultiSphere(const float totalMass, const std
         m_sphereSpawnShader.uniform1ui("particle_offset", writtenParticles);
         m_sphereSpawnShader.dispatch(m_particleBuffer.size()-writtenParticles, calcWorkgroupSize(m_particleBuffer.size()-writtenParticles));
     }
+}
+
+void ParticleSpawner::addRandomVelocityFiels(float frequency, float scale, int seed)
+{
+    m_initialVelocityShader.uniform1i("seed", seed);
+    m_initialVelocityShader.uniform1f("frequency", frequency);
+    m_initialVelocityShader.uniform1f("scale", scale);
+    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+    m_initialVelocityShader.dispatch(m_particleBuffer.size(),calcWorkgroupSize(m_particleBuffer.size()));
 }

@@ -1,0 +1,36 @@
+#version 450
+#extension GL_ARB_compute_variable_group_size : require
+
+#include "common.glsl"
+#include "simplex.glsl"
+
+layout(binding=PARTICLE_POSITION_BUFFER_BINDING,std430) buffer ParticlePositions
+{
+    vec4 positions[];
+};
+
+layout(binding=PARTICLE_VELOCITY_BUFFER_BINDING,std430) buffer ParticleVelocities
+{
+    vec4 velocities[];
+};
+
+layout(binding=PARTICLE_ACCELERATION_BUFFER_BINDING,std430) buffer ParticleAccelerations
+{
+    vec4 accelerations[];
+};
+
+layout(local_size_variable) in;
+
+
+uniform float frequency=1;
+uniform float scale=1;
+uniform int seed=0;
+
+void main()
+{
+    vec3 vel;
+    snoise(positions[gl_GlobalInvocationID.x].xyz*frequency+vec3(float(seed)),vel);
+
+    // set all the attributes
+    velocities[gl_GlobalInvocationID.x] = vec4(vel*scale,0);
+}

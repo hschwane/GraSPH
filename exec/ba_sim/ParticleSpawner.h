@@ -57,6 +57,8 @@ public:
                               const float radius, const glm::vec3 &center = {0, 0, 0}); //!< spawns particles in a sphere
     void spawnParticlesMultiSphere(const float totalMass, const std::vector<Sphere> spheres); //!< spawns particles in a multiple spheres
 
+    void addRandomVelocityFiels(float frequency, float scale, int seed=0); //!< adds a initial random velocity fiels to the particles
+
     // getter
     ParticleBuffer getParticleBuffer()const{return m_particleBuffer;} //!< returns the particle buffer for use by rendering and simulation classes
     float getTotalMass()const{return m_totalMass;} //!< returns the total mass of particles created
@@ -70,6 +72,7 @@ public:
 private:
     mpu::gph::ShaderProgram m_cubeSpawnShader; //!< shader for spawning particles in a cube
     mpu::gph::ShaderProgram m_sphereSpawnShader; //!< shader for spawning particles in a spere
+    mpu::gph::ShaderProgram m_initialVelocityShader; //!< shader for adding initial velocity
 
     ParticleBuffer m_particleBuffer; //!< the buffer where the particles are stored
 

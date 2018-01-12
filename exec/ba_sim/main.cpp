@@ -35,10 +35,12 @@ int main()
     ParticleBuffer pb(NUM_PARTICLES,THREADS_PER_PARTICLE);
     ParticleSpawner spawner;
     spawner.setBuffer(pb);
-    spawner.spawnParticlesMultiSphere(TOTAL_MASS, {{1.5,{1.5,-.8,-.2},0.2},
-                                                   {1.5,{-1.5,-.5,-.3},0.2},
-                                                   {1.5,{0,1.5,-.5},0.2},
-                                                   {3,{0,0,0},0.4}});
+//    spawner.spawnParticlesMultiSphere(TOTAL_MASS, {{1.5,{1.5,-.8,-.2},0.2},
+//                                                   {1.5,{-1.5,-.5,-.3},0.2},
+//                                                   {1.5,{0,1.5,-.5},0.2},
+//                                                   {3,{0,0,0},0.4}});
+    spawner.spawnParticlesSphere(TOTAL_MASS,TEMPERATURE,3);
+    spawner.addRandomVelocityFiels(0.5,0.005,0);
 
     // create a renderer
     ParticleRenderer renderer;
@@ -54,7 +56,7 @@ int main()
     // create camera
     mpu::gph::Camera camera(std::make_shared<mpu::gph::SimpleWASDController>(&window,10,4));
     camera.setMVP(&renderer);
-    camera.setClip(0.1,100);
+    camera.setClip(0.1,200);
 
     // create shaders for acceleration
     uint32_t accWgSize = 128;//calcWorkgroupSize(NUM_PARTICLES*THREADS_PER_PARTICLE);
@@ -99,8 +101,7 @@ int main()
     // TODO: better accumulator
     // TODO: add gpu stopwatch
     // TODO: 2D mode
-    // TODO: fix spawner
-    // TODO: other fun  spawning scenarios
+    // TODO: spawn orbiting particles
 
 
     bool runSim = false;
