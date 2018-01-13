@@ -2,6 +2,7 @@
 #extension GL_ARB_compute_variable_group_size : require
 
 #include "common.glsl"
+#include "simplex.glsl"
 
 layout(binding=PARTICLE_POSITION_BUFFER_BINDING,std430) buffer ParticlePositions
 {
@@ -12,11 +13,11 @@ layout(binding=PARTICLE_VELOCITY_BUFFER_BINDING,std430) buffer ParticleVelocitie
 {
     vec4 velocities[];
 };
-
-layout(binding=PARTICLE_ACCELERATION_BUFFER_BINDING,std430) buffer ParticleAccelerations
-{
-    vec4 accelerations[];
-};
+//
+//layout(binding=PARTICLE_ACCELERATION_BUFFER_BINDING,std430) buffer ParticleAccelerations
+//{
+//    vec4 accelerations[];
+//};
 
 layout(local_size_variable) in;
 
@@ -44,11 +45,17 @@ uniform float vel_dt;
 void main()
 {
     // update the velocity i-1/2 to i+1/2
-    vec4 vel = velocities[gl_GlobalInvocationID.x] + accelerations[gl_GlobalInvocationID.x] * vel_dt;
+//    vec4 vel = velocities[gl_GlobalInvocationID.x] + accelerations[gl_GlobalInvocationID.x] * vel_dt;
+
+    float time = velocities[gl_GlobalInvocationID.x].x + dt;
+
+    vec3 vel;
+    vec3 lookup = vec3(positions[gl_GlobalInvocationID.x].xyz*2+time*1);
+    float noise = snoise(lookup,vel);
 
     // update position i to i+1
-    positions[gl_GlobalInvocationID.x] += vel * dt;
+    positions[gl_GlobalInvocationID.x].xyz +=  vel*0.08 * dt;
 
-    velocities[gl_GlobalInvocationID.x] = vel;
-    accelerations[gl_GlobalInvocationID.x] = vec4(0,0,0,0);
+    velocities[gl_GlobalInvocationID.x].x = time;
+//    accelerations[gl_GlobalInvocationID.x] = vec4(0,0,0,0);
 }

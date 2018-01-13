@@ -40,7 +40,7 @@ int main()
 //                                                   {1.5,{0,1.5,-.5},0.2},
 //                                                   {3,{0,0,0},0.4}});
     spawner.spawnParticlesSphere(TOTAL_MASS,TEMPERATURE,3);
-    spawner.addRandomVelocityFiels(0.5,0.005,0);
+//    spawner.addRandomVelocityFiels(0.5,0.005,0);
 
     // create a renderer
     ParticleRenderer renderer;
@@ -49,7 +49,7 @@ int main()
     renderer.enableAdditiveBlending(true);
     renderer.enableDepthTest(false);
     renderer.setViewportSize({WIDTH,HEIGHT});
-    renderer.setColor({0.9,0.3,0.1,1});
+    renderer.setColor({0.6,1.0,0.2,1});
     renderer.setBrightness(1);
     renderer.setSize(PARTICLE_RENDER_SIZE);
 
@@ -77,10 +77,10 @@ int main()
                                       });
 
     auto accFunc = [accShader,accWgSize,accAccum,accumWgSize](){
-        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-        accShader.dispatch(NUM_PARTICLES*THREADS_PER_PARTICLE/accWgSize);
-        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-        accAccum.dispatch(NUM_PARTICLES,accumWgSize);
+//        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+//        accShader.dispatch(NUM_PARTICLES*THREADS_PER_PARTICLE/accWgSize);
+//        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+//        accAccum.dispatch(NUM_PARTICLES,accumWgSize);
     };
 
     //  create a simulator
