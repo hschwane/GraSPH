@@ -98,17 +98,17 @@ constexpr unsigned int VERLET_BUFFER_BINDING = 6;
 constexpr unsigned int RENDERER_POSITION_ARRAY = 0;
 
 // simulation
-constexpr double DT = 0.032;
+constexpr double DT = 0.01;
 constexpr double EPS2 = 0.01;
-constexpr float G = 0.5;//6.67408e-11 ;//* 1e-9 *1000;
+constexpr float G = 1;//6.67408e-11 ;//* 1e-9 *1000;
 
 // particles
 constexpr float PARTICLE_RENDER_SIZE = 0.008; // radius of a particle
 constexpr float TEMPERATURE = 30;
 
 // spawning
-constexpr float TOTAL_MASS = 1;//1e-22*1.98892e30 /1000;
-constexpr unsigned int NUM_PARTICLES = 32000;
+constexpr float TOTAL_MASS = 20;//1e-22*1.98892e30 /1000;
+constexpr unsigned int NUM_PARTICLES = 16000;
 constexpr unsigned int DENSITY_THREADS_PER_PARTICLE = 4;
 constexpr unsigned int ACCEL_THREADS_PER_PARTICLE = 2;
 const  glm::vec3 LOWER_BOUND = glm::vec3(-1,-1,-1);

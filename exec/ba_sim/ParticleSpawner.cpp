@@ -138,7 +138,7 @@ void ParticleSpawner::spawnParticlesMultiSphere(const float totalMass, const std
     }
 }
 
-void ParticleSpawner::addRandomVelocityFiels(float frequency, float scale, int seed)
+void ParticleSpawner::addRandomVelocityField(float frequency, float scale, int seed)
 {
     m_initialVelocityShader.uniform1i("seed", seed);
     m_initialVelocityShader.uniform1f("frequency", frequency);

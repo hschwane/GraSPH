@@ -2,7 +2,7 @@
 // we have to use a fixed work group size here
 
 #include "common.glsl"
-#include "softGravity.glsl"
+#include "../softGravity.glsl"
 
 layout(binding=PARTICLE_POSITION_BUFFER_BINDING,std430) buffer ParticlePositions
 {

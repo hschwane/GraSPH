@@ -41,8 +41,9 @@ int main()
 //                                                   {1.5,{-1.5,-.5,-.3},0.2},
 //                                                   {1.5,{0,1.5,-.5},0.2},
 //                                                   {3,{0,0,0},0.4}});
-    spawner.spawnParticlesSphere(TOTAL_MASS,TEMPERATURE,3);
-    spawner.addRandomVelocityFiels(0.55,0.06,82);
+    spawner.spawnParticlesSphere(TOTAL_MASS,TEMPERATURE,6);
+    spawner.addRandomVelocityField(0.4, 0.35, 10152);
+    spawner.addRandomVelocityField(0.1, 0.4, 98120);
 
     // create a renderer
     ParticleRenderer renderer;
@@ -60,33 +61,8 @@ int main()
     camera.setMVP(&renderer);
     camera.setClip(0.1,200);
 
-    // create shaders for acceleration
-//    uint32_t accWgSize = 128;//calcWorkgroupSize(NUM_PARTICLES*THREADS_PER_PARTICLE);
-//    mpu::gph::ShaderProgram accShader({{PROJECT_SHADER_PATH"Acceleration/nBodyGravity/smo-gravity.comp"}},
-//                                      {
-//                                       {"WGSIZE",{mpu::toString(accWgSize)}},
-//                                       {"NUM_PARTICLES",{mpu::toString(NUM_PARTICLES)}},
-//                                       {"TILES_PER_THREAD",{mpu::toString(NUM_PARTICLES / accWgSize / THREADS_PER_PARTICLE)}}
-//                                      });
-//    accShader.uniform1f("smoothing_epsilon_squared",  EPS2);
-//    accShader.uniform1f("gravity_constant",  G);
-//
-//    uint32_t accumWgSize = calcWorkgroupSize(NUM_PARTICLES);
-//    mpu::gph::ShaderProgram accAccum({{PROJECT_SHADER_PATH"Acceleration/accAccumulator.comp"}},
-//                                      {
-//                                       {"NUM_PARTICLES",{mpu::toString(NUM_PARTICLES)}},
-//                                       {"ACCELERATIONS_PER_PARTICLE",{mpu::toString(THREADS_PER_PARTICLE)}}
-//                                      });
-//
-//    auto accFunc = [accShader,accWgSize,accAccum,accumWgSize](){
-//        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-//        accShader.dispatch(NUM_PARTICLES*THREADS_PER_PARTICLE/accWgSize);
-//        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-//        accAccum.dispatch(NUM_PARTICLES,accumWgSize);
-//    };
-
-    float h = .3;
-    float k = 0.01;
+    float h = .4;
+    float k = 0.05;
     float visc = 0.001;
     float rest_density = 100;
 
@@ -168,6 +144,7 @@ int main()
     // TODO: add sink particles
     // TODO: test fractation EOS
     // TODO: adaptive timestep
+    // TODO: make the initial velocity noise better
 
     // TODO: add gpu stopwatch
     // TODO: print particles to file
@@ -214,6 +191,11 @@ int main()
 
         // run the simulation
         if(window.getKey(GLFW_KEY_1) == GLFW_PRESS && window.getKey(GLFW_KEY_2) == GLFW_RELEASE)
+            runSim = true;
+        else if(window.getKey(GLFW_KEY_2) == GLFW_PRESS)
+            runSim = false;
+
+        if(runSim)
         {
             simulation.advanceTime();
             lag += DT;
@@ -229,7 +211,7 @@ int main()
         elapsedPerT += dt;
         if(elapsedPerT >= 2.0)
         {
-            printf("%f ms/frame -- %f fps %f simSpeed %f simTime\n", 1000.0*elapsedPerT/double(nbframes), nbframes/elapsedPerT, lag/elapsedPerT, simulationTime);
+            printf("%f ms/frame -- %f fps -- %f simSpeed -- %f simTime\n", 1000.0*elapsedPerT/double(nbframes), nbframes/elapsedPerT, lag/elapsedPerT, simulationTime);
             nbframes = 0;
             elapsedPerT = 0;
             lag = 0;

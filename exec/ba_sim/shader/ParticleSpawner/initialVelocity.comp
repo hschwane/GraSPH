@@ -32,5 +32,5 @@ void main()
     snoise(positions[gl_GlobalInvocationID.x].xyz*frequency+vec3(float(seed)),vel);
 
     // set all the attributes
-    velocities[gl_GlobalInvocationID.x] = vec4(vel*scale,0);
+    velocities[gl_GlobalInvocationID.x] += vec4(vel*scale,0);
 }
