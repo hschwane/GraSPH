@@ -42,7 +42,7 @@ int main()
 //                                                   {1.5,{0,1.5,-.5},0.2},
 //                                                   {3,{0,0,0},0.4}});
     spawner.spawnParticlesSphere(TOTAL_MASS,TEMPERATURE,3);
-    spawner.addRandomVelocityFiels(0.5,0.005,0);
+    spawner.addRandomVelocityFiels(0.6,0.05,0);
 
     // create a renderer
     ParticleRenderer renderer;
@@ -85,8 +85,8 @@ int main()
 //        accAccum.dispatch(NUM_PARTICLES,accumWgSize);
 //    };
 
-    float h = .2;
-    float k = 0.02;
+    float h = .3;
+    float k = 0.01;
     float rest_density = 100;
 
     // create hydrodynamics based acceleration function
@@ -142,8 +142,6 @@ int main()
         pressureShader.dispatch(NUM_PARTICLES*ACCEL_THREADS_PER_PARTICLE/pressWgSize);
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
         accAccum.dispatch(NUM_PARTICLES,wgSize);
-//        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-//        boundaryShader.dispatch(NUM_PARTICLES,wgSize);
     };
 
     //  create a simulator

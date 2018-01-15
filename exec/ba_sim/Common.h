@@ -100,7 +100,7 @@ constexpr unsigned int RENDERER_POSITION_ARRAY = 0;
 // simulation
 constexpr double DT = 0.032;
 constexpr double EPS2 = 0.01;
-constexpr float G = 1;//6.67408e-11 ;//* 1e-9 *1000;
+constexpr float G = 0.5;//6.67408e-11 ;//* 1e-9 *1000;
 
 // particles
 constexpr float PARTICLE_RENDER_SIZE = 0.008; // radius of a particle
