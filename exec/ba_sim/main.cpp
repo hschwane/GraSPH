@@ -42,7 +42,7 @@ int main()
 //                                                   {1.5,{0,1.5,-.5},0.2},
 //                                                   {3,{0,0,0},0.4}});
     spawner.spawnParticlesSphere(TOTAL_MASS,TEMPERATURE,3);
-    spawner.addRandomVelocityFiels(0.6,0.05,0);
+    spawner.addRandomVelocityFiels(0.55,0.06,82);
 
     // create a renderer
     ParticleRenderer renderer;
@@ -87,6 +87,7 @@ int main()
 
     float h = .3;
     float k = 0.01;
+    float visc = 0.001;
     float rest_density = 100;
 
     // create hydrodynamics based acceleration function
@@ -118,6 +119,7 @@ int main()
                                                    {"TILES_PER_THREAD",{mpu::toString(NUM_PARTICLES / pressWgSize / ACCEL_THREADS_PER_PARTICLE)}}
                                            });
     pressureShader.uniform1f("smoothing_length",h);
+    pressureShader.uniform1f("visc",visc);
     pressureShader.uniform1f("gravity_constant",G);
     pressureShader.uniform1f("smoothing_epsilon_squared",EPS2);
 
@@ -160,10 +162,10 @@ int main()
     double lag = 0;
 
 
+    // TODO: add gpu stopwatch
     // TODO: print particles to file
     // TODO: filnally code a f***ing gui
     // TODO: better accumulator
-    // TODO: add gpu stopwatch
     // TODO: 2D mode
     // TODO: spawn orbiting particles
 
@@ -210,7 +212,7 @@ int main()
         while(lag >= DT)
         {
             simulation.advanceTime();
-            lag -= DT*4;
+            lag -= DT*5;
         }
 
         // render the particles
