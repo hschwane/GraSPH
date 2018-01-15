@@ -43,6 +43,7 @@ void main()
     for(uint i=0; i<num_of_particles; i++)
     {
             vec4 iPos = positions[i];
+            float iMass = hydro[i].w;
 
             // check the distance
             vec3 r = myPosition.xyz - iPos.xyz;
@@ -50,7 +51,7 @@ void main()
 
             // add mass weigthend by the kernel to calculate density
             // use the poly 6 kernel presented by müller et al
-            density += (r2 < h2) ? iPos.w * poly6scale * pow(h2 - r2,3) : 0;
+            density += (r2 < h2) ? iMass * poly6scale * pow(h2 - r2,3) : 0;
     }
 
 //    float pressure = k*(pow(density / rest_density,7) -1);

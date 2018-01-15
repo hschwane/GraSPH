@@ -45,5 +45,5 @@ void main()
     // set all the attributes
     velocities[gl_GlobalInvocationID.x+particle_offset] = vec4(0,0,0,0);
     accelerations[gl_GlobalInvocationID.x+particle_offset] = vec4(0,0,0,0);
-    hydro[gl_GlobalInvocationID.x+particle_offset] = vec4(0,0,0,0);
+    hydro[gl_GlobalInvocationID.x+particle_offset] = vec4(0,0,0,mass);
 }

@@ -21,6 +21,7 @@ uniform float k;
 uniform float rest_density;
 
 shared vec4 pos[gl_WorkGroupSize.x];
+shared float mass[gl_WorkGroupSize.x];
 
 // some values that only depend on uniforms
 float h2 = smoothing_length*smoothing_length;
@@ -34,7 +35,7 @@ void calculateTileRow( const in vec4 myPosition, inout float density)
         const vec3 r = myPosition.xyz - pos[i].xyz;
         const float r2 = dot(r,r);
 
-        density += (r2 < h2) ? pos[i].w * poly6scale * pow(h2 - r2,3) : 0;
+        density += (r2 < h2) ? mass[i] * poly6scale * pow(h2 - r2,3) : 0;
     }
 }
 
@@ -52,7 +53,9 @@ void main()
     for(uint tile = 0; tile < TILES_PER_THREAD; tile++)
     {
         // fill fields in shared memory
-        pos[gl_LocalInvocationID.x] = positions[gl_WorkGroupSize.x * (startTile + tile) + gl_LocalInvocationID.x];
+        uint idx = gl_WorkGroupSize.x * (startTile + tile) + gl_LocalInvocationID.x;
+        pos[gl_LocalInvocationID.x] = positions[idx];
+        mass[gl_LocalInvocationID.x] = hydro[idx].w;
         // sync
         memoryBarrierShared();
         barrier();
@@ -64,5 +67,5 @@ void main()
     }
 
     // write back density and pressure
-    hydro[gl_GlobalInvocationID.x] = vec4(0,density,0,0);
+    hydro[gl_GlobalInvocationID.x].xy = vec2(0,density);
 }

@@ -51,8 +51,8 @@ void calculateTileRow( const in vec4 myPosition, const in vec4 myHydro, const in
         const vec3 iVel = vel[i];
 
         accG += interaction(myPosition, pos[i], smoothing_epsilon_squared);
-        accP -= (dist < smoothing_length && dist != 0) ? pos[i].w * ((iHydro.x / (iHydro.y*iHydro.y)) + pod2) * spikyScale * pow(smoothing_length - dist,2)* r/dist : vec3(0,0,0);
-        accP += (dist < smoothing_length) ? visc * pos[i].w  * (iVel.xyz - myVel.xyz)/iHydro.y * -spikyScale * (smoothing_length - dist) : vec3(0,0,0);
+        accP -= (dist < smoothing_length && dist != 0) ? hyd[i].w * ((iHydro.x / (iHydro.y*iHydro.y)) + pod2) * spikyScale * pow(smoothing_length - dist,2)* r/dist : vec3(0,0,0);
+        accP += (dist < smoothing_length) ? visc * hyd[i].w  * (iVel.xyz - myVel.xyz)/iHydro.y * -spikyScale * (smoothing_length - dist) : vec3(0,0,0);
 
     }
 }

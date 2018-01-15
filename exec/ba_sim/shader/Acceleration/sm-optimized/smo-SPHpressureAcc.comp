@@ -31,25 +31,25 @@ uniform float visc;
 uniform vec3 g;
 
 shared vec4 pos[gl_WorkGroupSize.x];
-shared vec2 hyd[gl_WorkGroupSize.x];
+shared vec4 hyd[gl_WorkGroupSize.x];
 shared vec3 vel[gl_WorkGroupSize.x];
 
 // some values that only depend on uniforms
 float spikyScale = -45 / (PI * pow(smoothing_length,6));
 
 // interact one particle with p others
-void calculateTileRow( const in vec4 myPosition, const in vec2 myHydro, const in vec3 myVel, const in float pod2,  inout vec3 acc)
+void calculateTileRow( const in vec4 myPosition, const in vec4 myHydro, const in vec3 myVel, const in float pod2,  inout vec3 acc)
 {
     for(uint i=0; i<gl_WorkGroupSize.x; i++)
     {
         const vec3 r = myPosition.xyz - pos[i].xyz;
         float dist = length(r);
 
-        const vec2 iHydro = hyd[i];
+        const vec4 iHydro = hyd[i];
         const vec3 iVel = vel[i];
 
-        acc -= (dist < smoothing_length && dist != 0) ? pos[i].w * ((iHydro.x / (iHydro.y*iHydro.y)) + pod2) * spikyScale * pow(smoothing_length - dist,2)* r/dist : vec3(0,0,0);
-        acc += (dist < smoothing_length) ? visc * pos[i].w  * (iVel.xyz - myVel.xyz)/iHydro.y * -spikyScale * (smoothing_length - dist) : vec3(0,0,0);
+        acc -= (dist < smoothing_length && dist != 0) ? iHydro.w * ((iHydro.x / (iHydro.y*iHydro.y)) + pod2) * spikyScale * pow(smoothing_length - dist,2)* r/dist : vec3(0,0,0);
+        acc += (dist < smoothing_length) ? visc * iHydro.w  * (iVel.xyz - myVel.xyz)/iHydro.y * -spikyScale * (smoothing_length - dist) : vec3(0,0,0);
     }
 }
 
@@ -62,7 +62,7 @@ void main()
     // cache my particle attributes in local memory
     const uint myIdx = gl_GlobalInvocationID.x % NUM_PARTICLES;
     const vec4 myPosition = positions[myIdx];
-    const vec2 myHydro = hydro[myIdx];
+    const vec4 myHydro = hydro[myIdx];
     const vec4 myVel = velocities[myIdx];
     vec3 acc = vec3(0,0,0); // lets sum up the acceleration here
 
