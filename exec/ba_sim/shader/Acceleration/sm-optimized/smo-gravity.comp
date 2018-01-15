@@ -1,0 +1,60 @@
+#version 450 core
+// we have to use a fixed work group size here
+
+#include "common.glsl"
+#include "softGravity.glsl"
+
+layout(binding=PARTICLE_POSITION_BUFFER_BINDING,std430) buffer ParticlePositions
+{
+    vec4 positions[];
+};
+
+layout(binding=PARTICLE_ACCELERATION_BUFFER_BINDING,std430) buffer ParticleAccelerations
+{
+    vec4 accelerations[];
+};
+
+layout(local_size_x=WGSIZE,local_size_y=1,local_size_z=1) in;
+
+uniform float gravity_constant;
+uniform float smoothing_epsilon_squared;
+
+shared vec4 pos[gl_WorkGroupSize.x];
+
+// interact one particle with p others
+void calculateTileRow( const in vec4 myPosition, inout vec3 acc)
+{
+    for(uint i=0; i<gl_WorkGroupSize.x; i++)
+    {
+        acc += interaction(myPosition, pos[i], smoothing_epsilon_squared);
+    }
+}
+
+// This shader updates a particles acceleration by interacting with all other particles,
+// using shared memory to speed up memory access
+void main()
+{
+    const vec4 myPosition = positions[gl_GlobalInvocationID.x % NUM_PARTICLES]; // load my position to local memory
+    const uint startTile = TILES_PER_THREAD * uint(gl_GlobalInvocationID.x / NUM_PARTICLES); // there can be multiple threads per particle, so where do we start calculating?
+    vec3 myAcc = vec3(0,0,0); // lets sum up the acceleration here
+
+    // loop over tiles in a row for as many tiles one thread is configured to calculate
+    // calculate the interactions of a particle with gl_WorkGroupSize.x particles in one tile
+    // repeat until all interactions in all tiles are calculatedsss
+    for(uint tile = 0; tile < TILES_PER_THREAD; tile++)
+    {
+        // fill fields in shared memory
+        pos[gl_LocalInvocationID.x] = positions[gl_WorkGroupSize.x * (startTile + tile) + gl_LocalInvocationID.x];
+        // sync
+        memoryBarrierShared();
+        barrier();
+        // calculate the row up to here
+        calculateTileRow(myPosition,myAcc);
+        // sync
+        memoryBarrierShared();
+        barrier();
+    }
+
+    // write back the acceleration
+    accelerations[gl_GlobalInvocationID.x] = vec4(myAcc * gravity_constant,0);
+}

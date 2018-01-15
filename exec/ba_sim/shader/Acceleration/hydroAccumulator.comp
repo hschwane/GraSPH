@@ -1,0 +1,28 @@
+#version 450 core
+#extension GL_ARB_compute_variable_group_size : require
+
+#include "common.glsl"
+
+layout(binding=PARTICLE_HYDRO_BUFFER_BINDING,std430) buffer ParticleHydro
+{
+    vec2 hydro[];
+};
+
+uniform float k;
+uniform float rest_density;
+
+layout(local_size_variable) in;
+
+void main()
+{
+    float density = 0;
+    for(uint i=0; i < HYDROS_PER_PARTICLE; i++)
+    {
+        density += hydro[NUM_PARTICLES * i + gl_GlobalInvocationID.x].y;
+    }
+
+//    float pressure = k*(density - rest_density);
+    float pressure = k*density;
+
+    hydro[gl_GlobalInvocationID.x] = vec2(pressure,density);
+}

@@ -1,3 +1,4 @@
+#pragma once
 // computes the acceleration of a particle i resulting from
 // the interaction with another particle j
 // using a smoothed gravity model found in gpuGmes 3

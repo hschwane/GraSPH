@@ -1,0 +1,82 @@
+#version 450 core
+#extension GL_ARB_compute_variable_group_size : require
+
+#include "common.glsl"
+#include "mathConst.glsl"
+
+layout(binding=PARTICLE_POSITION_BUFFER_BINDING,std430) buffer ParticlePositions
+{
+    vec4 positions[];
+};
+
+layout(binding=PARTICLE_VELOCITY_BUFFER_BINDING,std430) buffer ParticleVelocities
+{
+    vec4 velocities[];
+};
+
+layout(binding=PARTICLE_ACCELERATION_BUFFER_BINDING,std430) buffer ParticleAccelerations
+{
+    vec4 accelerations[];
+};
+
+layout(binding=PARTICLE_HYDRO_BUFFER_BINDING,std430) buffer ParticleHydro
+{
+    vec2 hydro[];
+};
+
+layout(local_size_variable) in;
+
+uniform float smoothing_length;
+uniform float visc;
+
+#ifdef NUM_PARTICLES
+    uniform uint num_of_particles= NUM_PARTICLES;
+#else
+    uniform uint num_of_particles;
+#endif
+
+// This shader updates a particles acceleration based on the pressure gradient calculated by
+// using the sph-method over its neightbours
+void main()
+{
+    // cache my particle attributes in local memory
+    vec4 myPosition = positions[gl_GlobalInvocationID.x];
+    vec2 myHydro = hydro[gl_GlobalInvocationID.x];
+    vec4 myVel = velocities[gl_GlobalInvocationID.x];
+
+    // calculate some values that are the same for all loop iterations
+    float myPressureOverDensity2 = (myHydro.x / (myHydro.y*myHydro.y));
+    float spikyScale = -45 / (PI * pow(smoothing_length,6));
+
+    // calculate acceleration based on the pressure gradient
+    vec3 acc = vec3(0,0,0);
+
+    // interact with all other particles
+    for(uint i=0; i<num_of_particles; i++)
+    {
+            vec4 iPos = positions[i];
+            vec2 iHydro = hydro[i];
+            vec4 iVel = velocities[i];
+
+            // check the distance
+            vec3 r = myPosition.xyz - iPos.xyz;
+            float dist = length(r);
+
+            // add the influence of particle i to the pressure gradient
+            // use the gradient of the spiky kernel by Müller et al
+            acc -= (dist < smoothing_length && dist != 0) ? iPos.w * ((iHydro.x / (iHydro.y*iHydro.y)) + myPressureOverDensity2) * spikyScale * pow(smoothing_length - dist,2)* r/dist : vec3(0,0,0);
+
+            // alternative ways to make pressure force symmetric, said to be more stable but did not realy work that well in my tests
+//            acc -= (dist < smoothing_length && dist != 0) ? iPos.w * ((myHydro.x+iHydro.x)/(2*myHydro.y*iHydro.y)) * spikyScale * pow(smoothing_length - dist,2)* r/dist : vec3(0,0,0);
+//            acc -= (dist < smoothing_length && dist != 0) ? iPos.w * ((myHydro.x+iHydro.x)/(2*iHydro.y)) * spikyScale * pow(smoothing_length - dist,2)* r/dist : vec3(0,0,0);
+
+            // add the influence of particle i to the viscosity
+            acc += (dist < smoothing_length) ? visc * iPos.w  * (iVel.xyz - myVel.xyz)/iHydro.y * -spikyScale * (smoothing_length - dist) : vec3(0,0,0);
+    }
+
+    // add gravity
+    acc += vec3(0,-9,0);
+
+    // write back acceleration
+    accelerations[gl_GlobalInvocationID.x] = vec4(acc,0);
+}

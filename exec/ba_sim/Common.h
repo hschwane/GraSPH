@@ -28,21 +28,24 @@ struct ParticleBuffer
 {
 public:
 
-    typedef glm::vec4 posType;
+    typedef glm::vec4 posType; // w is mass
     typedef glm::vec4 velType;
     typedef glm::vec4 accType;
+    typedef glm::vec2 hydrodynamicsType; // x is pressure, y is density
 
     ParticleBuffer()= default;
-    explicit ParticleBuffer(uint32_t numParticles, uint32_t accMulti = 1, GLbitfield flags = 0)
+    explicit ParticleBuffer(uint32_t numParticles, uint32_t accMulti = 1, uint32_t hydroMulti = 1, GLbitfield flags = 0)
     {
         positionBuffer.allocate<posType>(numParticles,flags);
         velocityBuffer.allocate<velType>(numParticles,flags);
         accelerationBuffer.allocate<accType>(numParticles*accMulti,flags);
+        hydrodynamicsBuffer.allocate<hydrodynamicsType>(numParticles*hydroMulti,flags);
         m_numberOfParticles=numParticles;
         m_accMulti = accMulti;
+        m_hydMulti = hydroMulti;
     }
 
-    void reallocateAll(uint32_t numParticles, uint32_t accMulti = 1, GLbitfield flags = 0)
+    void reallocateAll(uint32_t numParticles, uint32_t accMulti = 1,  uint32_t hydroMulti = 1, GLbitfield flags = 0)
     {
         positionBuffer.recreate();
         positionBuffer.allocate<posType>(numParticles,flags);
@@ -50,8 +53,11 @@ public:
         velocityBuffer.allocate<velType>(numParticles,flags);
         accelerationBuffer.recreate();
         accelerationBuffer.allocate<accType>(numParticles*accMulti,flags);
+        hydrodynamicsBuffer.recreate();
+        hydrodynamicsBuffer.allocate<hydrodynamicsType>(numParticles*hydroMulti,flags);
         m_numberOfParticles=numParticles;
         m_accMulti = accMulti;
+        m_hydMulti = hydroMulti;
     };
 
     void bindAll( uint32_t binding, GLenum target)
@@ -59,17 +65,21 @@ public:
         positionBuffer.bindBase(binding,target);
         velocityBuffer.bindBase(binding+1,target);
         accelerationBuffer.bindBase(binding+2,target);
+        hydrodynamicsBuffer.bindBase(binding+3,target);
     }
 
     uint32_t size(){return m_numberOfParticles;} //!< returns the number of particles
     uint32_t accPerParticle(){ return m_accMulti;} //!< returns the number of different accelerations that can be stored per particle
+    uint32_t hydPerParticle(){ return m_hydMulti;} //!< returns the number of different hydro states that can be stored per particle
 
     mpu::gph::Buffer positionBuffer;
     mpu::gph::Buffer velocityBuffer;
     mpu::gph::Buffer accelerationBuffer;
+    mpu::gph::Buffer hydrodynamicsBuffer;
 private:
     uint32_t m_numberOfParticles;
     uint32_t m_accMulti;
+    uint32_t m_hydMulti;
 };
 
 //-------------------------------------------------------------------
@@ -82,23 +92,25 @@ constexpr unsigned int PARTICLE_BUFFER_BINDING = 2;
 constexpr unsigned int PARTICLE_POSITION_BUFFER_BINDING = 2;
 constexpr unsigned int PARTICLE_VELOCITY_BUFFER_BINDING = 3;
 constexpr unsigned int PARTICLE_ACCELERATION_BUFFER_BINDING = 4;
+constexpr unsigned int PARTICLE_HYDRO_BUFFER_BINDING = 5;
 
-constexpr unsigned int VERLET_BUFFER_BINDING = 5;
+constexpr unsigned int VERLET_BUFFER_BINDING = 6;
 constexpr unsigned int RENDERER_POSITION_ARRAY = 0;
 
 // simulation
-constexpr double DT = 0.034;
+constexpr double DT = 0.032;
 constexpr double EPS2 = 0.01;
-constexpr float G = 1;
+constexpr float G = 1;//6.67408e-11 ;//* 1e-9 *1000;
 
 // particles
 constexpr float PARTICLE_RENDER_SIZE = 0.008; // radius of a particle
 constexpr float TEMPERATURE = 30;
 
 // spawning
-constexpr float TOTAL_MASS = 0.01;
-constexpr unsigned int NUM_PARTICLES = 32768;
-constexpr unsigned int THREADS_PER_PARTICLE = 16;
+constexpr float TOTAL_MASS = 1;//1e-22*1.98892e30 /1000;
+constexpr unsigned int NUM_PARTICLES = 32000;
+constexpr unsigned int DENSITY_THREADS_PER_PARTICLE = 4;
+constexpr unsigned int ACCEL_THREADS_PER_PARTICLE = 2;
 const  glm::vec3 LOWER_BOUND = glm::vec3(-1,-1,-1);
 const  glm::vec3 UPPER_BOUND = glm::vec3(1,1,1);
 
