@@ -31,6 +31,7 @@ uniform float smoothing_length;
 uniform float visc;
 uniform float gravity_constant;
 uniform float smoothing_epsilon_squared;
+uniform float sink_r;
 
 shared vec4 pos[gl_WorkGroupSize.x];
 shared vec4 hyd[gl_WorkGroupSize.x];
@@ -40,20 +41,42 @@ shared vec3 vel[gl_WorkGroupSize.x];
 float spikyScale = -45 / (PI * pow(smoothing_length,6));
 
 // interact one particle with p others
-void calculateTileRow( const in vec4 myPosition, const in vec4 myHydro, const in float pod2, const in vec3 myVel,  inout vec3 accG, inout vec3 accP)
+void calculateTileRow( const in vec4 myPosition, const in vec4 myHydro, const in float pod2, const in vec3 myVel,  inout vec4 accG, inout vec3 accP)
 {
     for(uint i=0; i<gl_WorkGroupSize.x; i++)
     {
-        const vec3 r = myPosition.xyz - pos[i].xyz;
-        const float dist = length(r);
-
+        const vec4 iPos = pos[i];
         const vec4 iHydro = hyd[i];
         const vec3 iVel = vel[i];
 
-        accG += interaction(myPosition, pos[i], smoothing_epsilon_squared);
-        accP -= (dist < smoothing_length && dist != 0) ? hyd[i].w * ((iHydro.x / (iHydro.y*iHydro.y)) + pod2) * spikyScale * pow(smoothing_length - dist,2)* r/dist : vec3(0,0,0);
-        accP += (dist < smoothing_length) ? visc * hyd[i].w  * (iVel.xyz - myVel.xyz)/iHydro.y * -spikyScale * (smoothing_length - dist) : vec3(0,0,0);
+        const vec3 r = myPosition.xyz - iPos.xyz;
+        const float dist = length(r);
 
+        accG.w = (iHydro.w < F_EPSILON && dist < sink_r) ? -1 : accG.w;
+        accG.xyz += interaction(myPosition, pos[i], smoothing_epsilon_squared);
+        accP -= (dist < smoothing_length && dist != 0) ? iHydro.w * ((iHydro.x / (iHydro.y*iHydro.y)) + pod2) * spikyScale * pow(smoothing_length - dist,2)* r/dist : vec3(0,0,0);
+        accP += (dist < smoothing_length) ? visc * iHydro.w  * (iVel.xyz - myVel.xyz)/iHydro.y * -spikyScale * (smoothing_length - dist) : vec3(0,0,0);
+    }
+}
+
+// interact one sink particle with p others
+void calculateTileRowSink( const in vec4 myPosition, inout vec4 accG)
+{
+    for(uint i=0; i<gl_WorkGroupSize.x; i++)
+    {
+        const vec4 iPos = pos[i];
+        const vec4 iHydro = hyd[i];
+        const vec3 iVel = vel[i];
+
+        const vec3 r = myPosition.xyz - iPos.xyz;
+        const float dist = length(r);
+
+        if( !(iHydro.w < F_EPSILON) && dist < sink_r) // check if the other particle needs to be consumed
+        {
+            accG.w += iPos.w;
+            return;
+        }
+        accG.xyz += interaction(myPosition, pos[i], smoothing_epsilon_squared);
     }
 }
 
@@ -69,7 +92,7 @@ void main()
     const vec4 myHydro = hydro[myIdx];
     const vec4 myVel = velocities[myIdx];
     vec3 accPressure = vec3(0,0,0); // lets sum up the acceleration here
-    vec3 accGravity = vec3(0,0,0); // lets sum up the acceleration here
+    vec4 accGravity = vec4(0,0,0,0); // lets sum up the acceleration here .w is the desired mass change caused by sink particles
 
     // calculate some values that are the same for all loop iterations
     float myPressureOverDensity2 = (myHydro.x / (myHydro.y*myHydro.y));
@@ -77,23 +100,41 @@ void main()
     // loop over tiles in a row for as many tiles one thread is configured to calculate
     // calculate the interactions of a particle with gl_WorkGroupSize.x particles in one tile
     // repeat until all interactions in all tiles are calculatedsss
-    for(uint tile = 0; tile < TILES_PER_THREAD; tile++)
-    {
-        // fill fields in shared memory
-        const uint idx=gl_WorkGroupSize.x * (startTile + tile) + gl_LocalInvocationID.x;
-        pos[gl_LocalInvocationID.x] = positions[idx];
-        hyd[gl_LocalInvocationID.x] = hydro[idx];
-        vel[gl_LocalInvocationID.x] = velocities[idx].xyz;
-        // sync
-        memoryBarrierShared();
-        barrier();
-        // calculate the row up to here
-        calculateTileRow(myPosition,myHydro,myPressureOverDensity2,myVel.xyz,accGravity,accPressure);
-        // sync
-        memoryBarrierShared();
-        barrier();
-    }
+    if(!(myHydro.w < F_EPSILON)) // is this a normal particle?
+        for(uint tile = 0; tile < TILES_PER_THREAD; tile++)
+        {
+            // fill fields in shared memory
+            const uint idx=gl_WorkGroupSize.x * (startTile + tile) + gl_LocalInvocationID.x;
+            pos[gl_LocalInvocationID.x] = positions[idx];
+            hyd[gl_LocalInvocationID.x] = hydro[idx];
+            vel[gl_LocalInvocationID.x] = velocities[idx].xyz;
+            // sync
+            memoryBarrierShared();
+            barrier();
+            // calculate the row up to here use sink function if this is a sink particle
+            calculateTileRow(myPosition,myHydro,myPressureOverDensity2,myVel.xyz,accGravity,accPressure);
+            // sync
+            memoryBarrierShared();
+            barrier();
+        }
+    else // a sink particle
+        for(uint tile = 0; tile < TILES_PER_THREAD; tile++)
+        {
+            // fill fields in shared memory
+            const uint idx=gl_WorkGroupSize.x * (startTile + tile) + gl_LocalInvocationID.x;
+            pos[gl_LocalInvocationID.x] = positions[idx];
+            hyd[gl_LocalInvocationID.x] = hydro[idx];
+            vel[gl_LocalInvocationID.x] = velocities[idx].xyz;
+            // sync
+            memoryBarrierShared();
+            barrier();
+            // calculate the row up to here use sink function if this is a sink particle
+            calculateTileRowSink(myPosition,accGravity);
+            // sync
+            memoryBarrierShared();
+            barrier();
+        }
 
     // write back density and pressure
-    accelerations[gl_GlobalInvocationID.x] = vec4(accGravity*gravity_constant+accPressure,0);
+    accelerations[gl_GlobalInvocationID.x] = vec4(accGravity.xyz*gravity_constant+accPressure,accGravity.w);
 }
