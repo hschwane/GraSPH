@@ -11,7 +11,7 @@ layout(binding=PARTICLE_POSITION_BUFFER_BINDING,std430) buffer ParticlePositions
 
 layout(binding=PARTICLE_HYDRO_BUFFER_BINDING,std430) buffer ParticleHydro
 {
-    vec2 hydro[];
+    vec4 hydro[];
 };
 
 layout(local_size_variable) in;

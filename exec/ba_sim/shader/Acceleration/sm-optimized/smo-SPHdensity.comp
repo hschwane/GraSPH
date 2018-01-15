@@ -11,7 +11,7 @@ layout(binding=PARTICLE_POSITION_BUFFER_BINDING,std430) buffer ParticlePositions
 
 layout(binding=PARTICLE_HYDRO_BUFFER_BINDING,std430) buffer ParticleHydro
 {
-    vec2 hydro[];
+    vec4 hydro[];
 };
 
 layout(local_size_x=WGSIZE,local_size_y=1,local_size_z=1) in;
@@ -63,10 +63,6 @@ void main()
         barrier();
     }
 
-//    float pressure = k*(pow(density / rest_density,7) -1);
-//    float pressure = k*(density - rest_density);
-//    float pressure = k*density;
-
     // write back density and pressure
-    hydro[gl_GlobalInvocationID.x] = vec2(0,density);
+    hydro[gl_GlobalInvocationID.x] = vec4(0,density,0,0);
 }

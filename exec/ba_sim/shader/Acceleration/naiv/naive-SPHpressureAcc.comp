@@ -21,7 +21,7 @@ layout(binding=PARTICLE_ACCELERATION_BUFFER_BINDING,std430) buffer ParticleAccel
 
 layout(binding=PARTICLE_HYDRO_BUFFER_BINDING,std430) buffer ParticleHydro
 {
-    vec2 hydro[];
+    vec4 hydro[];
 };
 
 layout(local_size_variable) in;

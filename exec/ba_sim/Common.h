@@ -31,7 +31,7 @@ public:
     typedef glm::vec4 posType; // w is mass
     typedef glm::vec4 velType;
     typedef glm::vec4 accType;
-    typedef glm::vec2 hydrodynamicsType; // x is pressure, y is density
+    typedef glm::vec4 hydrodynamicsType; // x is pressure, y is density
 
     ParticleBuffer()= default;
     explicit ParticleBuffer(uint32_t numParticles, uint32_t accMulti = 1, uint32_t hydroMulti = 1, GLbitfield flags = 0)

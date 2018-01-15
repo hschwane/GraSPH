@@ -22,7 +22,7 @@ layout(binding=PARTICLE_ACCELERATION_BUFFER_BINDING,std430) buffer ParticleAccel
 
 layout(binding=PARTICLE_HYDRO_BUFFER_BINDING,std430) buffer ParticleHydro
 {
-    vec2 hydro[];
+    vec4 hydro[];
 };
 
 layout(local_size_x=WGSIZE,local_size_y=1,local_size_z=1) in;
@@ -33,21 +33,21 @@ uniform float gravity_constant;
 uniform float smoothing_epsilon_squared;
 
 shared vec4 pos[gl_WorkGroupSize.x];
-shared vec2 hyd[gl_WorkGroupSize.x];
+shared vec4 hyd[gl_WorkGroupSize.x];
 shared vec3 vel[gl_WorkGroupSize.x];
 
 // some values that only depend on uniforms
 float spikyScale = -45 / (PI * pow(smoothing_length,6));
 
 // interact one particle with p others
-void calculateTileRow( const in vec4 myPosition, const in vec2 myHydro, const in float pod2, const in vec3 myVel,  inout vec3 accG, inout vec3 accP)
+void calculateTileRow( const in vec4 myPosition, const in vec4 myHydro, const in float pod2, const in vec3 myVel,  inout vec3 accG, inout vec3 accP)
 {
     for(uint i=0; i<gl_WorkGroupSize.x; i++)
     {
         const vec3 r = myPosition.xyz - pos[i].xyz;
         const float dist = length(r);
 
-        const vec2 iHydro = hyd[i];
+        const vec4 iHydro = hyd[i];
         const vec3 iVel = vel[i];
 
         accG += interaction(myPosition, pos[i], smoothing_epsilon_squared);
@@ -66,7 +66,7 @@ void main()
     // cache my particle attributes in local memory
     const uint myIdx = gl_GlobalInvocationID.x % NUM_PARTICLES;
     const vec4 myPosition = positions[myIdx];
-    const vec2 myHydro = hydro[myIdx];
+    const vec4 myHydro = hydro[myIdx];
     const vec4 myVel = velocities[myIdx];
     vec3 accPressure = vec3(0,0,0); // lets sum up the acceleration here
     vec3 accGravity = vec3(0,0,0); // lets sum up the acceleration here

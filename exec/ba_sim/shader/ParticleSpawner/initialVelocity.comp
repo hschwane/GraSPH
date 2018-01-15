@@ -14,11 +14,6 @@ layout(binding=PARTICLE_VELOCITY_BUFFER_BINDING,std430) buffer ParticleVelocitie
     vec4 velocities[];
 };
 
-layout(binding=PARTICLE_ACCELERATION_BUFFER_BINDING,std430) buffer ParticleAccelerations
-{
-    vec4 accelerations[];
-};
-
 layout(local_size_variable) in;
 
 

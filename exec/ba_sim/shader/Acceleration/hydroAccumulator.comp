@@ -5,7 +5,7 @@
 
 layout(binding=PARTICLE_HYDRO_BUFFER_BINDING,std430) buffer ParticleHydro
 {
-    vec2 hydro[];
+    vec4 hydro[];
 };
 
 uniform float k;
@@ -24,5 +24,5 @@ void main()
 //    float pressure = k*(density - rest_density);
     float pressure = k*density;
 
-    hydro[gl_GlobalInvocationID.x] = vec2(pressure,density);
+    hydro[gl_GlobalInvocationID.x] = vec4(pressure,density,0,0);
 }
