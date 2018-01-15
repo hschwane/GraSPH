@@ -25,9 +25,9 @@ uniform float dt;
 // This shader performs a semi-implicit euler step on one particle.
 void main()
 {
-    vec4 vel = velocities[gl_GlobalInvocationID.x] + accelerations[gl_GlobalInvocationID.x] * dt;
-    positions[gl_GlobalInvocationID.x] += vel * dt;
+    vec3 vel = velocities[gl_GlobalInvocationID.x].xyz + accelerations[gl_GlobalInvocationID.x].xyz * dt;
+    positions[gl_GlobalInvocationID.x].xyz += vel * dt;
 
-    velocities[gl_GlobalInvocationID.x] = vel;
+    velocities[gl_GlobalInvocationID.x].xyz = vel;
     accelerations[gl_GlobalInvocationID.x] = vec4(0,0,0,0);
 }

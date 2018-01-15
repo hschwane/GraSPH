@@ -49,16 +49,16 @@ uniform float vel_dt;
 // position: X_i+1
 void main()
 {
-    vec4 currPos = positions[gl_GlobalInvocationID.x];
-    vec4 currVel = velocities[gl_GlobalInvocationID.x];
-    vec4 oldAcc = lastAcceleration[gl_GlobalInvocationID.x];
-    vec4 currAcc = accelerations[gl_GlobalInvocationID.x];
+    vec3 currPos = positions[gl_GlobalInvocationID.x].xyz;
+    vec3 currVel = velocities[gl_GlobalInvocationID.x].xyz;
+    vec3 oldAcc = lastAcceleration[gl_GlobalInvocationID.x].xyz;
+    vec3 currAcc = accelerations[gl_GlobalInvocationID.x].xyz;
 
-    vec4 newVel = currVel + 0.5*(currAcc+oldAcc)*vel_dt;
-    vec4 newPos = currPos + newVel*dt + 0.5 * currAcc*dt*dt;
+    vec3 newVel = currVel + 0.5*(currAcc+oldAcc)*vel_dt;
+    vec3 newPos = currPos + newVel*dt + 0.5 * currAcc*dt*dt;
 
-    positions[gl_GlobalInvocationID.x] = newPos;
-    velocities[gl_GlobalInvocationID.x] = newVel;
-    lastAcceleration[gl_GlobalInvocationID.x] = currAcc;
+    positions[gl_GlobalInvocationID.x].xyz = newPos;
+    velocities[gl_GlobalInvocationID.x].xyz = newVel;
+    lastAcceleration[gl_GlobalInvocationID.x].xyz = currAcc;
     accelerations[gl_GlobalInvocationID.x] = vec4(0,0,0,0);
 }

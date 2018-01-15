@@ -44,11 +44,11 @@ uniform float vel_dt;
 void main()
 {
     // update the velocity i-1/2 to i+1/2
-    vec4 vel = velocities[gl_GlobalInvocationID.x] + accelerations[gl_GlobalInvocationID.x] * vel_dt;
+    vec3 vel = velocities[gl_GlobalInvocationID.x].xyz + accelerations[gl_GlobalInvocationID.x].xyz * vel_dt;
 
     // update position i to i+1
-    positions[gl_GlobalInvocationID.x] += vel * dt;
+    positions[gl_GlobalInvocationID.x].xyz += vel * dt;
 
-    velocities[gl_GlobalInvocationID.x] = vel;
+    velocities[gl_GlobalInvocationID.x].xyz = vel;
     accelerations[gl_GlobalInvocationID.x] = vec4(0,0,0,0);
 }

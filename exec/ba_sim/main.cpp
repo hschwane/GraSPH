@@ -64,7 +64,7 @@ int main()
     float h = .4;
     float k = 0.05;
     float visc = 0.001;
-    float rest_density = 100;
+    float sink_r = 0.0;
 
     // create hydrodynamics based acceleration function
     uint32_t densityWgSize= 64;//calcWorkgroupSize(NUM_PARTICLES*THREADS_PER_PARTICLE);
@@ -75,8 +75,6 @@ int main()
                                             {"TILES_PER_THREAD",{mpu::toString(NUM_PARTICLES / densityWgSize / DENSITY_THREADS_PER_PARTICLE)}}
                                           });
     densityShader.uniform1f("smoothing_length",h);
-    densityShader.uniform1f("k",k);
-    densityShader.uniform1f("rest_density",rest_density);
 
     uint32_t wgSize=calcWorkgroupSize(NUM_PARTICLES);
     mpu::gph::ShaderProgram hydroAccum({{PROJECT_SHADER_PATH"Acceleration/hydroAccumulator.comp"}},
@@ -85,7 +83,6 @@ int main()
                                    {"HYDROS_PER_PARTICLE",{mpu::toString(DENSITY_THREADS_PER_PARTICLE)}}
                                   });
     hydroAccum.uniform1f("k",k);
-    hydroAccum.uniform1f("rest_density",rest_density);
 
     uint32_t pressWgSize = 128;
     mpu::gph::ShaderProgram pressureShader({{PROJECT_SHADER_PATH"Acceleration/sm-optimized/smo-SPHpressureAccGravity.comp"}},
@@ -98,6 +95,7 @@ int main()
     pressureShader.uniform1f("visc",visc);
     pressureShader.uniform1f("gravity_constant",G);
     pressureShader.uniform1f("smoothing_epsilon_squared",EPS2);
+    pressureShader.uniform1f("sink_r",sink_r);
 
     mpu::gph::ShaderProgram accAccum({{PROJECT_SHADER_PATH"Acceleration/accAccumulator.comp"}},
                                       {
@@ -105,7 +103,7 @@ int main()
                                        {"ACCELERATIONS_PER_PARTICLE",{mpu::toString(ACCEL_THREADS_PER_PARTICLE)}}
                                       });
 
-    mpu::gph::ShaderProgram boundaryShader({{PROJECT_SHADER_PATH"Acceleration/simpleBoxBoundary.comp"}});
+    mpu::gph::ShaderProgram boundaryShader({{PROJECT_SHADER_PATH"Acceleration/sinkHandler.comp"}});
     boundaryShader.uniform3f("upper_bound", glm::vec3(3,5,3));
     boundaryShader.uniform3f("lower_bound", glm::vec3(-3,-3,-3));
     boundaryShader.uniform1f("reflectiveness", .4);

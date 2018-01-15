@@ -27,13 +27,13 @@ uniform float dt;
 // and call verletFirstStep to perform the first integration step.
 void main()
 {
-    vec4 currentPos = positions[gl_GlobalInvocationID.x];
-    vec4 lastPos = lastPosition[gl_GlobalInvocationID.x];
-    vec4 acceleration = accelerations[gl_GlobalInvocationID.x];
+    vec3 currentPos = positions[gl_GlobalInvocationID.x].xyz;
+    vec3 lastPos = lastPosition[gl_GlobalInvocationID.x].xyz;
+    vec3 acceleration = accelerations[gl_GlobalInvocationID.x].xyz;
 
-    vec4 newPos = currentPos + currentPos - lastPos + acceleration * dt*dt;
+    vec3 newPos = currentPos + currentPos - lastPos + acceleration * dt*dt;
 
-    lastPosition[gl_GlobalInvocationID.x] = currentPos;
-    positions[gl_GlobalInvocationID.x] = newPos;
+    lastPosition[gl_GlobalInvocationID.x].xyz = currentPos;
+    positions[gl_GlobalInvocationID.x].xyz = newPos;
     accelerations[gl_GlobalInvocationID.x] = vec4(0,0,0,0);
 }
