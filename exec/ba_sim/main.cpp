@@ -160,7 +160,14 @@ int main()
     double elapsedPerT = 0;
 
     double lag = 0;
+    double simulationTime = dt;
 
+    // TODO: change sph kernel
+    // TODO: adaptive smoothing length
+    // TODO: better viscosity
+    // TODO: add sink particles
+    // TODO: test fractation EOS
+    // TODO: adaptive timestep
 
     // TODO: add gpu stopwatch
     // TODO: print particles to file
@@ -170,17 +177,13 @@ int main()
     // TODO: spawn orbiting particles
 
     bool runSim = false;
+    bool buttonDown = false;
     while( window.update())
     {
         dt = timer.getDeltaTime();
         camera.update(dt);
 
-        if(window.getKey(GLFW_KEY_1) == GLFW_PRESS && lag < 0.4)
-            lag += dt;
-        else
-            lag = 0;
-
-        if(window.getKey(GLFW_KEY_2) != GLFW_PRESS)
+        if(window.getKey(GLFW_KEY_3) != GLFW_PRESS)
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // make brightness adjustable
@@ -209,10 +212,12 @@ int main()
             logDEBUG("Particle data") << "Mean density: " << sum.y << " Mean Pressure: " << sum.x;
         }
 
-        while(lag >= DT)
+        // run the simulation
+        if(window.getKey(GLFW_KEY_1) == GLFW_PRESS && window.getKey(GLFW_KEY_2) == GLFW_RELEASE)
         {
             simulation.advanceTime();
-            lag -= DT*5;
+            lag += DT;
+            simulationTime += DT;
         }
 
         // render the particles
@@ -222,11 +227,12 @@ int main()
         // performance display
         nbframes++;
         elapsedPerT += dt;
-        if(elapsedPerT >= 1.0)
+        if(elapsedPerT >= 2.0)
         {
-            printf("%f ms/frame -- %f fps\n", 1000.0*elapsedPerT/double(nbframes), nbframes/elapsedPerT);
+            printf("%f ms/frame -- %f fps %f simSpeed %f simTime\n", 1000.0*elapsedPerT/double(nbframes), nbframes/elapsedPerT, lag/elapsedPerT, simulationTime);
             nbframes = 0;
             elapsedPerT = 0;
+            lag = 0;
         }
     }
 
