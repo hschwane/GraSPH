@@ -20,3 +20,4 @@
 
 // arrays for rendering data
 #define RENDERER_POSITION_ARRAY 0
+#define RENDERER_MASS_ARRAY 1

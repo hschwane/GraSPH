@@ -42,8 +42,8 @@ int main()
 //                                                   {1.5,{0,1.5,-.5},0.2},
 //                                                   {3,{0,0,0},0.4}});
     spawner.spawnParticlesSphere(TOTAL_MASS,TEMPERATURE,6);
-    spawner.addRandomVelocityField(0.4, 0.35, 10152);
-    spawner.addRandomVelocityField(0.1, 0.4, 98120);
+    spawner.addRandomVelocityField(0.4, 0.25, 512);
+    spawner.addRandomVelocityField(0.1, 0.3, 1024);
 
     // create a renderer
     ParticleRenderer renderer;
@@ -65,7 +65,7 @@ int main()
     float k = 0.05;
     float visc = 0.01;
     float sink_r = 0.1;
-    float sink_th = .9;
+    float sink_th = 4;
 
     // create hydrodynamics based acceleration function
     uint32_t densityWgSize= 64;//calcWorkgroupSize(NUM_PARTICLES*THREADS_PER_PARTICLE);
@@ -185,6 +185,12 @@ int main()
             sum /= pb.size();
 
             logDEBUG("Particle data") << "Mean density: " << sum.y << " Mean Pressure: " << sum.x;
+
+            std::vector<glm::vec4> pdata = pb.positionBuffer.read<glm::vec4>(pb.size(),0);
+            for(auto &&item : pdata)
+            {
+                logDEBUG("Particle data") << "Position: " << glm::to_string(item);
+            }
         }
 
         // run the simulation

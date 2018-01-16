@@ -27,6 +27,7 @@ ParticleRenderer::ParticleRenderer()
 {
     glEnable(GL_PROGRAM_POINT_SIZE);
     m_vao.enableArray(RENDERER_POSITION_ARRAY);
+    m_vao.enableArray(RENDERER_MASS_ARRAY);
     m_renderShader.uniform4f("color", m_color);
     m_renderShader.uniform1f("brightness", m_brightness);
     m_renderShader.uniform1f("render_size", m_size);
@@ -45,7 +46,9 @@ void ParticleRenderer::setParticleBuffer(ParticleBuffer buffer)
 {
     m_vao.setBuffer(RENDERER_POSITION_BUFFER_BINDING,buffer.positionBuffer,0,sizeof(ParticleBuffer::posType));
     m_vao.setAttribFormat(RENDERER_POSITION_ARRAY, 3, 0);
+    m_vao.setAttribFormat(RENDERER_MASS_ARRAY, 1, mpu::gph::offset_of(&glm::vec4::w));
     m_vao.addBinding(RENDERER_POSITION_ARRAY, RENDERER_POSITION_BUFFER_BINDING);
+    m_vao.addBinding(RENDERER_MASS_ARRAY, RENDERER_POSITION_BUFFER_BINDING);
     m_numOfParticles = buffer.size();
 
     logINFO("Renderer") << "Set buffer for rendering and reconfigured vertex arrays. Buffer containing " << m_numOfParticles << " Particles.";

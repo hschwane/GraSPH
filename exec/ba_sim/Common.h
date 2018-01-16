@@ -96,6 +96,7 @@ constexpr unsigned int PARTICLE_HYDRO_BUFFER_BINDING = 5;
 
 constexpr unsigned int VERLET_BUFFER_BINDING = 6;
 constexpr unsigned int RENDERER_POSITION_ARRAY = 0;
+constexpr unsigned int RENDERER_MASS_ARRAY = 1;
 
 // simulation
 constexpr double DT = 0.01;
