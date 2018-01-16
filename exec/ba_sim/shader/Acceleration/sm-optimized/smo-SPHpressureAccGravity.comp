@@ -130,5 +130,5 @@ void main()
 
 
     // write back density and pressure
-    accelerations[gl_GlobalInvocationID.x].xyz = vec3(accGravity.xyz*gravity_constant+accPressure);//,accGravity.w);
+    accelerations[gl_GlobalInvocationID.x] = vec4(accGravity.xyz*gravity_constant+accPressure,accGravity.w);
 }

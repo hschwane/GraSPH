@@ -63,9 +63,9 @@ int main()
 
     float h = .4;
     float k = 0.05;
-    float visc = 0.001;
-    float sink_r = 0.0;
-    float sink_th = 0.1;
+    float visc = 0.01;
+    float sink_r = 0.1;
+    float sink_th = .9;
 
     // create hydrodynamics based acceleration function
     uint32_t densityWgSize= 64;//calcWorkgroupSize(NUM_PARTICLES*THREADS_PER_PARTICLE);
@@ -116,6 +116,8 @@ int main()
         pressureShader.dispatch(NUM_PARTICLES*ACCEL_THREADS_PER_PARTICLE/pressWgSize);
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
         accAccum.dispatch(NUM_PARTICLES,wgSize);
+        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+        sinkHandler.dispatch(NUM_PARTICLES,wgSize);
     };
 
     //  create a simulator
