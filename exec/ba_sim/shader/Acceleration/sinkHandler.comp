@@ -19,13 +19,13 @@ layout(local_size_variable) in;
 // removes particles marked for removal and recalculates mass of sink particles
 void main()
 {
-    float massID = accelerations[gl_GlobalInvocationID.x].w;
-    if(massID < 0) // this one needs to be removed
-    {
+//    float massID = accelerations[gl_GlobalInvocationID.x].w;
+//    if(massID < 0) // this one needs to be removed
+//    {
 //        positions[gl_GlobalInvocationID.x] = vec4(vec3(1e20),0);
-    }
-    else
-    {
+//    }
+//    else
+//    {
 //        positions[gl_GlobalInvocationID.x].w += massID;
-    }
+//    }
 }

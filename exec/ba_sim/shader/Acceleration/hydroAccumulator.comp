@@ -10,6 +10,7 @@ layout(binding=PARTICLE_HYDRO_BUFFER_BINDING,std430) buffer ParticleHydro
 
 uniform float k;
 uniform float rest_density;
+uniform float sink_th;
 
 layout(local_size_variable) in;
 
@@ -24,5 +25,6 @@ void main()
 //    float pressure = k*(density - rest_density);
     float pressure = k*density;
 
-    hydro[gl_GlobalInvocationID.x].xy = vec2(pressure,density);
+    float isSink = (density > sink_th) ? 0 : hydro[gl_GlobalInvocationID.x].w;
+    hydro[gl_GlobalInvocationID.x] = vec4(pressure,density,0,isSink);
 }

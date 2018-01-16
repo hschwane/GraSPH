@@ -65,6 +65,7 @@ int main()
     float k = 0.05;
     float visc = 0.001;
     float sink_r = 0.0;
+    float sink_th = 0.1;
 
     // create hydrodynamics based acceleration function
     uint32_t densityWgSize= 64;//calcWorkgroupSize(NUM_PARTICLES*THREADS_PER_PARTICLE);
@@ -83,6 +84,7 @@ int main()
                                    {"HYDROS_PER_PARTICLE",{mpu::toString(DENSITY_THREADS_PER_PARTICLE)}}
                                   });
     hydroAccum.uniform1f("k",k);
+    hydroAccum.uniform1f("sink_th",sink_th);
 
     uint32_t pressWgSize = 128;
     mpu::gph::ShaderProgram pressureShader({{PROJECT_SHADER_PATH"Acceleration/sm-optimized/smo-SPHpressureAccGravity.comp"}},
@@ -103,13 +105,9 @@ int main()
                                        {"ACCELERATIONS_PER_PARTICLE",{mpu::toString(ACCEL_THREADS_PER_PARTICLE)}}
                                       });
 
-    mpu::gph::ShaderProgram boundaryShader({{PROJECT_SHADER_PATH"Acceleration/sinkHandler.comp"}});
-    boundaryShader.uniform3f("upper_bound", glm::vec3(3,5,3));
-    boundaryShader.uniform3f("lower_bound", glm::vec3(-3,-3,-3));
-    boundaryShader.uniform1f("reflectiveness", .4);
+    mpu::gph::ShaderProgram sinkHandler({{PROJECT_SHADER_PATH"Acceleration/sinkHandler.comp"}});
 
-
-    auto accFunc = [densityShader,pressureShader,wgSize,densityWgSize,pressWgSize,hydroAccum,accAccum,boundaryShader](){
+    auto accFunc = [densityShader,pressureShader,wgSize,densityWgSize,pressWgSize,hydroAccum,accAccum,sinkHandler](){
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
         densityShader.dispatch(NUM_PARTICLES*DENSITY_THREADS_PER_PARTICLE/densityWgSize);
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);

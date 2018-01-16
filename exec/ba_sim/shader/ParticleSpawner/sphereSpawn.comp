@@ -46,4 +46,7 @@ void main()
     velocities[gl_GlobalInvocationID.x+particle_offset] = vec4(0,0,0,0);
     accelerations[gl_GlobalInvocationID.x+particle_offset] = vec4(0,0,0,0);
     hydro[gl_GlobalInvocationID.x+particle_offset] = vec4(0,0,0,mass);
+
+    if(gl_GlobalInvocationID.x > 8000)
+        hydro[gl_GlobalInvocationID.x+particle_offset] = vec4(0,0,0,0);
 }

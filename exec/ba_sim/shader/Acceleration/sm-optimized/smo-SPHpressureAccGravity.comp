@@ -47,15 +47,20 @@ void calculateTileRow( const in vec4 myPosition, const in vec4 myHydro, const in
     {
         const vec4 iPos = pos[i];
         const vec4 iHydro = hyd[i];
-        const vec3 iVel = vel[i];
 
         const vec3 r = myPosition.xyz - iPos.xyz;
         const float dist = length(r);
 
-        accG.w = (iHydro.w < F_EPSILON && dist < sink_r) ? -1 : accG.w;
-        accG.xyz += interaction(myPosition, pos[i], smoothing_epsilon_squared);
-        accP -= (dist < smoothing_length && dist != 0) ? iHydro.w * ((iHydro.x / (iHydro.y*iHydro.y)) + pod2) * spikyScale * pow(smoothing_length - dist,2)* r/dist : vec3(0,0,0);
-        accP += (dist < smoothing_length) ? visc * iHydro.w  * (iVel.xyz - myVel.xyz)/iHydro.y * -spikyScale * (smoothing_length - dist) : vec3(0,0,0);
+        if(iHydro.w > 0)
+        {
+        const vec3 iVel = vel[i];
+            accP -= (dist < smoothing_length && dist != 0) ? iHydro.w * ((iHydro.x / (iHydro.y*iHydro.y)) + pod2) * spikyScale * pow(smoothing_length - dist,2)* r/dist : vec3(0,0,0);
+            accP += (dist < smoothing_length) ? visc * iHydro.w  * (iVel.xyz - myVel.xyz)/iHydro.y * -spikyScale * (smoothing_length - dist) : vec3(0,0,0);
+        }
+        else if(dist < sink_r)
+            accG.w = -1; // we are close to the sink we or the other may be sucked up
+
+        accG.xyz += interaction(myPosition, iPos, smoothing_epsilon_squared);
     }
 }
 
@@ -66,17 +71,15 @@ void calculateTileRowSink( const in vec4 myPosition, inout vec4 accG)
     {
         const vec4 iPos = pos[i];
         const vec4 iHydro = hyd[i];
-        const vec3 iVel = vel[i];
 
         const vec3 r = myPosition.xyz - iPos.xyz;
         const float dist = length(r);
 
-        if( !(iHydro.w < F_EPSILON) && dist < sink_r) // check if the other particle needs to be consumed
+        if( iHydro.w > 0 && dist < sink_r) // check if the other particle needs to be consumed
         {
             accG.w += iPos.w;
-            return;
         }
-        accG.xyz += interaction(myPosition, pos[i], smoothing_epsilon_squared);
+        accG.xyz += interaction(myPosition, iPos, smoothing_epsilon_squared);
     }
 }
 
@@ -97,10 +100,10 @@ void main()
     // calculate some values that are the same for all loop iterations
     float myPressureOverDensity2 = (myHydro.x / (myHydro.y*myHydro.y));
 
+
     // loop over tiles in a row for as many tiles one thread is configured to calculate
     // calculate the interactions of a particle with gl_WorkGroupSize.x particles in one tile
     // repeat until all interactions in all tiles are calculatedsss
-    if(!(myHydro.w < F_EPSILON)) // is this a normal particle?
         for(uint tile = 0; tile < TILES_PER_THREAD; tile++)
         {
             // fill fields in shared memory
@@ -112,29 +115,20 @@ void main()
             memoryBarrierShared();
             barrier();
             // calculate the row up to here use sink function if this is a sink particle
-            calculateTileRow(myPosition,myHydro,myPressureOverDensity2,myVel.xyz,accGravity,accPressure);
-            // sync
-            memoryBarrierShared();
-            barrier();
-        }
-    else // a sink particle
-        for(uint tile = 0; tile < TILES_PER_THREAD; tile++)
-        {
-            // fill fields in shared memory
-            const uint idx=gl_WorkGroupSize.x * (startTile + tile) + gl_LocalInvocationID.x;
-            pos[gl_LocalInvocationID.x] = positions[idx];
-            hyd[gl_LocalInvocationID.x] = hydro[idx];
-            vel[gl_LocalInvocationID.x] = velocities[idx].xyz;
-            // sync
-            memoryBarrierShared();
-            barrier();
-            // calculate the row up to here use sink function if this is a sink particle
-            calculateTileRowSink(myPosition,accGravity);
+            if(myHydro.w > 0) // is this a normal particle?
+            {
+                calculateTileRow(myPosition,myHydro,myPressureOverDensity2,myVel.xyz,accGravity,accPressure);
+            }
+            else
+            {
+                calculateTileRowSink(myPosition,accGravity);
+            }
             // sync
             memoryBarrierShared();
             barrier();
         }
 
+
     // write back density and pressure
-    accelerations[gl_GlobalInvocationID.x] = vec4(accGravity.xyz*gravity_constant+accPressure,accGravity.w);
+    accelerations[gl_GlobalInvocationID.x].xyz = vec3(accGravity.xyz*gravity_constant+accPressure);//,accGravity.w);
 }
