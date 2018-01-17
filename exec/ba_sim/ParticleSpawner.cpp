@@ -58,6 +58,8 @@ void ParticleSpawner::spawnParticlesCube(const float totalMass, const float temp
     m_cubeSpawnShader.uniform1f("mass",m_particleMass);
     m_cubeSpawnShader.uniform1ui("random_seed", std::time(nullptr)); // time as pseudo random seed
     m_sphereSpawnShader.uniform1ui("num_of_particles", m_particleBuffer.size());
+    m_sphereSpawnShader.uniform1ui("accMulti", m_particleBuffer.accPerParticle());
+    m_sphereSpawnShader.uniform1ui("hydMulti", m_particleBuffer.hydPerParticle());
     m_cubeSpawnShader.dispatch(m_particleBuffer.size(),calcWorkgroupSize(m_particleBuffer.size()));
 }
 
@@ -92,6 +94,8 @@ void ParticleSpawner::spawnParticlesSphere(const float totalMass, const float te
     m_sphereSpawnShader.uniform1f("mass",m_particleMass);
     m_sphereSpawnShader.uniform1ui("random_seed", std::time(nullptr)); // time as pseudo random seed
     m_sphereSpawnShader.uniform1ui("num_of_particles", m_particleBuffer.size());
+    m_sphereSpawnShader.uniform1ui("accMulti", m_particleBuffer.accPerParticle());
+    m_sphereSpawnShader.uniform1ui("hydMulti", m_particleBuffer.hydPerParticle());
     m_sphereSpawnShader.dispatch(m_particleBuffer.size(),calcWorkgroupSize(m_particleBuffer.size()));
 }
 
@@ -124,6 +128,8 @@ void ParticleSpawner::spawnParticlesMultiSphere(const float totalMass, const std
         m_sphereSpawnShader.uniform1ui("random_seed", std::time(nullptr)); // time as pseudo random seed
         m_sphereSpawnShader.uniform1ui("num_of_particles", particles);
         m_sphereSpawnShader.uniform1ui("particle_offset", writtenParticles);
+        m_sphereSpawnShader.uniform1ui("accMulti", m_particleBuffer.accPerParticle());
+        m_sphereSpawnShader.uniform1ui("hydMulti", m_particleBuffer.hydPerParticle());
         m_sphereSpawnShader.dispatch(particles, calcWorkgroupSize(particles));
         writtenParticles += particles;
     }
