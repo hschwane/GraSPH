@@ -12,19 +12,27 @@ uniform float render_size;
 
 out vec2 center;
 out float radius;
+flat out int isSink;
 
 void main()
 {
 	gl_Position = model_view_projection * input_position;
 
-#ifdef PARTICLES_PERSPECTIVE
-	gl_PointSize = viewport_size.y * projection[1][1] * render_size / gl_Position.w;
-#else
-    gl_PointSize = render_size;
-#endif
+    float size;
+    if(mass > 20.0/16000)
+    {
+         size = render_size* 5;
+        isSink =1;
+    } else {
+    isSink =0;
+    size = render_size;
+    }
 
-    if(mass > 30.0/16000)
-         gl_PointSize = 8;
+#ifdef PARTICLES_PERSPECTIVE
+	gl_PointSize = viewport_size.y * projection[1][1] * size / gl_Position.w;
+#else
+    gl_PointSize = size;
+#endif
 
 	center = (0.5 * gl_Position.xy/gl_Position.w +0.5) * viewport_size;
 	radius = gl_PointSize / 2;
