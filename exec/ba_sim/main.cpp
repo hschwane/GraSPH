@@ -62,9 +62,9 @@ int main()
     camera.setClip(0.1,200);
 
     float h = .4;
-    float k = 0.05;
+    float k = 0.06;
     float visc = 0.01;
-    float sink_r = 0.1;
+    float sink_r = 0.4;
     float sink_th = 4;
 
     // create hydrodynamics based acceleration function
@@ -97,7 +97,9 @@ int main()
     pressureShader.uniform1f("visc",visc);
     pressureShader.uniform1f("gravity_constant",G);
     pressureShader.uniform1f("smoothing_epsilon_squared",EPS2);
+    pressureShader.uniform1f("smoothing_epsilon_squared_sph",EPS2_SPH);
     pressureShader.uniform1f("sink_r",sink_r);
+    pressureShader.uniform1f("dt",DT);
 
     mpu::gph::ShaderProgram accAccum({{PROJECT_SHADER_PATH"Acceleration/accAccumulator.comp"}},
                                       {
@@ -136,13 +138,22 @@ int main()
     double lag = 0;
     double simulationTime = dt;
 
+    // TODO: make sink particles use impulse
+    // TODO: make sink paricle better interact with each other
+    // TODO: make sink particles spawning more realistic
+    // TODO: add sph border conditions at  sink particles
+
+    // TODO: make variable particle sizes possible
     // TODO: change sph kernel
     // TODO: adaptive smoothing length
     // TODO: better viscosity
-    // TODO: add sink particles
     // TODO: test fractation EOS
     // TODO: adaptive timestep
     // TODO: make the initial velocity noise better
+    // TODO: enable prerenderd simulation
+    // TODO: output information of stars
+    // TODO: add datastructure
+    // TODO: make star visualisation better
 
     // TODO: add gpu stopwatch
     // TODO: print particles to file
@@ -187,10 +198,23 @@ int main()
             logDEBUG("Particle data") << "Mean density: " << sum.y << " Mean Pressure: " << sum.x;
 
             std::vector<glm::vec4> pdata = pb.positionBuffer.read<glm::vec4>(pb.size(),0);
-            for(auto &&item : pdata)
-            {
-                logDEBUG("Particle data") << "Position: " << glm::to_string(item);
-            }
+//            for(auto &&item : pdata)
+//            {
+//                logDEBUG("Particle data") << "Position: " << glm::to_string(item);
+//            }
+
+            std::vector<glm::vec4> adata = pb.accelerationBuffer.read<glm::vec4>( pb.size()*pb.accPerParticle(),0);
+//            int i=0;
+//            for(auto &&item : adata)
+//            {
+//                if(item.w != 0)
+//                logWARNING("Particle data") << "ITS FUCKIN NOT ZERO! value is: " << item.w << " at entry " << i;
+//                i++;
+//            }
+
+            glm::vec4 pos = std::accumulate( pdata.begin(), pdata.end(),glm::vec4(0,0,0,0));
+            logDEBUG("Particle data") << "total mass: " << pos.w;
+
         }
 
         // run the simulation

@@ -37,8 +37,9 @@ void main()
         velocities[gl_GlobalInvocationID.x] = vec4(0);
         accelerations[gl_GlobalInvocationID.x] = vec4(0);
     }
-    else
+    else if(massID >0)
     {
         positions[gl_GlobalInvocationID.x].w += massID;
+        hydro[gl_GlobalInvocationID.x] = vec4(0);
     }
 }

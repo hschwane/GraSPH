@@ -9,6 +9,7 @@ uniform mat4 model_view_projection;
 uniform mat4 projection;
 uniform vec2 viewport_size;
 uniform float render_size;
+uniform float mass_thres;
 
 out vec2 center;
 out float radius;
@@ -19,9 +20,9 @@ void main()
 	gl_Position = model_view_projection * input_position;
 
     float size;
-    if(mass > 20.0/16000)
+    if(mass > mass_thres)
     {
-         size = render_size* 5;
+         size = render_size* 4;
         isSink =1;
     } else {
     isSink =0;

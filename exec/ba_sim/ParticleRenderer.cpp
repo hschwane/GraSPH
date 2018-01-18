@@ -31,6 +31,7 @@ ParticleRenderer::ParticleRenderer()
     m_renderShader.uniform4f("color", m_color);
     m_renderShader.uniform1f("brightness", m_brightness);
     m_renderShader.uniform1f("render_size", m_size);
+    m_renderShader.uniform1f("mass_thres", TOTAL_MASS / NUM_PARTICLES);
 }
 
 void ParticleRenderer::draw()
@@ -96,6 +97,7 @@ void ParticleRenderer::setShaderSettings( Falloff style, bool perspectiveSize, b
     m_renderShader.uniform4f("color", m_color);
     m_renderShader.uniform1f("brightness", m_brightness);
     m_renderShader.uniform1f("render_size", m_size);
+    m_renderShader.uniform1f("mass_thres", TOTAL_MASS / NUM_PARTICLES);
 }
 
 void ParticleRenderer::enableAdditiveBlending(bool enable)

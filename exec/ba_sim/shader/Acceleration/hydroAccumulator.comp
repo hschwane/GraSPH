@@ -17,10 +17,11 @@ layout(local_size_variable) in;
 void main()
 {
     float density = 0;
-    for(uint i=0; i < HYDROS_PER_PARTICLE; i++)
-    {
-        density += hydro[NUM_PARTICLES * i + gl_GlobalInvocationID.x].y;
-    }
+    if(hydro[gl_GlobalInvocationID.x].w >0)
+        for(uint i=0; i < HYDROS_PER_PARTICLE; i++)
+        {
+            density += hydro[NUM_PARTICLES * i + gl_GlobalInvocationID.x].y;
+        }
 
 //    float pressure = k*(density - rest_density);
     float pressure = k*density;
