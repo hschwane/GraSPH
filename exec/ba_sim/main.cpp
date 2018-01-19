@@ -138,29 +138,43 @@ int main()
     double lag = 0;
     double simulationTime = dt;
 
+    // sink particles and particle merging
     // TODO: make sink particles use impulse
     // TODO: make sink paricle better interact with each other
     // TODO: make sink particles spawning more realistic
     // TODO: add sph border conditions at  sink particles
+    // TODO: maybe optimize tagging and make absorption faster
 
-    // TODO: make variable particle sizes possible
+    // sph
     // TODO: change sph kernel
     // TODO: adaptive smoothing length
     // TODO: better viscosity
     // TODO: test fractation EOS
-    // TODO: adaptive timestep
+
+    // initial conditions
     // TODO: make the initial velocity noise better
+    // TODO: spawn orbiting particles
+
+    // performance
+    // TODO: adaptive timestep
     // TODO: enable prerenderd simulation
-    // TODO: output information of stars
     // TODO: add datastructure
+    // TODO: better accumulator
+
+    // output and visualisation
+    // TODO: output information of stars
+    // TODO: make variable particle sizes possible
     // TODO: make star visualisation better
 
+    // usability and debugging
     // TODO: add gpu stopwatch
-    // TODO: print particles to file
-    // TODO: filnally code a f***ing gui
-    // TODO: better accumulator
+    // TODO: print particles to readable file for debug
+    // TODO: finally code a f***ing gui
+    // TODO: better speed control for fast simulations
+
+    // misc
+    // TODO: make different particle sizes possible
     // TODO: 2D mode
-    // TODO: spawn orbiting particles
 
     bool runSim = false;
     bool printButtonDown = false;
