@@ -163,7 +163,7 @@ int main()
     // TODO: spawn orbiting particles
 
     bool runSim = false;
-    bool buttonDown = false;
+    bool printButtonDown = false;
     while( window.update())
     {
         dt = timer.getDeltaTime();
@@ -187,8 +187,10 @@ int main()
         renderer.setSize(size);
 
         // particle debug output
-        if(window.getKey(GLFW_KEY_P) == GLFW_PRESS)
+        if(window.getKey(GLFW_KEY_P) == GLFW_PRESS && !printButtonDown)
         {
+            printButtonDown = true;
+            glFinish();
             glMemoryBarrier(GL_ALL_BARRIER_BITS);
             std::vector<glm::vec2> hdata = pb.hydrodynamicsBuffer.read<glm::vec2>(pb.size(),0);
 
@@ -197,25 +199,21 @@ int main()
 
             logDEBUG("Particle data") << "Mean density: " << sum.y << " Mean Pressure: " << sum.x;
 
-            std::vector<glm::vec4> pdata = pb.positionBuffer.read<glm::vec4>(pb.size(),0);
+            mpu::gph::Buffer temp;
+            temp.allocate<glm::vec4>(pb.size(),GL_MAP_READ_BIT | GL_MAP_PERSISTENT_BIT);
+            pb.positionBuffer.copyTo(temp);
+            glMemoryBarrier(GL_ALL_BARRIER_BITS);
+            std::vector<glm::vec4> pdata = temp.read<glm::vec4>(pb.size(),0);
 //            for(auto &&item : pdata)
 //            {
 //                logDEBUG("Particle data") << "Position: " << glm::to_string(item);
 //            }
 
-            std::vector<glm::vec4> adata = pb.accelerationBuffer.read<glm::vec4>( pb.size()*pb.accPerParticle(),0);
-//            int i=0;
-//            for(auto &&item : adata)
-//            {
-//                if(item.w != 0)
-//                logWARNING("Particle data") << "ITS FUCKIN NOT ZERO! value is: " << item.w << " at entry " << i;
-//                i++;
-//            }
-
             glm::vec4 pos = std::accumulate( pdata.begin(), pdata.end(),glm::vec4(0,0,0,0));
             logDEBUG("Particle data") << "total mass: " << pos.w;
-
         }
+        else if(window.getKey(GLFW_KEY_P) == GLFW_RELEASE)
+            printButtonDown = false;
 
         // run the simulation
         if(window.getKey(GLFW_KEY_1) == GLFW_PRESS && window.getKey(GLFW_KEY_2) == GLFW_RELEASE)
