@@ -173,6 +173,7 @@ int main()
     // TODO: better speed control for fast simulations
 
     // misc
+    // TODO: fix the time integration scheme
     // TODO: make different particle sizes possible
     // TODO: 2D mode
 
@@ -222,6 +223,15 @@ int main()
 //            {
 //                logDEBUG("Particle data") << "Position: " << glm::to_string(item);
 //            }
+
+            std::vector<glm::vec4> adata = pb.accelerationBuffer.read<glm::vec4>( pb.size()*pb.accPerParticle(),0);
+            int i=0;
+            for(auto &&item : adata)
+            {
+                if(item.w != 0)
+                logWARNING("Particle data") << "ITS FUCKIN NOT ZERO! value is: " << item.w << " at entry " << i;
+                i++;
+            }
 
             glm::vec4 pos = std::accumulate( pdata.begin(), pdata.end(),glm::vec4(0,0,0,0));
             logDEBUG("Particle data") << "total mass: " << pos.w;

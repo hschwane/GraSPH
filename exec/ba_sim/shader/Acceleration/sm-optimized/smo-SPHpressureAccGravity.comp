@@ -52,7 +52,7 @@ void main()
     const vec4 myHydro = hydro[myIdx];
     vec4 myVel = velocities[myIdx];
     vec3 accPressure = vec3(0); // lets sum up the acceleration here
-    vec3 accGravity = vec3(0); // lets sum up the acceleration here .w is the desired mass change caused by sink particles
+    vec4 accGravity = vec4(0); // lets sum up the acceleration here .w is the desired mass change caused by sink particles
 
     // calculate some values that are the same for all loop iterations
     float pod2 = (myHydro.x / (myHydro.y*myHydro.y));
@@ -73,8 +73,8 @@ void main()
             memoryBarrierShared();
             barrier();
             // calculate the row up to here use sink function if this is a sink particle
-            if(myHydro.w > 0) // is this a normal particle?
-            {
+//            if(myHydro.w > 0) // is this a normal particle?
+//            {
                 for(uint i=0; i<gl_WorkGroupSize.x; i++) // go over everything in this tile
                 {
                     const vec4 iPos = pos[i];
@@ -83,46 +83,46 @@ void main()
                     const vec3 r = myPosition.xyz - iPos.xyz;
                     const float dist = length(r);
 
-                    if(iHydro.w > 0)
-                    {
+//                    if(iHydro.w > 0)
+//                    {
                         const vec3 iVel = vel[i];
                         accPressure -= (dist < smoothing_length && dist != 0) ? iHydro.w * ((iHydro.x / (iHydro.y*iHydro.y)) + pod2) * spikyScale * pow(smoothing_length - dist,2)* r/dist : vec3(0,0,0);
                         accPressure += (dist < smoothing_length) ? visc * iHydro.w  * (iVel.xyz - myVel.xyz)/iHydro.y * -spikyScale * (smoothing_length - dist) : vec3(0,0,0);
-                    }
+//                    }
 
                     accGravity.xyz += interaction(myPosition, iPos, smoothing_epsilon_squared_sph);
                 }
-            }
-            else
-            {
-                for(uint i=0; i<gl_WorkGroupSize.x; i++) // go over everything in this tile
-                {
-                    const vec4 iPos = pos[i];
-
-                    const vec3 r = myPosition.xyz - iPos.xyz;
-                    const float dist = length(r);
-
-
-                        const vec4 iHydro = hyd[i];
-                        const vec3 iVel = vel[i];
-
-                        float iMassID;
-                        if( ((dist < sink_r && iHydro.w > 0) /*|| (dist < sink_r/4 && iHydro.y < myHydro.y)*/ )
-                            &&((iMassID = atomicExchange(accelerations[tileStartIndex+i].w,-1)) >= 0))
-                        {
-                            atomicAdd(accelerations[myIdx].w,iPos.w);
-//                            myVel.xyz = (myPosition.w*myVel.xyz + iPos.w*iVel) /  (iPos.w + myPosition.w);
-                        }
-
-
-                    accGravity.xyz += interaction(myPosition, iPos, smoothing_epsilon_squared);
-                }
-            }
+//            }
+//            else
+//            {
+//                for(uint i=0; i<gl_WorkGroupSize.x; i++) // go over everything in this tile
+//                {
+//                    const vec4 iPos = pos[i];
+//
+//                    const vec3 r = myPosition.xyz - iPos.xyz;
+//                    const float dist = length(r);
+//
+//
+//                        float iMassID;
+//                        if( ((dist < sink_r && hyd[i].w > 0) /*|| (dist < sink_r/4 && iHydro.y < myHydro.y)*/ )
+//                            &&((iMassID = atomicExchange(accelerations[tileStartIndex+i].w,-1)) >= 0))
+//                        {
+//                            atomicAdd(accelerations[myIdx].w,iPos.w);
+//                            accGravity.w += iPos.w;
+//                            accGravity.xyz += (((myPosition.w*myVel.xyz + iPos.w*vel[i].xyz) /  (iPos.w + myPosition.w)) - myVel.xyz) / 0.01;
+//                        }
+//                        else
+//                            accGravity.xyz += interaction(myPosition, iPos, smoothing_epsilon_squared);
+//                }
+//            }
             // sync
             memoryBarrierShared();
             barrier();
         }
 
-    // write back density and pressure
-    accelerations[gl_GlobalInvocationID.x].xyz = vec3(accGravity.xyz*gravity_constant+accPressure);
+    // if needed write back velocity
+//    if(myHydro.w > 0)
+//        velocities[gl_GlobalInvocationID.x] = myVel;
+    // write back acceleration
+    accelerations[gl_GlobalInvocationID.x] = vec4(accGravity.xyz*gravity_constant+accPressure,accGravity.w);
 }
