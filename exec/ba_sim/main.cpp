@@ -62,7 +62,7 @@ int main()
     camera.setClip(0.1,200);
 
     float k = 0.06;
-    float visc = 0.002;
+    float visc = 0.02;
     float sink_r = 0.4;
     float sink_th = 4;
 
@@ -104,9 +104,15 @@ int main()
                                        {"ACCELERATIONS_PER_PARTICLE",{mpu::toString(ACCEL_THREADS_PER_PARTICLE)}}
                                       });
 
+    mpu::gph::ShaderProgram adjustH({{PROJECT_SHADER_PATH"Acceleration/adjustH.comp"}});
     mpu::gph::ShaderProgram sinkHandler({{PROJECT_SHADER_PATH"Acceleration/sinkHandler.comp"}});
 
-    auto accFunc = [densityShader,pressureShader,wgSize,densityWgSize,pressWgSize,hydroAccum,accAccum,sinkHandler](){
+    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+    densityShader.dispatch(NUM_PARTICLES*DENSITY_THREADS_PER_PARTICLE/densityWgSize);
+
+    auto accFunc = [densityShader,pressureShader,wgSize,densityWgSize,pressWgSize,hydroAccum,accAccum,adjustH](){
+        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+        adjustH.dispatch(NUM_PARTICLES,wgSize);
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
         densityShader.dispatch(NUM_PARTICLES*DENSITY_THREADS_PER_PARTICLE/densityWgSize);
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
@@ -115,8 +121,8 @@ int main()
         pressureShader.dispatch(NUM_PARTICLES*ACCEL_THREADS_PER_PARTICLE/pressWgSize);
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
         accAccum.dispatch(NUM_PARTICLES,wgSize);
-        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-        sinkHandler.dispatch(NUM_PARTICLES,wgSize);
+//        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+//        sinkHandler.dispatch(NUM_PARTICLES,wgSize);
     };
 
     //  create a simulator
