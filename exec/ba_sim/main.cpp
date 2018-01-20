@@ -61,7 +61,6 @@ int main()
     camera.setMVP(&renderer);
     camera.setClip(0.1,200);
 
-    float h = .4;
     float k = 0.06;
     float visc = 0.01;
     float sink_r = 0.4;
@@ -75,7 +74,6 @@ int main()
                                             {"NUM_PARTICLES",{mpu::toString(NUM_PARTICLES)}},
                                             {"TILES_PER_THREAD",{mpu::toString(NUM_PARTICLES / densityWgSize / DENSITY_THREADS_PER_PARTICLE)}}
                                           });
-    densityShader.uniform1f("smoothing_length",h);
 
     uint32_t wgSize=calcWorkgroupSize(NUM_PARTICLES);
     mpu::gph::ShaderProgram hydroAccum({{PROJECT_SHADER_PATH"Acceleration/hydroAccumulator.comp"}},
@@ -93,7 +91,6 @@ int main()
                                                    {"NUM_PARTICLES",{mpu::toString(NUM_PARTICLES)}},
                                                    {"TILES_PER_THREAD",{mpu::toString(NUM_PARTICLES / pressWgSize / ACCEL_THREADS_PER_PARTICLE)}}
                                            });
-    pressureShader.uniform1f("smoothing_length",h);
     pressureShader.uniform1f("visc",visc);
     pressureShader.uniform1f("gravity_constant",G);
     pressureShader.uniform1f("smoothing_epsilon_squared",EPS2);

@@ -16,33 +16,28 @@ layout(binding=PARTICLE_HYDRO_BUFFER_BINDING,std430) buffer ParticleHydro
 
 layout(local_size_x=WGSIZE,local_size_y=1,local_size_z=1) in;
 
-uniform float smoothing_length;
-
 shared vec4 pos[gl_WorkGroupSize.x];
-shared float mass[gl_WorkGroupSize.x];
+shared vec2 hyd[gl_WorkGroupSize.x];
 
-// some values that only depend on uniforms
-float h2 = smoothing_length*smoothing_length;
-float poly6scale = 315 / (64* PI * pow(smoothing_length,9));
-
-// interact one particle with p others
-void calculateTileRow( const in vec4 myPosition, inout float density)
+// use the poly 6 kernel to perform smoothing
+// r2 the quared distance of the two particles
+// h is the smoothing length
+float Wpoly6(float r2, float h)
 {
-    for(uint i=0; i<gl_WorkGroupSize.x; i++)
-    {
-        const vec3 r = myPosition.xyz - pos[i].xyz;
-        const float r2 = dot(r,r);
+    float h2 = h*h;
 
-        density += (r2 < h2) ? mass[i] * poly6scale * pow(h2 - r2,3) : 0;
-    }
+    return (r2 <= h2) ? (315 / (64* PI * pow(0.3,9))) * pow(h2 - r2,3) : 0;
 }
 
 // This shader updates a particles acceleration by interacting with all other particles,
 // using shared memory to speed up memory access
 void main()
 {
-    const vec4 myPosition = positions[gl_GlobalInvocationID.x % NUM_PARTICLES]; // load my position to local memory
     const uint startTile = TILES_PER_THREAD * uint(gl_GlobalInvocationID.x / NUM_PARTICLES); // there can be multiple threads per particle, so where do we start calculating?
+
+    const uint idxi = gl_GlobalInvocationID.x % NUM_PARTICLES;
+    const vec4 posi = positions[idxi];
+    const float hi = hydro[idxi].z;
     float density =0; // lets sum up the density here
 
     // loop over tiles in a row for as many tiles one thread is configured to calculate
@@ -53,12 +48,19 @@ void main()
         // fill fields in shared memory
         uint idx = gl_WorkGroupSize.x * (startTile + tile) + gl_LocalInvocationID.x;
         pos[gl_LocalInvocationID.x] = positions[idx];
-        mass[gl_LocalInvocationID.x] = hydro[idx].w;
+        hyd[gl_LocalInvocationID.x] = hydro[idx].zw;
         // sync
         memoryBarrierShared();
         barrier();
         // calculate the row up to here
-        calculateTileRow(myPosition,density);
+        for(uint j=0; j<gl_WorkGroupSize.x; j++)
+        {
+            const vec2 hydroj = hyd[j];
+            const vec3 r = posi.xyz - pos[j].xyz;
+            const float r2 = dot(r,r);
+
+            density +=  hydroj.y * 0.5 * (Wpoly6(r2, hi) + Wpoly6(r2, hydroj.x));
+        }
         // sync
         memoryBarrierShared();
         barrier();

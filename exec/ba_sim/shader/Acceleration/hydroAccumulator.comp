@@ -26,6 +26,6 @@ void main()
 //    float pressure = k*(density - rest_density);
     float pressure = k*density;
 
-    float isSink = (density > sink_th) ? hydro[gl_GlobalInvocationID.x].w : hydro[gl_GlobalInvocationID.x].w;
-    hydro[gl_GlobalInvocationID.x] = vec4(pressure,density,0,isSink);
+//    float isSink = (density > sink_th) ? hydro[gl_GlobalInvocationID.x].w : hydro[gl_GlobalInvocationID.x].w;
+    hydro[gl_GlobalInvocationID.x].xy = vec2(pressure,density);
 }

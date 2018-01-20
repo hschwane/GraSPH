@@ -31,7 +31,7 @@ public:
     typedef glm::vec4 posType; // w is mass for gravity
     typedef glm::vec4 velType;
     typedef glm::vec4 accType;
-    typedef glm::vec4 hydrodynamicsType; // x is pressure, y is density, w is mass for sph
+    typedef glm::vec4 hydrodynamicsType; // x is pressure, y is density, z is the smoothing length h, w is mass for sph
 
     ParticleBuffer()= default;
     explicit ParticleBuffer(uint32_t numParticles, uint32_t accMulti = 1, uint32_t hydroMulti = 1, GLbitfield flags = 0)
@@ -109,7 +109,7 @@ constexpr float PARTICLE_RENDER_SIZE = 0.008; // radius of a particle
 constexpr float TEMPERATURE = 30;
 
 // spawning
-constexpr float TOTAL_MASS = 2000;//1e-22*1.98892e30 /1000;
+constexpr float TOTAL_MASS = 20;//1e-22*1.98892e30 /1000;
 constexpr unsigned int NUM_PARTICLES = 16000;
 constexpr unsigned int DENSITY_THREADS_PER_PARTICLE = 4;
 constexpr unsigned int ACCEL_THREADS_PER_PARTICLE = 2;

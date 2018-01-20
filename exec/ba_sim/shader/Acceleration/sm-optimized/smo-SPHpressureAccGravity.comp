@@ -28,7 +28,6 @@ layout(binding=PARTICLE_HYDRO_BUFFER_BINDING,std430) buffer ParticleHydro
 
 layout(local_size_x=WGSIZE,local_size_y=1,local_size_z=1) in;
 
-uniform float smoothing_length;
 uniform float visc;
 uniform float gravity_constant;
 uniform float smoothing_epsilon_squared;
@@ -40,6 +39,24 @@ shared vec4 pos[gl_WorkGroupSize.x];
 shared vec4 hyd[gl_WorkGroupSize.x];
 shared vec3 vel[gl_WorkGroupSize.x];
 
+// perform smoothing using the gradient of the spiky kernel
+// rij is a vector posi - posj
+// dist is ||rij||
+// and h the smoothing length
+vec3 Wspiky(vec3 rij, float dist  ,float h)
+{
+    return (dist <= h && dist != 0) ? (-45 / (PI * pow(h,6))) * pow(h - dist,2)* rij/dist : vec3(0,0,0);
+}
+
+// perform smoothing using the laplacian of the viscosity kernel
+// rij is a vector posi - posj
+// dist is ||rij||
+// and h the smoothing length
+float Wvisc(float dist, float h)
+{
+    return (dist <= h) ? (45 / (PI * pow(h,6))) * (h - dist) :0;
+}
+
 // This shader updates a particles acceleration by interacting with all other particles,
 // using shared memory to speed up memory access
 void main()
@@ -47,16 +64,15 @@ void main()
     const uint startTile = TILES_PER_THREAD * uint(gl_GlobalInvocationID.x / NUM_PARTICLES); // there can be multiple threads per particle, so where do we start calculating?
 
     // cache my particle attributes in local memory
-    const uint myIdx = gl_GlobalInvocationID.x % NUM_PARTICLES;
-    const vec4 myPosition = positions[myIdx];
-    const vec4 myHydro = hydro[myIdx];
-    vec4 myVel = velocities[myIdx];
+    const uint idxi = gl_GlobalInvocationID.x % NUM_PARTICLES;
+    const vec4 posi = positions[idxi];
+    const vec4 hydroi = hydro[idxi];
+    const vec4 veli = velocities[idxi];
     vec3 accPressure = vec3(0); // lets sum up the acceleration here
     vec4 accGravity = vec4(0); // lets sum up the acceleration here .w is the desired mass change caused by sink particles
 
     // calculate some values that are the same for all loop iterations
-    float pod2 = (myHydro.x / (myHydro.y*myHydro.y));
-    float spikyScale = -45 / (PI * pow(smoothing_length,6));
+    const float pod2i = (hydroi.x / (hydroi.y*hydroi.y));
 
     // loop over tiles in a row for as many tiles one thread is configured to calculate
     // calculate the interactions of a particle with gl_WorkGroupSize.x particles in one tile
@@ -75,22 +91,24 @@ void main()
             // calculate the row up to here use sink function if this is a sink particle
 //            if(myHydro.w > 0) // is this a normal particle?
 //            {
-                for(uint i=0; i<gl_WorkGroupSize.x; i++) // go over everything in this tile
+                for(uint j=0; j<gl_WorkGroupSize.x; j++) // go over everything in this tile
                 {
-                    const vec4 iPos = pos[i];
-                    const vec4 iHydro = hyd[i];
+                    const vec4 posj = pos[j];
+                    const vec4 hydroj = hyd[j];
 
-                    const vec3 r = myPosition.xyz - iPos.xyz;
+                    const vec3 r = posi.xyz - posj.xyz;
                     const float dist = length(r);
 
 //                    if(iHydro.w > 0)
 //                    {
-                        const vec3 iVel = vel[i];
-                        accPressure -= (dist < smoothing_length && dist != 0) ? iHydro.w * ((iHydro.x / (iHydro.y*iHydro.y)) + pod2) * spikyScale * pow(smoothing_length - dist,2)* r/dist : vec3(0,0,0);
-                        accPressure += (dist < smoothing_length) ? visc * iHydro.w  * (iVel.xyz - myVel.xyz)/iHydro.y * -spikyScale * (smoothing_length - dist) : vec3(0,0,0);
+                        const vec3 velj = vel[j];
+//
+                        const float pod2j = hydroj.x / (hydroj.y*hydroj.y);
+                        accPressure -= hydroj.w * 0.5 * (pod2i * Wspiky(r,dist,hydroi.z) + pod2j * Wspiky(r,dist,hydroj.z));
+                        accPressure +=  visc * hydroj.w  * (velj.xyz - veli.xyz)/hydroj.y * Wvisc(dist,hydroi.z);
 //                    }
 
-                    accGravity.xyz += interaction(myPosition, iPos, smoothing_epsilon_squared_sph);
+                    accGravity.xyz += interaction(posi, posj, smoothing_epsilon_squared_sph);
                 }
 //            }
 //            else
