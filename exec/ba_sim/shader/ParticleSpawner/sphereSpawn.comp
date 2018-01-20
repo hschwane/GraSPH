@@ -52,5 +52,5 @@ void main()
         accelerations[gl_GlobalInvocationID.x+particle_offset + i*num_of_particles] = vec4(0,0,0,0);
 
     for(uint i=0; i<hydMulti; i++ )
-        hydro[gl_GlobalInvocationID.x+particle_offset + i*num_of_particles] = vec4(0,0,0.3,mass);
+        hydro[gl_GlobalInvocationID.x+particle_offset + i*num_of_particles] = vec4(0,0,0.3,50);
 }

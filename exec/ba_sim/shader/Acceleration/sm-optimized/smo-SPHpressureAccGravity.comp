@@ -105,8 +105,10 @@ void main()
 //
                         accGravity.xyz += interaction(posi, posj, smoothing_epsilon_squared_sph);
                         const float pod2j = hydroj.x / (hydroj.y*hydroj.y);
-                        accPressure -= hydroj.w * 0.5 * (pod2i * Wspiky(r,dist,hydroi.z) + pod2j * Wspiky(r,dist,hydroj.z));
-                        accPressure +=  visc * hydroj.w  * (velj.xyz - veli.xyz)/hydroj.y * Wvisc(dist,hydroi.z);
+                        accPressure -= posj.w * 0.5 * (pod2i * Wspiky(r,dist,hydroi.z) + pod2j * Wspiky(r,dist,hydroj.z));
+//                        accPressure -= posj.w * (pod2i+pod2j)*0.5 * Wspiky(r,dist,(hydroi.z+hydroj.z)*0.5);
+                        accPressure +=  visc * posj.w  * (velj.xyz - veli.xyz)/hydroj.y * Wvisc(dist,hydroi.z);
+//                        accPressure +=  visc * posj.w  * (velj.xyz - veli.xyz)/hydroj.y * Wvisc(dist,(hydroi.z+hydroj.z)*0.5);
 //                    }
 
                 }

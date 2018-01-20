@@ -2,6 +2,7 @@
 #extension GL_ARB_compute_variable_group_size : require
 
 #include "common.glsl"
+#include "mathConst.glsl"
 
 layout(binding=PARTICLE_HYDRO_BUFFER_BINDING,std430) buffer ParticleHydro
 {
@@ -16,16 +17,19 @@ layout(local_size_variable) in;
 
 void main()
 {
-    float density = 0;
+    vec2 hydroSum = vec2(0);
+
 //    if(hydro[gl_GlobalInvocationID.x].w >0)
         for(uint i=0; i < HYDROS_PER_PARTICLE; i++)
         {
-            density += hydro[NUM_PARTICLES * i + gl_GlobalInvocationID.x].y;
+            hydroSum += hydro[NUM_PARTICLES * i + gl_GlobalInvocationID.x].yw;
         }
 
 //    float pressure = k*(density - rest_density);
-    float pressure = k*density;
+    float pressure = k * hydroSum.x;
+
+
 
 //    float isSink = (density > sink_th) ? hydro[gl_GlobalInvocationID.x].w : hydro[gl_GlobalInvocationID.x].w;
-    hydro[gl_GlobalInvocationID.x].xy = vec2(pressure,density);
+    hydro[gl_GlobalInvocationID.x].xyw = vec3(pressure,hydroSum);
 }

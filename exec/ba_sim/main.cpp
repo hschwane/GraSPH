@@ -62,7 +62,7 @@ int main()
     camera.setClip(0.1,200);
 
     float k = 0.06;
-    float visc = 0.01;
+    float visc = 0.002;
     float sink_r = 0.4;
     float sink_th = 4;
 
@@ -133,7 +133,7 @@ int main()
     double elapsedPerT = 0;
 
     double lag = 0;
-    double simulationTime = dt;
+    double simulationTime = DT;
 
     // sink particles and particle merging
     // TODO: make sink particles use impulse
@@ -204,12 +204,16 @@ int main()
             printButtonDown = true;
             glFinish();
             glMemoryBarrier(GL_ALL_BARRIER_BITS);
-            std::vector<glm::vec2> hdata = pb.hydrodynamicsBuffer.read<glm::vec2>(pb.size(),0);
+            std::vector<glm::vec4> hdata = pb.hydrodynamicsBuffer.read<glm::vec4>(pb.size(),0);
 
-            glm::vec2 sum = std::accumulate( hdata.begin(), hdata.end(),glm::vec2(0,0));
-            sum /= pb.size();
+            glm::vec4 sum = std::accumulate( hdata.begin(), hdata.end(),glm::vec4(0));
+            sum /= hdata.size();
 
-            logDEBUG("Particle data") << "Mean density: " << sum.y << " Mean Pressure: " << sum.x;
+            for(auto &&item : hdata)
+            {
+                logDEBUG("Particle data") << "Hydro: " << glm::to_string(item);
+            }
+            logDEBUG("Particle data") << "Mean density: " << sum.y << " Mean Pressure: " << sum.x << " Mean Smoothing length: " << sum.z;
 
             mpu::gph::Buffer temp;
             temp.allocate<glm::vec4>(pb.size(),GL_MAP_READ_BIT | GL_MAP_PERSISTENT_BIT);
