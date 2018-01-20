@@ -95,20 +95,20 @@ void main()
                 {
                     const vec4 posj = pos[j];
                     const vec4 hydroj = hyd[j];
+                    const vec3 velj = vel[j];
 
                     const vec3 r = posi.xyz - posj.xyz;
                     const float dist = length(r);
 
 //                    if(iHydro.w > 0)
 //                    {
-                        const vec3 velj = vel[j];
 //
+                        accGravity.xyz += interaction(posi, posj, smoothing_epsilon_squared_sph);
                         const float pod2j = hydroj.x / (hydroj.y*hydroj.y);
                         accPressure -= hydroj.w * 0.5 * (pod2i * Wspiky(r,dist,hydroi.z) + pod2j * Wspiky(r,dist,hydroj.z));
                         accPressure +=  visc * hydroj.w  * (velj.xyz - veli.xyz)/hydroj.y * Wvisc(dist,hydroi.z);
 //                    }
 
-                    accGravity.xyz += interaction(posi, posj, smoothing_epsilon_squared_sph);
                 }
 //            }
 //            else
