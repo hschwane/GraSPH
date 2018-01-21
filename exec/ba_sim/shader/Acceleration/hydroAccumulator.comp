@@ -28,9 +28,9 @@ void main()
 //    float pressure = k*(density - rest_density);
     float pressure = k * density.x;
     vec4 hydi = hydro[gl_GlobalInvocationID.x];
-    float dpdh = density - hydi.y / hydi.w;
+    float dpdh = abs(density - hydi.y / hydi.w);
 
 
 //    float isSink = (density > sink_th) ? hydro[gl_GlobalInvocationID.x].w : hydro[gl_GlobalInvocationID.x].w;
-    hydro[gl_GlobalInvocationID.x].xyw = vec3(pressure,density,abs(dpdh));
+    hydro[gl_GlobalInvocationID.x].xyw = vec3(pressure,density,(isinf(dpdh))?0:dpdh);
 }

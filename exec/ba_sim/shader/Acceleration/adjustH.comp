@@ -17,8 +17,8 @@ layout(binding=PARTICLE_HYDRO_BUFFER_BINDING,std430) buffer ParticleHydro
 
 layout(local_size_variable) in;
 
-uniform float hmax = 2;
-uniform float hmin = 0.1;
+uniform float hmax = 3;
+uniform float hmin = 0.05;
 
 void main()
 {
