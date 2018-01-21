@@ -17,14 +17,14 @@ layout(binding=PARTICLE_HYDRO_BUFFER_BINDING,std430) buffer ParticleHydro
 
 layout(local_size_variable) in;
 
+uniform float hmax = 2;
+uniform float hmin = 0.1;
+
 void main()
 {
-    vec4 hyd = hydro[gl_GlobalInvocationID.x];
-    const float hi = 1.3 * pow(positions[gl_GlobalInvocationID.x].w / (hyd.y + 0.01), 1.0f/3.0f);
-//    float hi = hyd.z * 0.5f * (1+ pow(50.0f/ (hyd.w+1),1.0f/3.0f));
-//    if(hi < 0.001)p
-//        hi=0.001;
+    vec4 hydi = hydro[gl_GlobalInvocationID.x];
 
+    float hi = clamp(pow(3*50*20/ (16000*hydi.y*4*PI),1.0f/3.0f),hmin,hmax);
 
-    hydro[gl_GlobalInvocationID.x].z = hi;
+    hydro[gl_GlobalInvocationID.x].zw = vec2(hi,hi-hydi.z);
 }
