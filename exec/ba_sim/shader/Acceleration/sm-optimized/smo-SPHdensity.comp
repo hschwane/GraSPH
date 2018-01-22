@@ -60,8 +60,11 @@ void main()
             const vec3 r = posi.xyz - pos[j].xyz;
             const float r2 = dot(r,r);
 
-//            density +=  posi.w * 0.5 * (Wpoly6(r2, hydroi.z) + Wpoly6(r2, hydroj.x));
+#ifdef FAST_SPH
             density +=  posi.w * Wpoly6(r2, (hydroi.z+hydroj.x)*0.5);
+#else
+            density +=  posi.w * 0.5 * (Wpoly6(r2, hydroi.z) + Wpoly6(r2, hydroj.x));
+#endif
         }
         // sync
         memoryBarrierShared();

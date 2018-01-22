@@ -150,7 +150,6 @@ int main()
 
     // sph
     // TODO: find out about how to calculate the partial derivative dp/dh
-    // TODO: enable switching from fast to accurate by recompiling shader
     // TODO: change sph kernel
     // TODO: better viscosity
     // TODO: test fractation EOS
