@@ -101,7 +101,7 @@ constexpr unsigned int RENDERER_MASS_ARRAY = 1;
 // simulation
 constexpr double DT = 0.005;
 constexpr double EPS2 = 0.02;
-constexpr double EPS2_SPH = 0.02;
+constexpr double EPS2_SPH = 0.002;
 constexpr float G = 1;//6.67408e-11 ;//* 1e-9 *1000;
 
 // particles

@@ -149,8 +149,9 @@ int main()
     // TODO: maybe optimize tagging and make absorption faster
 
     // sph
+    // TODO: find out about how to calculate the partial derivative dp/dh
+    // TODO: enable switching from fast to accurate by recompiling shader
     // TODO: change sph kernel
-    // TODO: adaptive smoothing length
     // TODO: better viscosity
     // TODO: test fractation EOS
 

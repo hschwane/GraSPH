@@ -40,7 +40,6 @@ void main()
     const vec4 hydroi = hydro[idxi];
 
     float density =0; // lets sum up the density here
-    float neightbours =0; // lets sum up the number of neightbours here
 
     // loop over tiles in a row for as many tiles one thread is configured to calculate
     // calculate the interactions of a particle with gl_WorkGroupSize.x particles in one tile
@@ -61,9 +60,8 @@ void main()
             const vec3 r = posi.xyz - pos[j].xyz;
             const float r2 = dot(r,r);
 
-            neightbours += (sqrt(r2)<(hydroi.z+hydroj.x)*0.5)?1:0;
-            density +=  posi.w * 0.5 * (Wpoly6(r2, hydroi.z) + Wpoly6(r2, hydroj.x));
-//            density +=  posi.w * Wpoly6(r2, (hydroi.z+hydroj.x)*0.5);
+//            density +=  posi.w * 0.5 * (Wpoly6(r2, hydroi.z) + Wpoly6(r2, hydroj.x));
+            density +=  posi.w * Wpoly6(r2, (hydroi.z+hydroj.x)*0.5);
         }
         // sync
         memoryBarrierShared();
@@ -71,5 +69,5 @@ void main()
     }
 
     // write back density and pressure
-    hydro[gl_GlobalInvocationID.x].y = density;// vec3(0,density, neightbours);//((density-hydroi.y)/hydroi.w));
+    hydro[gl_GlobalInvocationID.x].y = density;
 }
