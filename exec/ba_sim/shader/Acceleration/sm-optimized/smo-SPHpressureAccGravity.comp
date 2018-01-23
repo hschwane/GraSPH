@@ -28,12 +28,13 @@ layout(binding=PARTICLE_HYDRO_BUFFER_BINDING,std430) buffer ParticleHydro
 
 layout(local_size_x=WGSIZE,local_size_y=1,local_size_z=1) in;
 
-uniform float visc;
 uniform float gravity_constant;
 uniform float smoothing_epsilon_squared;
 uniform float smoothing_epsilon_squared_sph;
 uniform float sink_r;
 uniform float dt;
+uniform float ac=1; // adiabatic constant
+uniform float alpha=1; // controle viscosity
 
 shared vec4 pos[gl_WorkGroupSize.x];
 shared vec4 hyd[gl_WorkGroupSize.x];
@@ -45,7 +46,7 @@ shared vec3 vel[gl_WorkGroupSize.x];
 // and h the smoothing length
 vec3 Wspiky(vec3 rij, float dist  ,float h)
 {
-    return (dist <= h && dist != 0) ? (-45 / (PI * pow(h,6))) * pow(h - dist,2)* rij/dist : vec3(0,0,0);
+    return (dist < h && dist != 0) ? (-45 / (PI * pow(h,6))) * pow(h - dist,2)* rij/dist : vec3(0,0,0);
 }
 
 // perform smoothing using the laplacian of the viscosity kernel
@@ -54,7 +55,7 @@ vec3 Wspiky(vec3 rij, float dist  ,float h)
 // and h the smoothing length
 float Wvisc(float dist, float h)
 {
-    return (dist <= h) ? (45 / (PI * pow(h,6))) * (h - dist) :0;
+    return (dist < h) ? (45 / (PI * pow(h,6))) * (h - dist) :0;
 }
 
 // This shader updates a particles acceleration by interacting with all other particles,
@@ -97,23 +98,39 @@ void main()
                     const vec4 hydroj = hyd[j];
                     const vec3 velj = vel[j];
 
-                    const vec3 r = posi.xyz - posj.xyz;
-                    const float dist = length(r);
+                    const vec3 rij = posi.xyz - posj.xyz; // vector from i to j
+                    const float dist = length(rij); // distance from i to j
 
 //                    if(iHydro.w > 0)
 //                    {
 //
                         accGravity.xyz += interaction(posi, posj, smoothing_epsilon_squared_sph);
                         const float pod2j = hydroj.x / (hydroj.y*hydroj.y);
+                        const float hij = (hydroi.z+hydroj.z)*0.5; // arimethic mean of smoothing lengths
+                        const vec3 vij = veli.xyz - velj.xyz; // relative velocity
 
 #ifdef FAST_SPH
-                        accPressure -= posj.w * (pod2i+pod2j)*0.5 * Wspiky(r,dist,(hydroi.z+hydroj.z)*0.5);
+                        accPressure -= posj.w * (pod2i+pod2j) * Wspiky(rij,dist,hij);
 #else
                         const float fi=1.0/(1+ hydroi.z/(3*hydroi.y) * hydroi.w);
                         const float fj=1.0/(1+ hydroj.z/(3*hydroj.y) * hydroj.w);
-                        accPressure -= posj.w * (fi * pod2i * Wspiky(r,dist,hydroi.z) + fj*pod2j * Wspiky(r,dist,hydroj.z));
+                        accPressure -= posj.w * (fi*pod2i* Wspiky(rij,dist,hydroi.z) + fj*pod2j*Wspiky(rij,dist,hydroj.z));
 #endif
-                        accPressure +=  visc * posj.w  * (velj.xyz - veli.xyz)/hydroj.y * Wvisc(dist,(hydroi.z+hydroj.z)*0.5);
+
+#ifdef LIQUID_VIS
+                        accPressure +=  alpha * posj.w  * (-vij)/hydroj.y * Wvisc(dist,hij);
+#else
+                        float ci = sqrt(ac*hydroi.x/hydroi.y);
+                        float cj = sqrt(ac*hydroj.x/hydroj.y);
+
+                        float wij = dot(vij,rij)/dist;
+                        wij = (wij <0) ? wij : 0;
+                        float vsig = ci+cj - 3.0*wij;
+                        float rhoij = (hydroj.y + hydroi.y)*0.5;
+                        float II = - alpha*0.5 * vsig * wij / rhoij;
+
+                        accPressure -=  posj.w  * II * Wspiky(rij,dist,hij);
+#endif
 //                    }
 
                 }

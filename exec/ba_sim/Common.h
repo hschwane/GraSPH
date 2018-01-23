@@ -31,7 +31,7 @@ public:
     typedef glm::vec4 posType; // w is mass for gravity
     typedef glm::vec4 velType;
     typedef glm::vec4 accType;
-    typedef glm::vec4 hydrodynamicsType; // x is pressure, y is density, z is the smoothing length h, w is mass for sph
+    typedef glm::vec4 hydrodynamicsType; // x is pressure, y is density, z is the smoothing length h, w is a factor needed for pressure calc
 
     ParticleBuffer()= default;
     explicit ParticleBuffer(uint32_t numParticles, uint32_t accMulti = 1, uint32_t hydroMulti = 1, GLbitfield flags = 0)
@@ -99,7 +99,7 @@ constexpr unsigned int RENDERER_POSITION_ARRAY = 0;
 constexpr unsigned int RENDERER_MASS_ARRAY = 1;
 
 // simulation
-constexpr double DT = 0.005;
+constexpr double DT = 0.003;
 constexpr double EPS2 = 0.02;
 constexpr double EPS2_SPH = 0.002;
 constexpr float G = 1;//6.67408e-11 ;//* 1e-9 *1000;
@@ -111,8 +111,8 @@ constexpr float TEMPERATURE = 30;
 // spawning
 constexpr float TOTAL_MASS = 20;//1e-22*1.98892e30 /1000;
 constexpr unsigned int NUM_PARTICLES = 16000;
-constexpr unsigned int DENSITY_THREADS_PER_PARTICLE = 1;
-constexpr unsigned int ACCEL_THREADS_PER_PARTICLE = 1;
+constexpr unsigned int DENSITY_THREADS_PER_PARTICLE = 4;
+constexpr unsigned int ACCEL_THREADS_PER_PARTICLE = 2;
 const  glm::vec3 LOWER_BOUND = glm::vec3(-1,-1,-1);
 const  glm::vec3 UPPER_BOUND = glm::vec3(1,1,1);
 

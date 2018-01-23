@@ -59,15 +59,15 @@ int main()
     // create camera
     mpu::gph::Camera camera(std::make_shared<mpu::gph::SimpleWASDController>(&window,10,4));
     camera.setMVP(&renderer);
-    camera.setClip(0.1,200);
+    camera.setClip(0.01,200);
 
-    float k = 0.06;
-    float visc = 0.02;
-    float sink_r = 0.4;
-    float sink_th = 4;
+    const float k       = 0.04;
+    const float visc    = 0.02;
+    const float sink_r  = 0.4;
+    const float sink_th = 4;
 
     // create hydrodynamics based acceleration function
-    uint32_t densityWgSize= 64;//calcWorkgroupSize(NUM_PARTICLES*THREADS_PER_PARTICLE);
+    uint32_t densityWgSize= 128;//calcWorkgroupSize(NUM_PARTICLES*THREADS_PER_PARTICLE);
     mpu::gph::ShaderProgram densityShader({{PROJECT_SHADER_PATH"Acceleration/sm-optimized/smo-SPHdensity.comp"}},
                                           {
                                             {"WGSIZE",{mpu::toString(densityWgSize)}},
@@ -91,7 +91,7 @@ int main()
                                                    {"NUM_PARTICLES",{mpu::toString(NUM_PARTICLES)}},
                                                    {"TILES_PER_THREAD",{mpu::toString(NUM_PARTICLES / pressWgSize / ACCEL_THREADS_PER_PARTICLE)}}
                                            });
-    pressureShader.uniform1f("visc",visc);
+    pressureShader.uniform1f("alpha",visc);
     pressureShader.uniform1f("gravity_constant",G);
     pressureShader.uniform1f("smoothing_epsilon_squared",EPS2);
     pressureShader.uniform1f("smoothing_epsilon_squared_sph",EPS2_SPH);
@@ -151,7 +151,7 @@ int main()
     // sph
     // TODO: find out about how to calculate the partial derivative dp/dh
     // TODO: change sph kernel
-    // TODO: better viscosity
+    // TODO: add shear viscosity term to viscosity
     // TODO: test fractation EOS
 
     // initial conditions
