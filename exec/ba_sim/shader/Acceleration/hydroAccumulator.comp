@@ -35,6 +35,7 @@ void main()
 #ifdef FAST_SPH
     hydro[gl_GlobalInvocationID.x].xy = vec2(pressure,density);
 #else
-    hydro[gl_GlobalInvocationID.x].xyw = vec3(pressure,density,(isinf(abs(density - hydi.y / hydi.w)))?0:dpdh);
+    float dpdh = abs(density - hydi.y / hydi.w);
+    hydro[gl_GlobalInvocationID.x].xyw = vec3(pressure,density,(isinf(dpdh))?0:dpdh);
 #endif
 }
