@@ -62,7 +62,7 @@ int main()
     camera.setClip(0.01,200);
 
     const float k       = 0.04;
-    const float visc    = 1;
+    const float visc    = 0.8;
     const float sink_r  = 0.4;
     const float sink_th = 4;
 
@@ -226,19 +226,19 @@ int main()
             pb.positionBuffer.copyTo(temp);
             glMemoryBarrier(GL_ALL_BARRIER_BITS);
             std::vector<glm::vec4> pdata = temp.read<glm::vec4>(pb.size(),0);
-//            for(auto &&item : pdata)
-//            {
-//                logDEBUG("Particle data") << "Position: " << glm::to_string(item);
-//            }
+            for(auto &&item : pdata)
+            {
+                logDEBUG("Particle data") << "Position: " << glm::to_string(item);
+            }
 
             std::vector<glm::vec4> adata = pb.accelerationBuffer.read<glm::vec4>( pb.size()*pb.accPerParticle(),0);
             int i=0;
-            for(auto &&item : adata)
-            {
-                if(item.w != 0)
-                logWARNING("Particle data") << "ITS FUCKIN NOT ZERO! value is: " << item.w << " at entry " << i;
-                i++;
-            }
+//            for(auto &&item : adata)
+//            {
+//                if(item.w != 0)
+//                logWARNING("Particle data") << "ITS FUCKIN NOT ZERO! value is: " << item.w << " at entry " << i;
+//                i++;
+//            }
 
             glm::vec4 pos = std::accumulate( pdata.begin(), pdata.end(),glm::vec4(0,0,0,0));
             logDEBUG("Particle data") << "total mass: " << pos.w;
