@@ -36,6 +36,6 @@ void main()
     hydro[gl_GlobalInvocationID.x].xy = vec2(pressure,density);
 #else
     float dpdh = abs(density - hydi.y / hydi.w);
-    hydro[gl_GlobalInvocationID.x].xyw = vec3(pressure,density,(isinf(dpdh))?0:dpdh);
+    hydro[gl_GlobalInvocationID.x].xyw = vec3(pressure,density,(isinf(dpdh)||isnan(dpdh))?0:dpdh);
 #endif
 }

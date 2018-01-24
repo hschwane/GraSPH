@@ -56,14 +56,15 @@ void main()
         // calculate the row up to here
         for(uint j=0; j<gl_WorkGroupSize.x; j++)
         {
+            const vec4 posj = pos[j];
             const vec2 hydroj = hyd[j];
-            const vec3 r = posi.xyz - pos[j].xyz;
+            const vec3 r = posi.xyz - posj.xyz;
             const float r2 = dot(r,r);
 
 #ifdef FAST_SPH
-            density +=  posi.w * Wpoly6(r2, (hydroi.z+hydroj.x)*0.5);
+            density +=  posj.w * Wpoly6(r2, (hydroi.z+hydroj.x)*0.5);
 #else
-            density +=  posi.w * 0.5 * (Wpoly6(r2, hydroi.z) + Wpoly6(r2, hydroj.x));
+            density +=  posj.w * 0.5 * (Wpoly6(r2, hydroi.z) + Wpoly6(r2, hydroj.x));
 #endif
         }
         // sync

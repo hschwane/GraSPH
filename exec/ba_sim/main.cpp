@@ -62,7 +62,7 @@ int main()
     camera.setClip(0.01,200);
 
     const float k       = 0.04;
-    const float visc    = 0.02;
+    const float visc    = 1;
     const float sink_r  = 0.4;
     const float sink_th = 4;
 
