@@ -16,6 +16,8 @@ layout(binding=PARTICLE_HYDRO_BUFFER_BINDING,std430) buffer ParticleHydro
 
 layout(local_size_x=WGSIZE,local_size_y=1,local_size_z=1) in;
 
+uniform float eps=0.005;
+
 shared vec4 pos[gl_WorkGroupSize.x];
 shared vec2 hyd[gl_WorkGroupSize.x];
 
@@ -40,6 +42,8 @@ void main()
     const vec4 hydroi = hydro[idxi];
 
     float density =0; // lets sum up the density here
+    float densityPlus =0; // needed for drho/dh
+    float densityMinus =0; // needed for drho/dh
 
     // loop over tiles in a row for as many tiles one thread is configured to calculate
     // calculate the interactions of a particle with gl_WorkGroupSize.x particles in one tile
@@ -62,6 +66,8 @@ void main()
             const float r2 = dot(r,r);
 
             density +=  posj.w * (Wpoly6(r2, hydroi.z));
+            densityPlus +=  posj.w * (Wpoly6(r2, hydroi.z+eps));
+            densityMinus +=  posj.w * (Wpoly6(r2, hydroi.z-eps));
         }
         // sync
         memoryBarrierShared();
@@ -69,5 +75,5 @@ void main()
     }
 
     // write back density and pressure
-    hydro[gl_GlobalInvocationID.x].y = density;
+    hydro[gl_GlobalInvocationID.x].yw = vec2(density, (densityPlus-densityMinus)/(2*eps));
 }
