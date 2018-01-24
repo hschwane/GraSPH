@@ -51,10 +51,8 @@ class ParticleSpawner
 {
 public:
     ParticleSpawner(); //!< constructor will compile shader
-    void spawnParticlesCube(const float totalMass, const float temp,
-                            const glm::vec3 &upperBound, const glm::vec3 &lowerBound); //!< spawns particles in a cube
-    void spawnParticlesSphere(const float totalMass, const float temp,
-                              const float radius, const glm::vec3 &center = {0, 0, 0}); //!< spawns particles in a sphere
+    void spawnParticlesCube(const float totalMass, const glm::vec3 &upperBound, const glm::vec3 &lowerBound); //!< spawns particles in a cube
+    void spawnParticlesSphere(const float totalMass, const float radius, const glm::vec3 &center = {0, 0, 0}); //!< spawns particles in a sphere
     void spawnParticlesMultiSphere(const float totalMass, const std::vector<Sphere> spheres); //!< spawns particles in a multiple spheres
 
     void addRandomVelocityField(float frequency, float scale, int seed = 0); //!< adds a initial random velocity fiels to the particles

@@ -16,10 +16,9 @@ layout(binding=PARTICLE_HYDRO_BUFFER_BINDING,std430) buffer ParticleHydro
 
 layout(local_size_x=WGSIZE,local_size_y=1,local_size_z=1) in;
 
-uniform float eps=0.005;
+uniform float eps;
 
 shared vec4 pos[gl_WorkGroupSize.x];
-shared vec2 hyd[gl_WorkGroupSize.x];
 
 // use the poly 6 kernel to perform smoothing
 // r2 the quared distance of the two particles
@@ -53,7 +52,6 @@ void main()
         // fill fields in shared memory
         uint idx = gl_WorkGroupSize.x * (startTile + tile) + gl_LocalInvocationID.x;
         pos[gl_LocalInvocationID.x] = positions[idx];
-        hyd[gl_LocalInvocationID.x] = hydro[idx].zw;
         // sync
         memoryBarrierShared();
         barrier();
@@ -61,7 +59,6 @@ void main()
         for(uint j=0; j<gl_WorkGroupSize.x; j++)
         {
             const vec4 posj = pos[j];
-            const vec2 hydroj = hyd[j];
             const vec3 r = posi.xyz - posj.xyz;
             const float r2 = dot(r,r);
 

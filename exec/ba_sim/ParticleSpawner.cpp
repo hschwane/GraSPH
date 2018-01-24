@@ -26,8 +26,7 @@ ParticleSpawner::ParticleSpawner()
 {
 }
 
-void ParticleSpawner::spawnParticlesCube(const float totalMass, const float temp,
-                                         const glm::vec3 &upperBound, const glm::vec3 &lowerBound)
+void ParticleSpawner::spawnParticlesCube(const float totalMass, const glm::vec3 &upperBound, const glm::vec3 &lowerBound)
 {
     logINFO("Spawner") << "Spawning " << m_particleBuffer.size() << " in a cube volume from " << glm::to_string(lowerBound)
                        << " to " << glm::to_string(upperBound);
@@ -49,8 +48,7 @@ void ParticleSpawner::spawnParticlesCube(const float totalMass, const float temp
     logINFO("Spawner") << "Total volume: " << m_totalVolume;
 
     logINFO("Spawner") << "Particle attributes: mass=" << m_particleMass << "; volume=" << m_particleVolume
-                       << " density=" << m_particleDensity << "; temperature=" << temp
-                       << "; renderSize=" << PARTICLE_RENDER_SIZE;
+                       << " density=" << m_particleDensity;
 
     // call the shader to do the work
     m_cubeSpawnShader.uniform3f("upper_bound",upperBound);
@@ -63,8 +61,7 @@ void ParticleSpawner::spawnParticlesCube(const float totalMass, const float temp
     m_cubeSpawnShader.dispatch(m_particleBuffer.size(),calcWorkgroupSize(m_particleBuffer.size()));
 }
 
-void ParticleSpawner::spawnParticlesSphere(const float totalMass, const float temp,
-                                           const float radius, const glm::vec3 &center)
+void ParticleSpawner::spawnParticlesSphere(const float totalMass, const float radius, const glm::vec3 &center)
 {
     logINFO("Spawner") << "Spawning " << m_particleBuffer.size() << " in a sphere volume at position " << glm::to_string(center)
                        << " with radius " << radius;
@@ -85,8 +82,7 @@ void ParticleSpawner::spawnParticlesSphere(const float totalMass, const float te
     logINFO("Spawner") << "Total volume: " << m_totalVolume;
 
     logINFO("Spawner") << "Particle attributes: mass=" << m_particleMass << "; volume=" << m_particleVolume
-                       << "; density=" << m_particleDensity << "; temperature=" << temp
-                       << "; renderSize=" << PARTICLE_RENDER_SIZE;
+                       << "; density=" << m_particleDensity;
 
     // call the shader to do the work
     m_sphereSpawnShader.uniform3f("center",center);

@@ -12,6 +12,7 @@
 #include "DEsolver/Leapfrog.h"
 #include "DEsolver/Verlet.h"
 #include "DEsolver/VelocityVerlet.h"
+#include "Settings.h"
 
 constexpr int HEIGHT = 800;
 constexpr int WIDTH = 800;
@@ -41,7 +42,7 @@ int main()
 //                                                   {1.5,{-1.5,-.5,-.3},0.2},
 //                                                   {1.5,{0,1.5,-.5},0.2},
 //                                                   {3,{0,0,0},0.4}});
-    spawner.spawnParticlesSphere(TOTAL_MASS,TEMPERATURE,6);
+    spawner.spawnParticlesSphere(TOTAL_MASS,SPAWN_RADIUS);
     spawner.addRandomVelocityField(0.4, 0.25, 512);
     spawner.addRandomVelocityField(0.1, 0.3, 1024);
 
@@ -52,8 +53,8 @@ int main()
     renderer.enableAdditiveBlending(true);
     renderer.enableDepthTest(false);
     renderer.setViewportSize({WIDTH,HEIGHT});
-    renderer.setColor({0.9,0.3,0.1,1});
-    renderer.setBrightness(1);
+    renderer.setColor(PARTICLE_COLOR);
+    renderer.setBrightness(PARTICLE_BRIGHTNESS);
     renderer.setSize(PARTICLE_RENDER_SIZE);
 
     // create camera
@@ -61,19 +62,14 @@ int main()
     camera.setMVP(&renderer);
     camera.setClip(0.01,200);
 
-    const float k       = 0.04;
-    const float visc    = 0.8;
-    const float sink_r  = 0.4;
-    const float sink_th = 4;
-
     // create hydrodynamics based acceleration function
-    uint32_t densityWgSize= 128;//calcWorkgroupSize(NUM_PARTICLES*THREADS_PER_PARTICLE);
     mpu::gph::ShaderProgram densityShader({{PROJECT_SHADER_PATH"Acceleration/sm-optimized/smo-SPHdensity.comp"}},
                                           {
-                                            {"WGSIZE",{mpu::toString(densityWgSize)}},
+                                            {"WGSIZE",{mpu::toString(DENSITY_WGSIZE)}},
                                             {"NUM_PARTICLES",{mpu::toString(NUM_PARTICLES)}},
-                                            {"TILES_PER_THREAD",{mpu::toString(NUM_PARTICLES / densityWgSize / DENSITY_THREADS_PER_PARTICLE)}}
+                                            {"TILES_PER_THREAD",{mpu::toString(NUM_PARTICLES / DENSITY_WGSIZE / DENSITY_THREADS_PER_PARTICLE)}}
                                           });
+    densityShader.uniform1f("eps",HEPS);
 
     uint32_t wgSize=calcWorkgroupSize(NUM_PARTICLES);
     mpu::gph::ShaderProgram hydroAccum({{PROJECT_SHADER_PATH"Acceleration/hydroAccumulator.comp"}},
@@ -81,21 +77,20 @@ int main()
                                    {"NUM_PARTICLES",{mpu::toString(NUM_PARTICLES)}},
                                    {"HYDROS_PER_PARTICLE",{mpu::toString(DENSITY_THREADS_PER_PARTICLE)}}
                                   });
-    hydroAccum.uniform1f("k",k);
-    hydroAccum.uniform1f("sink_th",sink_th);
+    hydroAccum.uniform1f("k",K);
+    hydroAccum.uniform1f("sink_th",SINK_TH);
 
-    uint32_t pressWgSize = 128;
     mpu::gph::ShaderProgram pressureShader({{PROJECT_SHADER_PATH"Acceleration/sm-optimized/smo-SPHpressureAccGravity.comp"}},
                                            {
-                                                   {"WGSIZE",{mpu::toString(pressWgSize)}},
+                                                   {"WGSIZE",{mpu::toString(PRESSURE_WGSIZE)}},
                                                    {"NUM_PARTICLES",{mpu::toString(NUM_PARTICLES)}},
-                                                   {"TILES_PER_THREAD",{mpu::toString(NUM_PARTICLES / pressWgSize / ACCEL_THREADS_PER_PARTICLE)}}
+                                                   {"TILES_PER_THREAD",{mpu::toString(NUM_PARTICLES / PRESSURE_WGSIZE / ACCEL_THREADS_PER_PARTICLE)}}
                                            });
-    pressureShader.uniform1f("alpha",visc);
+    pressureShader.uniform1f("alpha",VISC);
     pressureShader.uniform1f("gravity_constant",G);
     pressureShader.uniform1f("smoothing_epsilon_squared",EPS2);
     pressureShader.uniform1f("smoothing_epsilon_squared_sph",EPS2_SPH);
-    pressureShader.uniform1f("sink_r",sink_r);
+    pressureShader.uniform1f("sink_r",SINK_R);
     pressureShader.uniform1f("dt",DT);
 
     mpu::gph::ShaderProgram accAccum({{PROJECT_SHADER_PATH"Acceleration/accAccumulator.comp"}},
@@ -105,20 +100,23 @@ int main()
                                       });
 
     mpu::gph::ShaderProgram adjustH({{PROJECT_SHADER_PATH"Acceleration/adjustH.comp"}});
+    adjustH.uniform1f("hmin",HMIN);
+    adjustH.uniform1f("hmax",HMAX);
+
     mpu::gph::ShaderProgram sinkHandler({{PROJECT_SHADER_PATH"Acceleration/sinkHandler.comp"}});
 
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-    densityShader.dispatch(NUM_PARTICLES*DENSITY_THREADS_PER_PARTICLE/densityWgSize);
+    densityShader.dispatch(NUM_PARTICLES*DENSITY_THREADS_PER_PARTICLE/DENSITY_WGSIZE);
 
-    auto accFunc = [densityShader,pressureShader,wgSize,densityWgSize,pressWgSize,hydroAccum,accAccum,adjustH](){
+    auto accFunc = [densityShader,pressureShader,wgSize,hydroAccum,accAccum,adjustH](){
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
         adjustH.dispatch(NUM_PARTICLES,wgSize);
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-        densityShader.dispatch(NUM_PARTICLES*DENSITY_THREADS_PER_PARTICLE/densityWgSize);
+        densityShader.dispatch(NUM_PARTICLES*DENSITY_THREADS_PER_PARTICLE/DENSITY_WGSIZE);
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
         hydroAccum.dispatch(NUM_PARTICLES,wgSize);
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-        pressureShader.dispatch(NUM_PARTICLES*ACCEL_THREADS_PER_PARTICLE/pressWgSize);
+        pressureShader.dispatch(NUM_PARTICLES*ACCEL_THREADS_PER_PARTICLE/PRESSURE_WGSIZE);
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
         accAccum.dispatch(NUM_PARTICLES,wgSize);
 //        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
@@ -129,7 +127,7 @@ int main()
     Leapfrog simulation(accFunc,pb,DT);
     simulation.start();
 
-    float brightness=1;
+    float brightness=PARTICLE_BRIGHTNESS;
     float size=PARTICLE_RENDER_SIZE;
 
     // timing
@@ -149,7 +147,7 @@ int main()
     // TODO: maybe optimize tagging and make absorption faster
 
     // sph
-    // TODO: find out about how to calculate the partial derivative dp/dh
+    // TODO: play with different h adjustment algorithmens
     // TODO: change sph kernel
     // TODO: add shear viscosity term to viscosity
     // TODO: test fractation EOS

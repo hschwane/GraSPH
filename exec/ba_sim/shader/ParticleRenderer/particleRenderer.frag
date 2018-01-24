@@ -20,11 +20,11 @@ void main()
         discard;
 #endif
 
-    if(isSink>0)
-    {
-        fragment_color = vec4(0,0,50,1);
-        return;
-    }
+//    if(isSink>0)
+//    {
+//        fragment_color = vec4(0,0,50,1);
+//        return;
+//    }
 
     vec4 falloffColor;
     PARTICLE_FALLOFF(); // this is defined via preprocessor macros when compiling

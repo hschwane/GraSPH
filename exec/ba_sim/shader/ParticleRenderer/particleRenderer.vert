@@ -20,14 +20,14 @@ void main()
 	gl_Position = model_view_projection * input_position;
 
     float size;
-    if(mass > mass_thres)
-    {
-         size = render_size* 4;
-        isSink =1;
-    } else {
-    isSink =0;
+//    if(mass > mass_thres)
+//    {
+//         size = render_size* 4;
+//        isSink =1;
+//    } else {
+//    isSink =0;
     size = render_size;
-    }
+//    }
 
 #ifdef PARTICLES_PERSPECTIVE
 	gl_PointSize = viewport_size.y * projection[1][1] * size / gl_Position.w;
