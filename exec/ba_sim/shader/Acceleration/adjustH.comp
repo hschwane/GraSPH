@@ -4,12 +4,6 @@
 #include "common.glsl"
 #include "mathConst.glsl"
 
-layout(binding=PARTICLE_POSITION_BUFFER_BINDING,std430) buffer ParticlePositions
-{
-    vec4 positions[];
-};
-
-
 layout(binding=PARTICLE_HYDRO_BUFFER_BINDING,std430) buffer ParticleHydro
 {
     vec4 hydro[];
@@ -24,5 +18,5 @@ void main()
 {
     vec4 hydi = hydro[gl_GlobalInvocationID.x];
     float hi = clamp(pow(3*50*20/ (16000*hydi.y*4*PI),1.0f/3.0f),hmin,hmax);
-    hydro[gl_GlobalInvocationID.x].zw = vec2(hi,hi-hydi.z);
+    hydro[gl_GlobalInvocationID.x].z = hi;
 }

@@ -226,9 +226,9 @@ int main()
             glMemoryBarrier(GL_ALL_BARRIER_BITS);
             std::vector<glm::vec4> pdata = temp.read<glm::vec4>(pb.size(),0);
             for(auto &&item : pdata)
-            {
-                logDEBUG("Particle data") << "Position: " << glm::to_string(item);
-            }
+//            {
+//                logDEBUG("Particle data") << "Position: " << glm::to_string(item);
+//            }
 
             std::vector<glm::vec4> adata = pb.accelerationBuffer.read<glm::vec4>( pb.size()*pb.accPerParticle(),0);
             int i=0;
