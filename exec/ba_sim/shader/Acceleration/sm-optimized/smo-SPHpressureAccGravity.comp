@@ -33,8 +33,9 @@ uniform float smoothing_epsilon_squared;
 uniform float smoothing_epsilon_squared_sph;
 uniform float sink_r;
 uniform float dt;
-uniform float ac=1; // adiabatic constant
-uniform float alpha=1; // controle viscosity
+uniform float k; // entropy of the fluid
+uniform float ac; // adiabatic constant
+uniform float alpha; // controle viscosity
 
 shared vec4 pos[gl_WorkGroupSize.x];
 shared vec4 hyd[gl_WorkGroupSize.x];
@@ -58,6 +59,12 @@ float Wvisc(float dist, float h)
     return (dist < h) ? (45 / (PI * pow(h,6))) * (h - dist) :0;
 }
 
+// calculate the pressure from the density
+float pressure(float density)
+{
+    return k * pow(density,ac);
+}
+
 // This shader updates a particles acceleration by interacting with all other particles,
 // using shared memory to speed up memory access
 void main()
@@ -73,7 +80,7 @@ void main()
     vec4 accGravity = vec4(0); // lets sum up the acceleration here .w is the desired mass change caused by sink particles
 
     // calculate some values that are the same for all loop iterations
-    const float pod2i = (hydroi.x / (hydroi.y*hydroi.y));
+    const float pod2i = (pressure(hydroi.y) / (hydroi.y*hydroi.y));
 
     // loop over tiles in a row for as many tiles one thread is configured to calculate
     // calculate the interactions of a particle with gl_WorkGroupSize.x particles in one tile
@@ -105,7 +112,7 @@ void main()
 //                    {
 //
                         accGravity.xyz += interaction(posi, posj, smoothing_epsilon_squared_sph);
-                        const float pod2j = hydroj.x / (hydroj.y*hydroj.y);
+                        const float pod2j = pressure(hydroj.y) / (hydroj.y*hydroj.y);
                         const float hij = (hydroi.z+hydroj.z)*0.5; // arimethic mean of smoothing lengths
                         const vec3 vij = veli.xyz - velj.xyz; // relative velocity
 

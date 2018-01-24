@@ -9,7 +9,6 @@ layout(binding=PARTICLE_HYDRO_BUFFER_BINDING,std430) buffer ParticleHydro
     vec4 hydro[];
 };
 
-uniform float k;
 uniform float rest_density;
 uniform float sink_th;
 
@@ -25,11 +24,6 @@ void main()
             sum += hydro[NUM_PARTICLES * i + gl_GlobalInvocationID.x].yw;
         }
 
-//    float pressure = k*(density - rest_density);
-    float pressure = k * sum.x;
-
-
 //    float isSink = (density > sink_th) ? hydro[gl_GlobalInvocationID.x].w : hydro[gl_GlobalInvocationID.x].w;
-
-    hydro[gl_GlobalInvocationID.x].xyw = vec3(pressure,sum.x,sum.y);
+    hydro[gl_GlobalInvocationID.x].yw = sum;
 }
