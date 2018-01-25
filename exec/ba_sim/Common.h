@@ -32,6 +32,7 @@ public:
     typedef glm::vec4 velType;
     typedef glm::vec4 accType;
     typedef glm::vec4 hydrodynamicsType; // x is pressure, y is density, z is the smoothing length h, w is a factor needed for pressure calc
+    typedef float smlengthType;
 
     ParticleBuffer()= default;
     explicit ParticleBuffer(uint32_t numParticles, uint32_t accMulti = 1, uint32_t hydroMulti = 1, GLbitfield flags = 0)
@@ -40,6 +41,7 @@ public:
         velocityBuffer.allocate<velType>(numParticles,flags);
         accelerationBuffer.allocate<accType>(numParticles*accMulti,flags);
         hydrodynamicsBuffer.allocate<hydrodynamicsType>(numParticles*hydroMulti,flags);
+        smlengthBuffer.allocate<smlengthType>(numParticles,flags);
         m_numberOfParticles=numParticles;
         m_accMulti = accMulti;
         m_hydMulti = hydroMulti;
@@ -55,6 +57,8 @@ public:
         accelerationBuffer.allocate<accType>(numParticles*accMulti,flags);
         hydrodynamicsBuffer.recreate();
         hydrodynamicsBuffer.allocate<hydrodynamicsType>(numParticles*hydroMulti,flags);
+        smlengthBuffer.recreate();
+        smlengthBuffer.allocate<smlengthType>(numParticles,flags);
         m_numberOfParticles=numParticles;
         m_accMulti = accMulti;
         m_hydMulti = hydroMulti;
@@ -66,6 +70,7 @@ public:
         velocityBuffer.bindBase(binding+1,target);
         accelerationBuffer.bindBase(binding+2,target);
         hydrodynamicsBuffer.bindBase(binding+3,target);
+        smlengthBuffer.bindBase(binding+4,target);
     }
 
     uint32_t size(){return m_numberOfParticles;} //!< returns the number of particles
@@ -76,6 +81,7 @@ public:
     mpu::gph::Buffer velocityBuffer;
     mpu::gph::Buffer accelerationBuffer;
     mpu::gph::Buffer hydrodynamicsBuffer;
+    mpu::gph::Buffer smlengthBuffer;
 private:
     uint32_t m_numberOfParticles;
     uint32_t m_accMulti;
@@ -93,8 +99,9 @@ constexpr unsigned int PARTICLE_POSITION_BUFFER_BINDING = 2;
 constexpr unsigned int PARTICLE_VELOCITY_BUFFER_BINDING = 3;
 constexpr unsigned int PARTICLE_ACCELERATION_BUFFER_BINDING = 4;
 constexpr unsigned int PARTICLE_HYDRO_BUFFER_BINDING = 5;
+constexpr unsigned int PARTICLE_SMLENGTH_BUFFER_BINDING = 6;
 
-constexpr unsigned int VERLET_BUFFER_BINDING = 6;
+constexpr unsigned int VERLET_BUFFER_BINDING = 7;
 constexpr unsigned int RENDERER_POSITION_ARRAY = 0;
 constexpr unsigned int RENDERER_MASS_ARRAY = 1;
 

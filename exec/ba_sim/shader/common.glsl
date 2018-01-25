@@ -5,6 +5,7 @@
 #define VEL_TYPE vec4
 #define ACC_TYPE vec4
 #define HYDRO_TYPE vec2 // x is presure, y is density
+#define SMLENGTH_TYPE float
 
 
 // buffer bindings
@@ -15,7 +16,8 @@
 #define PARTICLE_VELOCITY_BUFFER_BINDING 3
 #define PARTICLE_ACCELERATION_BUFFER_BINDING 4
 #define PARTICLE_HYDRO_BUFFER_BINDING 5
-#define VERLET_BUFFER_BINDING 6
+#define PARTICLE_SMLENGTH_BUFFER_BINDING 6
+#define VERLET_BUFFER_BINDING 7
 
 
 // arrays for rendering data

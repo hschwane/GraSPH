@@ -14,6 +14,11 @@ layout(binding=PARTICLE_HYDRO_BUFFER_BINDING,std430) buffer ParticleHydro
     vec4 hydro[];
 };
 
+layout(binding=PARTICLE_SMLENGTH_BUFFER_BINDING,std430) buffer ParticleSmlength
+{
+    float smlength[];
+};
+
 layout(local_size_x=WGSIZE,local_size_y=1,local_size_z=1) in;
 
 uniform float eps;
@@ -38,7 +43,7 @@ void main()
 
     const uint idxi = gl_GlobalInvocationID.x % NUM_PARTICLES;
     const vec4 posi = positions[idxi];
-    const vec4 hydroi = hydro[idxi];
+    const float hi =  smlength[idxi];
 
     float density =0; // lets sum up the density here
     float densityPlus =0; // needed for drho/dh
@@ -62,9 +67,9 @@ void main()
             const vec3 r = posi.xyz - posj.xyz;
             const float r2 = dot(r,r);
 
-            density +=  posj.w * (Wpoly6(r2, hydroi.z));
-            densityPlus +=  posj.w * (Wpoly6(r2, hydroi.z+eps));
-            densityMinus +=  posj.w * (Wpoly6(r2, hydroi.z-eps));
+            density +=  posj.w * (Wpoly6(r2, hi));
+            densityPlus +=  posj.w * (Wpoly6(r2, hi+eps));
+            densityMinus +=  posj.w * (Wpoly6(r2, hi-eps));
         }
         // sync
         memoryBarrierShared();

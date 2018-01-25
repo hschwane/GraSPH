@@ -26,6 +26,11 @@ layout(binding=PARTICLE_HYDRO_BUFFER_BINDING,std430) buffer ParticleHydro
     vec4 hydro[];
 };
 
+layout(binding=PARTICLE_SMLENGTH_BUFFER_BINDING,std430) buffer ParticleSmlength
+{
+    float smlength[];
+};
+
 layout(local_size_x=WGSIZE,local_size_y=1,local_size_z=1) in;
 
 uniform float gravity_constant;
@@ -39,6 +44,7 @@ uniform float alpha; // controle viscosity
 
 shared vec4 pos[gl_WorkGroupSize.x];
 shared vec4 hyd[gl_WorkGroupSize.x];
+shared float h[gl_WorkGroupSize.x];
 shared vec3 vel[gl_WorkGroupSize.x];
 
 // perform smoothing using the gradient of the spiky kernel
@@ -73,8 +79,9 @@ void main()
 
     // cache my particle attributes in local memory
     const uint idxi = gl_GlobalInvocationID.x % NUM_PARTICLES;
-    const vec4 posi = positions[idxi];
     const vec4 hydroi = hydro[idxi];
+    const vec4 posi = positions[idxi];
+    const float hi = smlength[idxi];
     const vec3 veli = velocities[idxi].xyz;
     vec3 accPressure = vec3(0); // lets sum up the acceleration here
     vec4 accGravity = vec4(0); // lets sum up the acceleration here .w is the desired mass change caused by sink particles
@@ -92,6 +99,7 @@ void main()
             const uint idx= tileStartIndex + gl_LocalInvocationID.x;
             pos[gl_LocalInvocationID.x] = positions[idx];
             hyd[gl_LocalInvocationID.x] = hydro[idx];
+            h[gl_LocalInvocationID.x] = smlength[idx];
             vel[gl_LocalInvocationID.x] = velocities[idx].xyz;
             // sync
             memoryBarrierShared();
@@ -103,6 +111,7 @@ void main()
                 {
                     const vec4 posj = pos[j];
                     const vec4 hydroj = hyd[j];
+                    const float hj = h[j];
                     const vec3 velj = vel[j];
 
                     const vec3 rij = posi.xyz - posj.xyz; // vector from i to j
@@ -113,27 +122,27 @@ void main()
 //
                         accGravity.xyz += interaction(posi, posj, smoothing_epsilon_squared_sph);
                         const float pod2j = pressure(hydroj.y) / (hydroj.y*hydroj.y);
-                        const float hij = (hydroi.z+hydroj.z)*0.5; // arimethic mean of smoothing lengths
-                        const vec3 vij = veli.xyz - velj.xyz; // relative velocity
+                        const float hij = (hi+hj)*0.5; // arimethic mean of smoothing lengths
 
 #ifdef FAST_SPH
                         accPressure -= posj.w * (pod2i+pod2j) * Wspiky(rij,dist,hij);
 #else
-                        const float pfi=1.0/(1+ hydroi.z/(3*hydroi.y) * hydroi.w);
-                        const float pfj=1.0/(1+ hydroj.z/(3*hydroj.y) * hydroj.w);
+                        const float pfi=1.0/(1+ hi/(3*hydroi.y) * hydroi.w);
+                        const float pfj=1.0/(1+ hj/(3*hydroj.y) * hydroj.w);
 
-                        const vec3 gradi = Wspiky(rij,dist,hydroi.z);
-                        const vec3 gradj = Wspiky(rij,dist,hydroj.z);
+                        const vec3 gradi = Wspiky(rij,dist,hi);
+                        const vec3 gradj = Wspiky(rij,dist,hj);
 
                         accPressure -= posj.w * (pfi*pod2i* gradi + pfj*pod2j* gradj);
 #endif
+                        const vec3 vij = veli.xyz - velj.xyz; // relative velocity
 
 #ifdef LIQUID_VIS
                         accPressure +=  alpha * posj.w  * (-vij)/hydroj.y * Wvisc(dist,hij);
 #else
                         // calc speed of sound
-                        float ci = sqrt(ac*hydroi.x/hydroi.y);
-                        float cj = sqrt(ac*hydroj.x/hydroj.y);
+                        float ci = sqrt(ac*pressure(hydroi.y)/hydroi.y);
+                        float cj = sqrt(ac*pressure(hydroj.y)/hydroj.y);
 
                         // calc vorticity
 //                        float vorti = length(posj.w * cross((velj-veli)/hydroi.y, gradi));

@@ -9,6 +9,11 @@ layout(binding=PARTICLE_HYDRO_BUFFER_BINDING,std430) buffer ParticleHydro
     vec4 hydro[];
 };
 
+layout(binding=PARTICLE_SMLENGTH_BUFFER_BINDING,std430) buffer ParticleSmlength
+{
+    float smlength[];
+};
+
 layout(local_size_variable) in;
 
 uniform float hmax;
@@ -18,5 +23,5 @@ void main()
 {
     vec4 hydi = hydro[gl_GlobalInvocationID.x];
     float hi = clamp(pow(3*50*20/ (16000*hydi.y*4*PI),1.0f/3.0f),hmin,hmax);
-    hydro[gl_GlobalInvocationID.x].z = hi;
+    smlength[gl_GlobalInvocationID.x] = hi;
 }
