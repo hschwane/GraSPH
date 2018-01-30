@@ -65,12 +65,6 @@ float Wvisc(float dist, float h)
     return (dist < h) ? (45 / (PI * pow(h,6))) * (h - dist) :0;
 }
 
-// calculate the pressure from the density
-float pressure(float density)
-{
-    return k * pow(density,ac);
-}
-
 // This shader updates a particles acceleration by interacting with all other particles,
 // using shared memory to speed up memory access
 void main()
@@ -87,7 +81,7 @@ void main()
     vec4 accGravity = vec4(0); // lets sum up the acceleration here .w is the desired mass change caused by sink particles
 
     // calculate some values that are the same for all loop iterations
-    const float pod2i = (pressure(hydroi.y) / (hydroi.y*hydroi.y));
+    const float pod2i = (hydroi.x / (hydroi.y*hydroi.y));
 
     // loop over tiles in a row for as many tiles one thread is configured to calculate
     // calculate the interactions of a particle with gl_WorkGroupSize.x particles in one tile
@@ -121,7 +115,7 @@ void main()
 //                    {
 //
                         accGravity.xyz += interaction(posi, posj, smoothing_epsilon_squared_sph);
-                        const float pod2j = pressure(hydroj.y) / (hydroj.y*hydroj.y);
+                        const float pod2j = hydroj.x / (hydroj.y*hydroj.y);
                         const float hij = (hi+hj)*0.5; // arimethic mean of smoothing lengths
 
 #ifdef FAST_SPH
@@ -141,8 +135,8 @@ void main()
                         accPressure +=  alpha * posj.w  * (-vij)/hydroj.y * Wvisc(dist,hij);
 #else
                         // calc speed of sound
-                        float ci = sqrt(ac*pressure(hydroi.y)/hydroi.y);
-                        float cj = sqrt(ac*pressure(hydroj.y)/hydroj.y);
+                        float ci = sqrt(ac*hydroi.x/hydroi.y);
+                        float cj = sqrt(ac*hydroj.x/hydroj.y);
 
                         // calc vorticity
 //                        float vorti = length(posj.w * cross((velj-veli)/hydroi.y, gradi));

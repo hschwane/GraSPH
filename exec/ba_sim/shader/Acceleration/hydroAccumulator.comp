@@ -9,21 +9,31 @@ layout(binding=PARTICLE_HYDRO_BUFFER_BINDING,std430) buffer ParticleHydro
     vec4 hydro[];
 };
 
-uniform float rest_density;
+uniform float k;
+uniform float ac;
 uniform float sink_th;
 
 layout(local_size_variable) in;
 
 void main()
 {
-    vec2 sum = vec2(0);
+    vec4 sum = vec4(0);
 
 //    if(hydro[gl_GlobalInvocationID.x].w >0)
         for(uint i=0; i < HYDROS_PER_PARTICLE; i++)
         {
-            sum += hydro[NUM_PARTICLES * i + gl_GlobalInvocationID.x].yw;
+            sum += hydro[NUM_PARTICLES * i + gl_GlobalInvocationID.x];
         }
 
 //    float isSink = (density > sink_th) ? hydro[gl_GlobalInvocationID.x].w : hydro[gl_GlobalInvocationID.x].w;
-    hydro[gl_GlobalInvocationID.x].yw = sum;
+
+    // calculate viscosity correction value
+    float vorticity = (sum.x/sum.y);
+    float divergence = (sum.z/sum.y);
+    float fi = vorticity / divergence + vorticity;
+
+    // calculate pressure
+    float pressure = k * pow(sum.y,ac);
+
+    hydro[gl_GlobalInvocationID.x] = vec4(pressure, sum.y, fi, sum.w);
 }

@@ -78,6 +78,8 @@ int main()
                                    {"HYDROS_PER_PARTICLE",{mpu::toString(DENSITY_THREADS_PER_PARTICLE)}}
                                   });
     hydroAccum.uniform1f("sink_th",SINK_TH);
+    hydroAccum.uniform1f("k",K);
+    hydroAccum.uniform1f("ac",AC);
 
     mpu::gph::ShaderProgram pressureShader({{PROJECT_SHADER_PATH"Acceleration/sm-optimized/smo-SPHpressureAccGravity.comp"}},
                                            {
