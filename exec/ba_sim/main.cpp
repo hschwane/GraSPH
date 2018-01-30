@@ -150,20 +150,16 @@ int main()
     // TODO: maybe optimize tagging and make absorption faster
 
     // sph
-    // TODO: play with different h adjustment algorithmens
     // TODO: change sph kernel
-    // TODO: add shear viscosity term to viscosity
     // TODO: test fractation EOS
 
     // initial conditions
     // TODO: make the initial velocity noise better
-    // TODO: spawn orbiting particles
 
     // performance
-    // TODO: adaptive timestep
+    // TODO: adaptive timestep and fix the time integration scheme
     // TODO: enable prerenderd simulation
     // TODO: add datastructure
-    // TODO: better accumulator
 
     // output and visualisation
     // TODO: output information of stars
@@ -171,15 +167,16 @@ int main()
     // TODO: make star visualisation better
 
     // usability and debugging
-    // TODO: add gpu stopwatch
     // TODO: print particles to readable file for debug
     // TODO: finally code a f***ing gui
-    // TODO: better speed control for fast simulations
+    // TODO: better speed control for fast simulations <- haha not needed, all the simulations are slow as f**k
 
-    // misc
-    // TODO: fix the time integration scheme
-    // TODO: make different particle sizes possible
+    // not so important stuff
+    // TODO: add gpu stopwatch
+    // TODO: spawn orbiting particles
+    // TODO: better accumulator
     // TODO: 2D mode
+
 
     bool runSim = false;
     bool printButtonDown = false;
@@ -216,10 +213,10 @@ int main()
             glm::vec4 sum = std::accumulate( hdata.begin(), hdata.end(),glm::vec4(0));
             sum /= hdata.size();
 
-            for(auto &&item : hdata)
-            {
-                logDEBUG("Particle data") << "Hydro: " << glm::to_string(item);
-            }
+//            for(auto &&item : hdata)
+//            {
+//                logDEBUG("Particle data") << "Hydro: " << glm::to_string(item);
+//            }
             logDEBUG("Particle data") << "Mean density: " << sum.y << " Mean Pressure: " << sum.x << " Mean Smoothing length: " << sum.z;
 
             mpu::gph::Buffer temp;
@@ -227,13 +224,25 @@ int main()
             pb.positionBuffer.copyTo(temp);
             glMemoryBarrier(GL_ALL_BARRIER_BITS);
             std::vector<glm::vec4> pdata = temp.read<glm::vec4>(pb.size(),0);
-            for(auto &&item : pdata)
+//            for(auto &&item : pdata)
 //            {
 //                logDEBUG("Particle data") << "Position: " << glm::to_string(item);
 //            }
 
-            std::vector<glm::vec4> adata = pb.accelerationBuffer.read<glm::vec4>( pb.size()*pb.accPerParticle(),0);
+            temp.recreate();
+            temp.allocate<float>(pb.size(),GL_MAP_READ_BIT | GL_MAP_PERSISTENT_BIT);
+            pb.smlengthBuffer.copyTo(temp);
+            glMemoryBarrier(GL_ALL_BARRIER_BITS);
+            std::vector<float> smlength = temp.read<float>(pb.size(),0);
             int i=0;
+            for(auto &&item : hdata)
+            {
+                logDEBUG("Particle data") << "mass under curve: " << 4 * glm::pi<float>() /3 * smlength[i]*smlength[i]*smlength[i] * item.y << " H:" << smlength[i];
+                i++;
+            }
+
+//            std::vector<glm::vec4> adata = pb.accelerationBuffer.read<glm::vec4>( pb.size()*pb.accPerParticle(),0);
+//            int i=0;
 //            for(auto &&item : adata)
 //            {
 //                if(item.w != 0)

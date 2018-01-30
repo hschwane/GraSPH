@@ -138,20 +138,13 @@ void main()
                         float ci = sqrt(ac*hydroi.x/hydroi.y);
                         float cj = sqrt(ac*hydroj.x/hydroj.y);
 
-                        // calc vorticity
-//                        float vorti = length(posj.w * cross((velj-veli)/hydroi.y, gradi));
-//                        float vortj = length(posi.w * cross((veli-velj)/hydroi.y, gradj));
-//
-//                        float vfi = vorti / (length(dot((velj-veli)/hydroi.y,gradi))+vorti);
-//                        float vfj = vortj / (length(dot((veli-velj)/hydroi.y,gradj))+vortj);
-//                        float vfij = (vfi+vfj)*0.5;
-//                        vfij = (isnan(vfij))?1:vfij;
+                        float vfij = (hydroi.z+hydroj.z)*0.5;
 
                         float wij = dot(vij,rij)/dist;
                         wij = (wij <0) ? wij : 0;
                         float vsig = ci+cj - 3.0*wij;
                         float rhoij = (hydroj.y + hydroi.y)*0.5;
-                        float II = -alpha*0.5 * vsig * wij / rhoij;
+                        float II = vfij * -alpha*0.5 * vsig * wij / rhoij;
 
                         accPressure -=  posj.w  * II * Wspiky(rij,dist,hij);
 #endif

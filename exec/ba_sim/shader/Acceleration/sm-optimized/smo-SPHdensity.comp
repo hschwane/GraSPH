@@ -64,7 +64,7 @@ void main()
     float density =0; // lets sum up the density here
     float densityPlus =0; // needed for drho/dh
     float densityMinus =0; // needed for drho/dh
-    float vorticity =0; // curl operator of the velocity
+    vec3 vorticity =vec3(0); // curl operator of the velocity
     float divergence =0; // divergence of the velocity
 
     // loop over tiles in a row for as many tiles one thread is configured to calculate
@@ -95,14 +95,15 @@ void main()
 
             // calculate vorticity and divergence of the velocity
             vec3 gradi = Wspiky(rij,dist,hi);
-            vec3 vij = velj - veli;
-            vorticity += length(posj.w * cross(vij, gradi));
-            divergence += length(dot(vij,gradi));
+            vec3 vij = veli - velj;
+            vorticity +=  posj.w * cross(vij, gradi);
+            divergence += dot(velj - veli,gradi);
         }
         // sync
         memoryBarrierShared();
         barrier();
     }
 
-    hydro[gl_GlobalInvocationID.x] = vec4(vorticity, density, divergence,(densityPlus-densityMinus)/(2*eps));
+    float vort = length(vorticity);
+    hydro[gl_GlobalInvocationID.x] = vec4(vort, density, divergence,(densityPlus-densityMinus)/(2*eps));
 }

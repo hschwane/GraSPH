@@ -9,6 +9,11 @@ layout(binding=PARTICLE_HYDRO_BUFFER_BINDING,std430) buffer ParticleHydro
     vec4 hydro[];
 };
 
+layout(binding=PARTICLE_SMLENGTH_BUFFER_BINDING,std430) buffer ParticleSmlength
+{
+    float smlength[];
+};
+
 uniform float k;
 uniform float ac;
 uniform float sink_th;
@@ -27,13 +32,14 @@ void main()
 
 //    float isSink = (density > sink_th) ? hydro[gl_GlobalInvocationID.x].w : hydro[gl_GlobalInvocationID.x].w;
 
+    // calculate pressure
+    float pressure = k * pow(sum.y,ac);
+
     // calculate viscosity correction value
     float vorticity = (sum.x/sum.y);
     float divergence = (sum.z/sum.y);
-    float fi = vorticity / divergence + vorticity;
-
-    // calculate pressure
-    float pressure = k * pow(sum.y,ac);
+    float ci = sqrt(ac*pressure/sum.y);
+    float fi = divergence / (divergence + vorticity+0.001*ci/smlength[gl_GlobalInvocationID.x]);
 
     hydro[gl_GlobalInvocationID.x] = vec4(pressure, sum.y, fi, sum.w);
 }
