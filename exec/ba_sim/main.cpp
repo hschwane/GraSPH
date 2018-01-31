@@ -38,18 +38,18 @@ int main()
     ParticleBuffer pb(NUM_PARTICLES,ACCEL_THREADS_PER_PARTICLE,DENSITY_THREADS_PER_PARTICLE);
     ParticleSpawner spawner;
     spawner.setBuffer(pb);
-//    spawner.spawnParticlesMultiSphere(TOTAL_MASS, {{1.5,{1.5,-.8,-.2},0.2},
-//                                                   {1.5,{-1.5,-.5,-.3},0.2},
-//                                                   {1.5,{0,1.5,-.5},0.2},
-//                                                   {3,{0,0,0},0.4}});
     spawner.spawnParticlesSphere(TOTAL_MASS,SPAWN_RADIUS);
     spawner.addMultiFrequencyCurl( {
-                                        {{0.4},{0.1}},
-                                        {{0.1},{0.1}}
-                                       },512,HMIN,HMAX);
-//    spawner.addCurlVelocityField(0.2, .2, 68654);
-//    spawner.addCurlVelocityField(0.1, 1, 512);
-//    spawner.addCurlVelocityField(0.6, 0.2, 2635);
+//                                        {{0.6},{0.2}},
+                                        {{0.4},{0.6}},
+                                        {{0.3},{1}},
+                                        {{0.1},{0.8}}
+//                                        {{0.08},{0.8}}
+                                       },74,HMIN,HMAX);
+//    spawner.addSimplexVelocityField(0.5,0.15,10);
+//    spawner.addSimplexVelocityField(0.3,0.05,452);
+//    spawner.addSimplexVelocityField(0.1,0.15,876);
+
 
     // create a renderer
     ParticleRenderer renderer;
@@ -117,16 +117,16 @@ int main()
     densityShader.dispatch(NUM_PARTICLES*DENSITY_THREADS_PER_PARTICLE/DENSITY_WGSIZE);
 
     auto accFunc = [densityShader,pressureShader,wgSize,hydroAccum,accAccum,adjustH](){
-//        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-//        adjustH.dispatch(NUM_PARTICLES,wgSize);
-//        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-//        densityShader.dispatch(NUM_PARTICLES*DENSITY_THREADS_PER_PARTICLE/DENSITY_WGSIZE);
-//        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-//        hydroAccum.dispatch(NUM_PARTICLES,wgSize);
-//        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-//        pressureShader.dispatch(NUM_PARTICLES*ACCEL_THREADS_PER_PARTICLE/PRESSURE_WGSIZE);
-//        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-//        accAccum.dispatch(NUM_PARTICLES,wgSize);
+        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+        adjustH.dispatch(NUM_PARTICLES,wgSize);
+        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+        densityShader.dispatch(NUM_PARTICLES*DENSITY_THREADS_PER_PARTICLE/DENSITY_WGSIZE);
+        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+        hydroAccum.dispatch(NUM_PARTICLES,wgSize);
+        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+        pressureShader.dispatch(NUM_PARTICLES*ACCEL_THREADS_PER_PARTICLE/PRESSURE_WGSIZE);
+        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+        accAccum.dispatch(NUM_PARTICLES,wgSize);
 //        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 //        sinkHandler.dispatch(NUM_PARTICLES,wgSize);
     };

@@ -21,7 +21,7 @@ constexpr double DT = 0.003;
 
 // particles
 constexpr float TOTAL_MASS              = 20;//1e-22*1.98892e30 /1000;
-constexpr unsigned int NUM_PARTICLES    = 64000;
+constexpr unsigned int NUM_PARTICLES    = 16000;
 constexpr float SPAWN_RADIUS            = 6;
 const glm::vec3 LOWER_BOUND             = glm::vec3(-1,-1,-1);
 const glm::vec3 UPPER_BOUND             = glm::vec3(1,1,1);
@@ -32,7 +32,7 @@ constexpr double EPS2_SPH   = 0.002;
 constexpr float G           = 1;//6.67408e-11 ;//* 1e-9 *1000;
 
 // sph
-constexpr float K       = 0.04;
+constexpr float K       = 0.06;
 constexpr float VISC    = 0.8;
 constexpr float HMIN    = 0.02;
 constexpr float HMAX    = 3;
