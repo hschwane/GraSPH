@@ -21,7 +21,8 @@
 //-------------------------------------------------------------------
 ParticleSpawner::ParticleSpawner()
         : m_cubeSpawnShader({{PROJECT_SHADER_PATH"ParticleSpawner/cubeSpawn.comp"}}),
-          m_initialVelocityShader({{PROJECT_SHADER_PATH"ParticleSpawner/initialVelocity.comp"}}),
+          m_initialVelocitySimplexShader({{PROJECT_SHADER_PATH"ParticleSpawner/initialVelocitySimplex.comp"}}),
+          m_initialVelocityCurlShader({{PROJECT_SHADER_PATH"ParticleSpawner/initialVelocityCurl.comp"}}),
           m_sphereSpawnShader({{PROJECT_SHADER_PATH"ParticleSpawner/sphereSpawn.comp"}})
 {
 }
@@ -140,11 +141,20 @@ void ParticleSpawner::spawnParticlesMultiSphere(const float totalMass, const std
     }
 }
 
-void ParticleSpawner::addRandomVelocityField(float frequency, float scale, int seed)
+void ParticleSpawner::addSimplexVelocityField(float frequency, float scale, int seed)
 {
-    m_initialVelocityShader.uniform1i("seed", seed);
-    m_initialVelocityShader.uniform1f("frequency", frequency);
-    m_initialVelocityShader.uniform1f("scale", scale);
+    m_initialVelocitySimplexShader.uniform1i("seed", seed);
+    m_initialVelocitySimplexShader.uniform1f("frequency", frequency);
+    m_initialVelocitySimplexShader.uniform1f("scale", scale);
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-    m_initialVelocityShader.dispatch(m_particleBuffer.size(),calcWorkgroupSize(m_particleBuffer.size()));
+    m_initialVelocitySimplexShader.dispatch(m_particleBuffer.size(),calcWorkgroupSize(m_particleBuffer.size()));
+}
+
+void ParticleSpawner::addCurlVelocityField(float frequency, float scale, int seed)
+{
+    m_initialVelocityCurlShader.uniform1i("seed", seed);
+    m_initialVelocityCurlShader.uniform1f("frequency", frequency);
+    m_initialVelocityCurlShader.uniform1f("scale", scale);
+    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+    m_initialVelocityCurlShader.dispatch(m_particleBuffer.size(),calcWorkgroupSize(m_particleBuffer.size()));
 }

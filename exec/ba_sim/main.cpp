@@ -43,8 +43,9 @@ int main()
 //                                                   {1.5,{0,1.5,-.5},0.2},
 //                                                   {3,{0,0,0},0.4}});
     spawner.spawnParticlesSphere(TOTAL_MASS,SPAWN_RADIUS);
-    spawner.addRandomVelocityField(0.4, 0.25, 512);
-    spawner.addRandomVelocityField(0.1, 0.3, 1024);
+    spawner.addSimplexVelocityField(0.2, .2, 68654);
+    spawner.addSimplexVelocityField(0.4, 0.2, 9895);
+    spawner.addSimplexVelocityField(0.6, 0.2, 2635);
 
     // create a renderer
     ParticleRenderer renderer;

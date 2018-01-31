@@ -17,7 +17,7 @@
 //--------------------
 
 // time
-constexpr double DT = 0.003;
+constexpr double DT = 0.005;
 
 // particles
 constexpr float TOTAL_MASS              = 20;//1e-22*1.98892e30 /1000;
@@ -33,7 +33,7 @@ constexpr float G           = 1;//6.67408e-11 ;//* 1e-9 *1000;
 
 // sph
 constexpr float K       = 0.04;
-constexpr float VISC    = 0.8;
+constexpr float VISC    = 0.9;
 constexpr float HMIN    = 0.02;
 constexpr float HMAX    = 3;
 constexpr float HEPS    = 0.005;
