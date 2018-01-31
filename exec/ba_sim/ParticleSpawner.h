@@ -55,8 +55,9 @@ public:
     void spawnParticlesSphere(const float totalMass, const float radius, const glm::vec3 &center = {0, 0, 0}); //!< spawns particles in a sphere
     void spawnParticlesMultiSphere(const float totalMass, const std::vector<Sphere> spheres); //!< spawns particles in a multiple spheres
 
-    void addSimplexVelocityField(float frequency, float scale, int seed = 0); //!< adds a initial random velocity field based on simplex noise to the particles
-    void addCurlVelocityField(float frequency, float scale, int seed = 0); //!< adds a initial random velocity fiels based on curl noise to the particles
+    void addSimplexVelocityField(float frequency, float scale, int seed); //!< adds a initial random velocity field based on simplex noise to the particles
+    void addCurlVelocityField(float frequency, float scale, int seed); //!< adds a initial random velocity fiels based on curl noise to the particles
+    void addMultiFrequencyCurl(std::vector<std::pair<float, float>> freq, int seed, float hmin, float hmax); //!< add multiple frequencies of simplex noise and calculate the curl using sph methods (him and max are parameters for the adjust-H-shader)
 
     // getter
     ParticleBuffer getParticleBuffer()const{return m_particleBuffer;} //!< returns the particle buffer for use by rendering and simulation classes
@@ -73,6 +74,7 @@ private:
     mpu::gph::ShaderProgram m_sphereSpawnShader; //!< shader for spawning particles in a spere
     mpu::gph::ShaderProgram m_initialVelocitySimplexShader; //!< shader for adding initial velocity
     mpu::gph::ShaderProgram m_initialVelocityCurlShader; //!< shader for adding initial velocity
+    mpu::gph::ShaderProgram m_addSimplexShader; //!< shader for adding simplex noise to the particles acceleration field
 
     ParticleBuffer m_particleBuffer; //!< the buffer where the particles are stored
 

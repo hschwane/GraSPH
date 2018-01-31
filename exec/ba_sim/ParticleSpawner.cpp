@@ -23,6 +23,7 @@ ParticleSpawner::ParticleSpawner()
         : m_cubeSpawnShader({{PROJECT_SHADER_PATH"ParticleSpawner/cubeSpawn.comp"}}),
           m_initialVelocitySimplexShader({{PROJECT_SHADER_PATH"ParticleSpawner/initialVelocitySimplex.comp"}}),
           m_initialVelocityCurlShader({{PROJECT_SHADER_PATH"ParticleSpawner/initialVelocityCurl.comp"}}),
+          m_addSimplexShader({{PROJECT_SHADER_PATH"ParticleSpawner/addPotential.comp"}}),
           m_sphereSpawnShader({{PROJECT_SHADER_PATH"ParticleSpawner/sphereSpawn.comp"}})
 {
 }
@@ -143,6 +144,7 @@ void ParticleSpawner::spawnParticlesMultiSphere(const float totalMass, const std
 
 void ParticleSpawner::addSimplexVelocityField(float frequency, float scale, int seed)
 {
+    m_particleBuffer.bindAll(PARTICLE_BUFFER_BINDING, GL_SHADER_STORAGE_BUFFER);
     m_initialVelocitySimplexShader.uniform1i("seed", seed);
     m_initialVelocitySimplexShader.uniform1f("frequency", frequency);
     m_initialVelocitySimplexShader.uniform1f("scale", scale);
@@ -152,9 +154,62 @@ void ParticleSpawner::addSimplexVelocityField(float frequency, float scale, int 
 
 void ParticleSpawner::addCurlVelocityField(float frequency, float scale, int seed)
 {
+    m_particleBuffer.bindAll(PARTICLE_BUFFER_BINDING, GL_SHADER_STORAGE_BUFFER);
     m_initialVelocityCurlShader.uniform1i("seed", seed);
     m_initialVelocityCurlShader.uniform1f("frequency", frequency);
     m_initialVelocityCurlShader.uniform1f("scale", scale);
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
     m_initialVelocityCurlShader.dispatch(m_particleBuffer.size(),calcWorkgroupSize(m_particleBuffer.size()));
+}
+
+void ParticleSpawner::addMultiFrequencyCurl(std::vector<std::pair<float, float>> freq, int seed, float hmin, float hmax)
+{
+    m_particleBuffer.bindAll(PARTICLE_BUFFER_BINDING, GL_SHADER_STORAGE_BUFFER);
+    mpu::gph::ShaderProgram doCurlShader({{PROJECT_SHADER_PATH"ParticleSpawner/doSPHCurl.comp"}},
+                                         {
+                                                 {"WGSIZE",{mpu::toString(calcWorkgroupSize(m_particleBuffer.size()))}},
+                                                 {"NUM_PARTICLES",{mpu::toString(m_particleBuffer.size())}},
+                                                 {"TILES_PER_THREAD",{mpu::toString(m_particleBuffer.size() / calcWorkgroupSize(m_particleBuffer.size()) / 1)}}
+                                         });
+
+    mpu::gph::ShaderProgram densityShader({{PROJECT_SHADER_PATH"Acceleration/sm-optimized/smo-SPHdensity.comp"}},
+                                          {
+                                                  {"WGSIZE",{mpu::toString(calcWorkgroupSize(m_particleBuffer.size()))}},
+                                                  {"NUM_PARTICLES",{mpu::toString(m_particleBuffer.size())}},
+                                                  {"TILES_PER_THREAD",{mpu::toString(m_particleBuffer.size() / calcWorkgroupSize(m_particleBuffer.size()) / 1)}}
+                                          });
+
+    mpu::gph::ShaderProgram adjustH({{PROJECT_SHADER_PATH"Acceleration/adjustH.comp"}});
+    adjustH.uniform1f("hmin", hmin);
+    adjustH.uniform1f("hmax", hmax);
+
+    // generate the potential field
+    srand(seed);
+    auto randSeed = []{return (rand() % static_cast<int>(9999));};
+    for(auto &&item : freq)
+    {
+        m_addSimplexShader.uniform1i("seed", randSeed());
+        m_addSimplexShader.uniform1f("frequency", item.first);
+        m_addSimplexShader.uniform1f("scale", item.second);
+        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+        m_addSimplexShader.dispatch(m_particleBuffer.size(),calcWorkgroupSize(m_particleBuffer.size()));
+    }
+
+    // adjust the smoothing length to something usefull
+    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+    densityShader.dispatch(m_particleBuffer.size()*1/calcWorkgroupSize(m_particleBuffer.size()));
+    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+    adjustH.dispatch(m_particleBuffer.size(),calcWorkgroupSize(m_particleBuffer.size()));
+
+    // another iteration
+    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+    densityShader.dispatch(m_particleBuffer.size()*1/calcWorkgroupSize(m_particleBuffer.size()));
+    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+    adjustH.dispatch(m_particleBuffer.size(),calcWorkgroupSize(m_particleBuffer.size()));
+
+    // now calculate the curl
+    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+    densityShader.dispatch(m_particleBuffer.size()*1/calcWorkgroupSize(m_particleBuffer.size()));
+    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+    doCurlShader.dispatch(m_particleBuffer.size()*1/calcWorkgroupSize(m_particleBuffer.size()));
 }

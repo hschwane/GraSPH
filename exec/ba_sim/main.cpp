@@ -43,9 +43,13 @@ int main()
 //                                                   {1.5,{0,1.5,-.5},0.2},
 //                                                   {3,{0,0,0},0.4}});
     spawner.spawnParticlesSphere(TOTAL_MASS,SPAWN_RADIUS);
-    spawner.addSimplexVelocityField(0.2, .2, 68654);
-    spawner.addSimplexVelocityField(0.4, 0.2, 9895);
-    spawner.addSimplexVelocityField(0.6, 0.2, 2635);
+    spawner.addMultiFrequencyCurl( {
+                                        {{0.4},{0.1}},
+                                        {{0.1},{0.1}}
+                                       },512,HMIN,HMAX);
+//    spawner.addCurlVelocityField(0.2, .2, 68654);
+//    spawner.addCurlVelocityField(0.1, 1, 512);
+//    spawner.addCurlVelocityField(0.6, 0.2, 2635);
 
     // create a renderer
     ParticleRenderer renderer;
@@ -113,16 +117,16 @@ int main()
     densityShader.dispatch(NUM_PARTICLES*DENSITY_THREADS_PER_PARTICLE/DENSITY_WGSIZE);
 
     auto accFunc = [densityShader,pressureShader,wgSize,hydroAccum,accAccum,adjustH](){
-        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-        adjustH.dispatch(NUM_PARTICLES,wgSize);
-        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-        densityShader.dispatch(NUM_PARTICLES*DENSITY_THREADS_PER_PARTICLE/DENSITY_WGSIZE);
-        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-        hydroAccum.dispatch(NUM_PARTICLES,wgSize);
-        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-        pressureShader.dispatch(NUM_PARTICLES*ACCEL_THREADS_PER_PARTICLE/PRESSURE_WGSIZE);
-        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-        accAccum.dispatch(NUM_PARTICLES,wgSize);
+//        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+//        adjustH.dispatch(NUM_PARTICLES,wgSize);
+//        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+//        densityShader.dispatch(NUM_PARTICLES*DENSITY_THREADS_PER_PARTICLE/DENSITY_WGSIZE);
+//        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+//        hydroAccum.dispatch(NUM_PARTICLES,wgSize);
+//        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+//        pressureShader.dispatch(NUM_PARTICLES*ACCEL_THREADS_PER_PARTICLE/PRESSURE_WGSIZE);
+//        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+//        accAccum.dispatch(NUM_PARTICLES,wgSize);
 //        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 //        sinkHandler.dispatch(NUM_PARTICLES,wgSize);
     };
@@ -235,21 +239,27 @@ int main()
             pb.smlengthBuffer.copyTo(temp);
             glMemoryBarrier(GL_ALL_BARRIER_BITS);
             std::vector<float> smlength = temp.read<float>(pb.size(),0);
-            int i=0;
-            for(auto &&item : hdata)
-            {
-                logDEBUG("Particle data") << "mass under curve: " << 4 * glm::pi<float>() /3 * smlength[i]*smlength[i]*smlength[i] * item.y << " H:" << smlength[i];
-                i++;
-            }
+//            int i=0;
+//            for(auto &&item : hdata)
+//            {
+//                logDEBUG("Particle data") << "mass under curve: " << 4 * glm::pi<float>() /3 * smlength[i]*smlength[i]*smlength[i] * item.y << " H:" << smlength[i];
+//                i++;
+//            }
 
 //            std::vector<glm::vec4> adata = pb.accelerationBuffer.read<glm::vec4>( pb.size()*pb.accPerParticle(),0);
 //            int i=0;
 //            for(auto &&item : adata)
 //            {
-//                if(item.w != 0)
-//                logWARNING("Particle data") << "ITS FUCKIN NOT ZERO! value is: " << item.w << " at entry " << i;
+//                if(i < 600)
+//                logDEBUG("Particle data") << "acc is: " << glm::to_string(item) << " at entry " << i;
 //                i++;
 //            }
+
+            std::vector<glm::vec4> vdata = pb.velocityBuffer.read<glm::vec4>( pb.size(),0);
+            for(auto &&item : vdata)
+            {
+                    logDEBUG("Particle data") << "vel is: " << glm::to_string(item);
+            }
 
             glm::vec4 pos = std::accumulate( pdata.begin(), pdata.end(),glm::vec4(0,0,0,0));
             logDEBUG("Particle data") << "total mass: " << pos.w;

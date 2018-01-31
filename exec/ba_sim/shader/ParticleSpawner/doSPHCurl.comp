@@ -1,0 +1,91 @@
+#version 450 core
+// we have to use a fixed work group size here
+
+#include "common.glsl"
+#include "mathConst.glsl"
+
+layout(binding=PARTICLE_POSITION_BUFFER_BINDING,std430) buffer ParticlePositions
+{
+    vec4 positions[];
+};
+
+layout(binding=PARTICLE_VELOCITY_BUFFER_BINDING,std430) buffer ParticleVelocities
+{
+    vec4 velocities[];
+};
+
+layout(binding=PARTICLE_ACCELERATION_BUFFER_BINDING,std430) buffer ParticleAccelerations
+{
+    vec4 accelerations[];
+};
+
+layout(binding=PARTICLE_HYDRO_BUFFER_BINDING,std430) buffer ParticleHydro
+{
+    vec4 hydro[];
+};
+
+layout(binding=PARTICLE_SMLENGTH_BUFFER_BINDING,std430) buffer ParticleSmlength
+{
+    float smlength[];
+};
+
+layout(local_size_x=WGSIZE,local_size_y=1,local_size_z=1) in;
+
+shared vec4 pos[gl_WorkGroupSize.x];
+shared vec3 noise[gl_WorkGroupSize.x];
+
+// perform smoothing using the gradient of the spiky kernel
+// rij is a vector posi - posj
+// dist is ||rij||
+// and h the smoothing length
+vec3 Wspiky(vec3 rij, float dist  ,float h)
+{
+    return (dist < h && dist != 0) ? (-45 / (PI * pow(h,6))) * pow(h - dist,2)* rij/dist : vec3(0,0,0);
+}
+
+// This shader updates a particles acceleration by interacting with all other particles,
+// using shared memory to speed up memory access
+void main()
+{
+    const uint startTile = TILES_PER_THREAD * uint(gl_GlobalInvocationID.x / NUM_PARTICLES); // there can be multiple threads per particle, so where do we start calculating?
+
+    const uint idxi = gl_GlobalInvocationID.x % NUM_PARTICLES;
+    const vec4 posi = positions[idxi];
+    const float hi =  smlength[idxi];
+    const vec3 noisei = accelerations[idxi].xyz;
+
+    vec3 curl =vec3(0);
+
+    // loop over tiles in a row for as many tiles one thread is configured to calculate
+    // calculate the interactions of a particle with gl_WorkGroupSize.x particles in one tile
+    // repeat until all interactions in all tiles are calculatedsss
+    for(uint tile = 0; tile < TILES_PER_THREAD; tile++)
+    {
+        // fill fields in shared memory
+        uint idx = gl_WorkGroupSize.x * (startTile + tile) + gl_LocalInvocationID.x;
+        pos[gl_LocalInvocationID.x] = positions[idx];
+        noise[gl_LocalInvocationID.x] = accelerations[idx].xyz;
+        // sync
+        memoryBarrierShared();
+        barrier();
+        // calculate the row up to here
+        for(uint j=0; j<gl_WorkGroupSize.x; j++)
+        {
+            const vec4 posj = pos[j];
+            const vec3 noisej = noise[j];
+            const vec3 rij = posi.xyz - posj.xyz;
+            const float dist = length(rij);
+
+            // calculate vorticity and divergence of the velocity
+            vec3 gradi = Wspiky(rij,dist,hi);
+            vec3 nij = noisei - noisej;
+            curl +=  posj.w * cross(nij, gradi);
+        }
+        // sync
+        memoryBarrierShared();
+        barrier();
+    }
+
+    curl /= hydro[gl_GlobalInvocationID.x].y;
+    velocities[gl_GlobalInvocationID.x] = vec4(curl,0);
+}
