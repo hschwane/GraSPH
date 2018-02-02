@@ -48,6 +48,23 @@ void main()
     vec3 vorticity =vec3(0); // curl operator of the velocity
     float divergence =0; // divergence of the velocity
 
+    // cache those values since we will always use the same h
+    const float hi2 = hi*hi;
+    const float hiPoly6Factor = poly6Factor(hi);
+
+#ifndef DISABLE_DH_CORRECTION
+    const float hipe = hi+eps;
+    const float hime = hi-eps;
+    const float hipe2 = hipe*hipe;
+    const float hime2 = hime*hime;
+    const float hipePoly6Factor = poly6Factor(hipe);
+    const float himePoly6Factor = poly6Factor(hime);
+#endif
+
+#ifndef DISABLE_VISC_VORT_CORRECTION
+    const float hiPolyGrad6Factor = poly6GradFactor(hi);
+#endif
+
     // loop over tiles in a row for as many tiles one thread is configured to calculate
     // calculate the interactions of a particle with gl_WorkGroupSize.x particles in one tile
     // repeat until all interactions in all tiles are calculated
@@ -66,22 +83,20 @@ void main()
             const vec4 posj = pos[j];
             const vec3 velj = vel[j];
             const vec3 rij = posi.xyz - posj.xyz;
-            const float dist = length(rij);
-            const float r2 = dist*dist;
+            const float r2 = dot(rij,rij);
 
             // calculate all densities
-            density +=  posj.w * (Wpoly6(r2, hi));
+            density +=  posj.w * (Wpoly6(r2, hiPoly6Factor, hi2));
 
 #ifndef DISABLE_DH_CORRECTION
-            densityPlus +=  posj.w * (Wpoly6(r2, hi+eps));
-            densityMinus +=  posj.w * (Wpoly6(r2, hi-eps));
+            densityPlus +=  posj.w * (Wpoly6(r2, hipePoly6Factor, hipe2));
+            densityMinus +=  posj.w * (Wpoly6(r2, himePoly6Factor, hime2));
 #endif
 
-#ifndef DISABLE_VISC_VORT_CORRECTION // remember also to disable this in the hydro accumulator
+#ifndef DISABLE_VISC_VORT_CORRECTION // remember to also disable this in the hydro accumulator
             // calculate vorticity and divergence of the velocity
-            vec3 gradi = WspikyGrad(rij,dist,hi);
-            vec3 vij = veli - velj;
-            vorticity +=  posj.w * cross(vij, gradi);
+            vec3 gradi = Wpoly6Grad(rij,r2,hiPolyGrad6Factor,hi2);
+            vorticity +=  posj.w * cross(veli - velj, gradi);
             divergence += dot(velj - veli,gradi);
 #endif
         }

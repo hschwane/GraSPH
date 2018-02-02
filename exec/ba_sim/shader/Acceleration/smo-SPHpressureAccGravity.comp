@@ -100,7 +100,7 @@ void main()
                         const float pod2j = hydroj.x / (hydroj.y*hydroj.y);
 
 #ifdef FAST_PRESSURE
-                        accPressure -= posj.w * (pod2i+pod2j) * Wspiky(rij,dist,(hi+hj)*0.5);
+                        accPressure -= posj.w * (pod2i+pod2j) * WspikyGrad(rij,dist,(hi+hj)*0.5);
 #else
                         const float pfi=1.0/(1+ hi/(3*hydroi.y) * hydroi.w);
                         const float pfj=1.0/(1+ hj/(3*hydroj.y) * hydroj.w);
