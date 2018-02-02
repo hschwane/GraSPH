@@ -26,7 +26,7 @@ layout(binding=PARTICLE_SMLENGTH_BUFFER_BINDING,std430) buffer ParticleSmlength
 
 layout(local_size_x=WGSIZE,local_size_y=1,local_size_z=1) in;
 
-uniform float eps;
+uniform float eps = 0.001;
 
 shared vec4 pos[gl_WorkGroupSize.x];
 shared vec3 vel[gl_WorkGroupSize.x];
@@ -69,7 +69,7 @@ void main()
 
     // loop over tiles in a row for as many tiles one thread is configured to calculate
     // calculate the interactions of a particle with gl_WorkGroupSize.x particles in one tile
-    // repeat until all interactions in all tiles are calculatedsss
+    // repeat until all interactions in all tiles are calculated
     for(uint tile = 0; tile < TILES_PER_THREAD; tile++)
     {
         // fill fields in shared memory
@@ -90,14 +90,19 @@ void main()
 
             // calculate all densities
             density +=  posj.w * (Wpoly6(r2, hi));
+
+#ifndef DISABLE_DH_CORRECTION
             densityPlus +=  posj.w * (Wpoly6(r2, hi+eps));
             densityMinus +=  posj.w * (Wpoly6(r2, hi-eps));
+#endif
 
+#ifndef DISABLE_VISC_VORT_CORRECTION // remember also to disable this in the hydro accumulator
             // calculate vorticity and divergence of the velocity
             vec3 gradi = Wspiky(rij,dist,hi);
             vec3 vij = veli - velj;
             vorticity +=  posj.w * cross(vij, gradi);
             divergence += dot(velj - veli,gradi);
+#endif
         }
         // sync
         memoryBarrierShared();
@@ -105,5 +110,5 @@ void main()
     }
 
     float vort = length(vorticity);
-    hydro[gl_GlobalInvocationID.x] = vec4(vort, density, divergence,(densityPlus-densityMinus)/(2*eps));
+    hydro[gl_GlobalInvocationID.x] = vec4(vort, density, divergence, (densityPlus-densityMinus)/(2*eps));
 }

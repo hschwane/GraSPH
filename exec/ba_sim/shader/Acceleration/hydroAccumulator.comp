@@ -35,11 +35,15 @@ void main()
     // calculate pressure
     float pressure = k * pow(sum.y,ac);
 
+#ifndef DISABLE_VISC_VORT_CORRECTION
     // calculate viscosity correction value
     float vorticity = (sum.x/sum.y);
     float divergence = (sum.z/sum.y);
     float ci = sqrt(ac*pressure/sum.y);
     float fi = divergence / (divergence + vorticity+0.001*ci/smlength[gl_GlobalInvocationID.x]);
+#else
+    float fi = 1;
+#endif
 
     hydro[gl_GlobalInvocationID.x] = vec4(pressure, sum.y, fi, sum.w);
 }

@@ -28,12 +28,12 @@ const glm::vec3 UPPER_BOUND             = glm::vec3(1,1,1);
 
 // gravity
 constexpr double EPS2       = 0.02;
-constexpr double EPS2_SPH   = 0.002;
+constexpr double EPS2_SPH   = 0.006256188;
 constexpr float G           = 1;//6.67408e-11 ;//* 1e-9 *1000;
 
 // sph
-constexpr float K       = 0.06;
-constexpr float VISC    = 0.8;
+constexpr float K       = 0.04;
+constexpr float VISC    = 0.04;
 constexpr float HMIN    = 0.02;
 constexpr float HMAX    = 3;
 constexpr float HEPS    = 0.005;

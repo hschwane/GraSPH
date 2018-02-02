@@ -4,7 +4,7 @@
 
 #include "common.glsl"
 #include "mathConst.glsl"
-#include "../softGravity.glsl"
+#include "softGravity.glsl"
 
 layout(binding=PARTICLE_POSITION_BUFFER_BINDING,std430) buffer ParticlePositions
 {
@@ -104,8 +104,8 @@ void main()
                 for(uint j=0; j<gl_WorkGroupSize.x; j++) // go over everything in this tile
                 {
                     const vec4 posj = pos[j];
-                    const vec4 hydroj = hyd[j];
                     const float hj = h[j];
+                    const vec4 hydroj = hyd[j];
                     const vec3 velj = vel[j];
 
                     const vec3 rij = posi.xyz - posj.xyz; // vector from i to j
@@ -116,10 +116,9 @@ void main()
 //
                         accGravity.xyz += interaction(posi, posj, smoothing_epsilon_squared_sph);
                         const float pod2j = hydroj.x / (hydroj.y*hydroj.y);
-                        const float hij = (hi+hj)*0.5; // arimethic mean of smoothing lengths
 
-#ifdef FAST_SPH
-                        accPressure -= posj.w * (pod2i+pod2j) * Wspiky(rij,dist,hij);
+#ifdef FAST_PRESSURE
+                        accPressure -= posj.w * (pod2i+pod2j) * Wspiky(rij,dist,(hi+hj)*0.5);
 #else
                         const float pfi=1.0/(1+ hi/(3*hydroi.y) * hydroi.w);
                         const float pfj=1.0/(1+ hj/(3*hydroj.y) * hydroj.w);
@@ -129,24 +128,23 @@ void main()
 
                         accPressure -= posj.w * (pfi*pod2i* gradi + pfj*pod2j* gradj);
 #endif
-                        const vec3 vij = veli.xyz - velj.xyz; // relative velocity
 
-#ifdef LIQUID_VIS
-                        accPressure +=  alpha * posj.w  * (-vij)/hydroj.y * Wvisc(dist,hij);
+#ifdef LAPLACE_VISC
+                        accPressure +=  alpha * posj.w  * (velj.xyz - veli.xyz)/hydroj.y * Wvisc(dist,(hi+hj)*0.5);
 #else
                         // calc speed of sound
-                        float ci = sqrt(ac*hydroi.x/hydroi.y);
-                        float cj = sqrt(ac*hydroj.x/hydroj.y);
+                        const float ci = sqrt(ac*hydroi.x/hydroi.y);
+                        const float cj = sqrt(ac*hydroj.x/hydroj.y);
 
-                        float vfij = (hydroi.z+hydroj.z)*0.5;
+                        const float vfij = (hydroi.z+hydroj.z)*0.5;
 
-                        float wij = dot(vij,rij)/dist;
+                        float wij = dot(veli.xyz - velj.xyz,rij)/dist;
                         wij = (wij <0) ? wij : 0;
-                        float vsig = ci+cj - 3.0*wij;
-                        float rhoij = (hydroj.y + hydroi.y)*0.5;
-                        float II = vfij * -alpha*0.5 * vsig * wij / rhoij;
+                        const float vsig = ci+cj - 3.0*wij;
+                        const float rhoij = (hydroj.y + hydroi.y)*0.5;
+                        const float II = vfij * -alpha*0.5 * vsig * wij / rhoij;
 
-                        accPressure -=  posj.w  * II * Wspiky(rij,dist,hij);
+                        accPressure -=  posj.w  * II * Wspiky(rij,dist,(hi+hj)*0.5);
 #endif
 //                    }
 

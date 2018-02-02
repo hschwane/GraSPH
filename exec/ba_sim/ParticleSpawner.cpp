@@ -172,7 +172,7 @@ void ParticleSpawner::addMultiFrequencyCurl(std::vector<std::pair<float, float>>
                                                  {"TILES_PER_THREAD",{mpu::toString(m_particleBuffer.size() / calcWorkgroupSize(m_particleBuffer.size()) / 1)}}
                                          });
 
-    mpu::gph::ShaderProgram densityShader({{PROJECT_SHADER_PATH"Acceleration/sm-optimized/smo-SPHdensity.comp"}},
+    mpu::gph::ShaderProgram densityShader({{PROJECT_SHADER_PATH"Acceleration/smo-SPHdensity.comp"}},
                                           {
                                                   {"WGSIZE",{mpu::toString(calcWorkgroupSize(m_particleBuffer.size()))}},
                                                   {"NUM_PARTICLES",{mpu::toString(m_particleBuffer.size())}},

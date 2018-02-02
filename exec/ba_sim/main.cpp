@@ -68,7 +68,7 @@ int main()
     camera.setClip(0.01,200);
 
     // create hydrodynamics based acceleration function
-    mpu::gph::ShaderProgram densityShader({{PROJECT_SHADER_PATH"Acceleration/sm-optimized/smo-SPHdensity.comp"}},
+    mpu::gph::ShaderProgram densityShader({{PROJECT_SHADER_PATH"Acceleration/smo-SPHdensity.comp"}},
                                           {
                                             {"WGSIZE",{mpu::toString(DENSITY_WGSIZE)}},
                                             {"NUM_PARTICLES",{mpu::toString(NUM_PARTICLES)}},
@@ -86,7 +86,7 @@ int main()
     hydroAccum.uniform1f("k",K);
     hydroAccum.uniform1f("ac",AC);
 
-    mpu::gph::ShaderProgram pressureShader({{PROJECT_SHADER_PATH"Acceleration/sm-optimized/smo-SPHpressureAccGravity.comp"}},
+    mpu::gph::ShaderProgram pressureShader({{PROJECT_SHADER_PATH"Acceleration/smo-SPHpressureAccGravity.comp"}},
                                            {
                                                    {"WGSIZE",{mpu::toString(PRESSURE_WGSIZE)}},
                                                    {"NUM_PARTICLES",{mpu::toString(NUM_PARTICLES)}},
@@ -154,12 +154,12 @@ int main()
     // TODO: add sph border conditions at  sink particles
     // TODO: maybe optimize tagging and make absorption faster
 
+    // gravity
+    // TODO: use sph softening method instead of plummer sphere
+
     // sph
     // TODO: change sph kernel
     // TODO: test fractation EOS
-
-    // initial conditions
-    // TODO: make the initial velocity noise better
 
     // performance
     // TODO: adaptive timestep and fix the time integration scheme
@@ -172,6 +172,7 @@ int main()
     // TODO: make star visualisation better
 
     // usability and debugging
+    // TODO: class tp generate different simulation settings (fast mode usw...)
     // TODO: print particles to readable file for debug
     // TODO: finally code a f***ing gui
     // TODO: better speed control for fast simulations <- haha not needed, all the simulations are slow as f**k
