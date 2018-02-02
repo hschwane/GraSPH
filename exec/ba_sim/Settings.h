@@ -32,8 +32,8 @@ constexpr double EPS2_SPH   = 0.006256188;
 constexpr float G           = 1;//6.67408e-11 ;//* 1e-9 *1000;
 
 // sph
-constexpr float K       = 0.04;
-constexpr float VISC    = 0.04;
+constexpr float K       = 0.06;
+constexpr float VISC    = 0.8;
 constexpr float HMIN    = 0.02;
 constexpr float HMAX    = 3;
 constexpr float HEPS    = 0.005;

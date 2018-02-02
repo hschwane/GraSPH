@@ -154,6 +154,9 @@ int main()
     // TODO: add sph border conditions at  sink particles
     // TODO: maybe optimize tagging and make absorption faster
 
+    // initial conditions
+    // TODO: add rotational velocity
+
     // gravity
     // TODO: use sph softening method instead of plummer sphere
 
