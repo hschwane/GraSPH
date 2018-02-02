@@ -3,7 +3,7 @@
 #extension GL_NV_shader_atomic_float : require
 
 #include "common.glsl"
-#include "mathConst.glsl"
+#include "kernel.glsl"
 #include "softGravity.glsl"
 
 layout(binding=PARTICLE_POSITION_BUFFER_BINDING,std430) buffer ParticlePositions
@@ -46,24 +46,6 @@ shared vec4 pos[gl_WorkGroupSize.x];
 shared vec4 hyd[gl_WorkGroupSize.x];
 shared float h[gl_WorkGroupSize.x];
 shared vec3 vel[gl_WorkGroupSize.x];
-
-// perform smoothing using the gradient of the spiky kernel
-// rij is a vector posi - posj
-// dist is ||rij||
-// and h the smoothing length
-vec3 Wspiky(vec3 rij, float dist  ,float h)
-{
-    return (dist < h && dist != 0) ? (-45 / (PI * pow(h,6))) * pow(h - dist,2)* rij/dist : vec3(0,0,0);
-}
-
-// perform smoothing using the laplacian of the viscosity kernel
-// rij is a vector posi - posj
-// dist is ||rij||
-// and h the smoothing length
-float Wvisc(float dist, float h)
-{
-    return (dist < h) ? (45 / (PI * pow(h,6))) * (h - dist) :0;
-}
 
 // This shader updates a particles acceleration by interacting with all other particles,
 // using shared memory to speed up memory access
@@ -123,8 +105,8 @@ void main()
                         const float pfi=1.0/(1+ hi/(3*hydroi.y) * hydroi.w);
                         const float pfj=1.0/(1+ hj/(3*hydroj.y) * hydroj.w);
 
-                        const vec3 gradi = Wspiky(rij,dist,hi);
-                        const vec3 gradj = Wspiky(rij,dist,hj);
+                        const vec3 gradi = WspikyGrad(rij,dist,hi);
+                        const vec3 gradj = WspikyGrad(rij,dist,hj);
 
                         accPressure -= posj.w * (pfi*pod2i* gradi + pfj*pod2j* gradj);
 #endif
@@ -144,7 +126,7 @@ void main()
                         const float rhoij = (hydroj.y + hydroi.y)*0.5;
                         const float II = vfij * -alpha*0.5 * vsig * wij / rhoij;
 
-                        accPressure -=  posj.w  * II * Wspiky(rij,dist,(hi+hj)*0.5);
+                        accPressure -=  posj.w  * II * WspikyGrad(rij,dist,(hi+hj)*0.5);
 #endif
 //                    }
 

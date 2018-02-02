@@ -2,7 +2,7 @@
 // we have to use a fixed work group size here
 
 #include "common.glsl"
-#include "mathConst.glsl"
+#include "kernel.glsl"
 
 layout(binding=PARTICLE_POSITION_BUFFER_BINDING,std430) buffer ParticlePositions
 {
@@ -30,25 +30,6 @@ uniform float eps = 0.001;
 
 shared vec4 pos[gl_WorkGroupSize.x];
 shared vec3 vel[gl_WorkGroupSize.x];
-
-// use the poly 6 kernel to perform smoothing
-// r2 the quared distance of the two particles
-// h is the smoothing length
-float Wpoly6(float r2, float h)
-{
-    float h2 = h*h;
-
-    return (r2 < h2) ? (315 / (64* PI * pow(h,9))) * pow(h2 - r2,3) : 0;
-}
-
-// perform smoothing using the gradient of the spiky kernel
-// rij is a vector posi - posj
-// dist is ||rij||
-// and h the smoothing length
-vec3 Wspiky(vec3 rij, float dist  ,float h)
-{
-    return (dist < h && dist != 0) ? (-45 / (PI * pow(h,6))) * pow(h - dist,2)* rij/dist : vec3(0,0,0);
-}
 
 // This shader updates a particles acceleration by interacting with all other particles,
 // using shared memory to speed up memory access
@@ -98,7 +79,7 @@ void main()
 
 #ifndef DISABLE_VISC_VORT_CORRECTION // remember also to disable this in the hydro accumulator
             // calculate vorticity and divergence of the velocity
-            vec3 gradi = Wspiky(rij,dist,hi);
+            vec3 gradi = WspikyGrad(rij,dist,hi);
             vec3 vij = veli - velj;
             vorticity +=  posj.w * cross(vij, gradi);
             divergence += dot(velj - veli,gradi);
