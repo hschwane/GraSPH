@@ -42,7 +42,7 @@ float Wpoly6(float r2, float h)
 // h2 is the square of h
 vec3 Wpoly6Grad(vec3 rij, float r2, float factor, float h2)
 {
-    return (r2 < h2) ? factor * pow(h2 - r2,2) * rij  : vec3(0);
+    return (r2 < h2) ? factor * (h2-r2)*(h2-r2) * rij  : vec3(0);
 }
 
 // calculate the factor for use in the poly 6 kernel gradient
@@ -61,7 +61,7 @@ float poly6GradFactor(float h)
 vec3 Wpoly6Grad(vec3 rij, float r2, float h)
 {
     const float h2 = h*h;
-    return (r2 < h2) ? (945 / (32* PI * pow(h,9))) * pow(h2 - r2,2) * rij  : vec3(0);
+    return (r2 < h2) ? (945 / (32* PI * pow(h,9))) * (h2-r2)*(h2-r2) * rij  : vec3(0);
 }
 
 // -----------------------------------------------------------------------------------------------------
@@ -73,7 +73,7 @@ vec3 Wpoly6Grad(vec3 rij, float r2, float h)
 // and h the smoothing length
 vec3 WspikyGrad(vec3 rij, float dist  ,float h)
 {
-    return (dist < h && dist != 0) ? (-45 / (PI * pow(h,6))) * pow(h - dist,2)* rij/dist : vec3(0,0,0);
+    return (dist < h && dist != 0) ? (-45 / (PI * pow(h,6))) * (h-dist)*(h-dist) * rij/dist : vec3(0,0,0);
 }
 
 // -----------------------------------------------------------------------------------------------------
@@ -87,3 +87,31 @@ float WviscLap(float dist, float h)
 {
     return (dist < h) ? (45 / (PI * pow(h,6))) * (h - dist) :0;
 }
+
+// -----------------------------------------------------------------------------------------------------
+// Wspline
+
+// perform smoothing using the Monaghan spline kernel
+// rij is a vector posi - posj
+// dist is ||rij||
+// and h the smoothing length
+float Wspline(float r, float h)
+{
+    float q = r/h;
+    return (q <= 0.5) ? 8.0f/(PI*pow(h,3)) * (1.0f- 6*q*q + 6*pow(q,3))
+          :(q <= 1) ? 16.0f/(PI*pow(h,3)) * pow(1-q,3)
+          :0;
+}
+
+// perform smoothing using the gradient of Monaghan spline kernel
+// rij is a vector posi - posj
+// dist is ||rij||
+// and h the smoothing length
+vec3 WsplineGrad(vec3 rij, float dist, float h)
+{
+
+    return (dist*2 <= h) ? 48.0f/(PI*pow(h,6)) * ( 3*dist -2*h ) * rij
+          :(dist <= h) ? 48.0f/(PI*pow(h,6)) * (h-dist)*(h-dist) * rij/dist
+          :vec3(0);
+}
+
