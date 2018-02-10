@@ -67,13 +67,26 @@ vec3 Wpoly6Grad(vec3 rij, float r2, float h)
 // -----------------------------------------------------------------------------------------------------
 // WspikyGrad
 
+vec3 WspikyGrad(vec3 rij, float dist, float h, float factor)
+{
+    float hdist = h-dist;
+    return (dist < h && dist != 0) ? factor * hdist*hdist * rij/dist : vec3(0,0,0);
+}
+
+// calculate the factor for use in the spiky gradient
+float spikyGradFactor(float h)
+{
+    return (-45 / (PI * pow(h,6)));
+}
+
 // perform smoothing using the gradient of the spiky kernel
 // rij is a vector posi - posj
 // dist is ||rij||
 // and h the smoothing length
 vec3 WspikyGrad(vec3 rij, float dist  ,float h)
 {
-    return (dist < h && dist != 0) ? (-45 / (PI * pow(h,6))) * (h-dist)*(h-dist) * rij/dist : vec3(0,0,0);
+    float hdist = h-dist;
+    return (dist < h && dist != 0) ? (-45 / (PI * pow(h,6))) * hdist*hdist * rij/dist : vec3(0,0,0);
 }
 
 // -----------------------------------------------------------------------------------------------------
