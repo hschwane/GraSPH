@@ -95,7 +95,7 @@ int main()
     pressureShader.uniform1f("alpha",VISC);
     pressureShader.uniform1f("gravity_constant",G);
     pressureShader.uniform1f("smoothing_epsilon_squared",EPS2);
-    pressureShader.uniform1f("smoothing_epsilon_squared_sph",EPS2_SPH);
+    pressureShader.uniform1f("eps2_sph_factor",EPS2_SPH_FACTOR);
     pressureShader.uniform1f("sink_r",SINK_R);
     pressureShader.uniform1f("dt",DT);
     pressureShader.uniform1f("k",K);
@@ -157,11 +157,7 @@ int main()
     // initial conditions
     // TODO: add rotational velocity
 
-    // gravity
-    // TODO: use sph softening method instead of plummer sphere
-
     // sph
-    // TODO: change sph kernel
     // TODO: test fractation EOS
 
     // performance

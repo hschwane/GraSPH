@@ -35,7 +35,7 @@ layout(local_size_x=WGSIZE,local_size_y=1,local_size_z=1) in;
 
 uniform float gravity_constant;
 uniform float smoothing_epsilon_squared;
-uniform float smoothing_epsilon_squared_sph;
+uniform float eps2_sph_factor;
 uniform float sink_r;
 uniform float dt;
 uniform float k; // entropy of the fluid
@@ -97,7 +97,7 @@ void main()
 //                    if(iHydro.w > 0)
 //                    {
 //
-                        accGravity.xyz += interaction(posi, posj, smoothing_epsilon_squared_sph);
+                        accGravity.xyz += interaction(posi, posj, hi*eps2_sph_factor);
                         const float pod2j = hydroj.x / (hydroj.y*hydroj.y);
 
 #ifdef FAST_PRESSURE
