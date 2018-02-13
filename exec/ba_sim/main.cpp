@@ -84,7 +84,9 @@ int main()
                                   });
     hydroAccum.uniform1f("sink_th",SINK_TH);
     hydroAccum.uniform1f("k",K);
-    hydroAccum.uniform1f("ac",AC);
+    hydroAccum.uniform1f("ac1",AC1);
+    hydroAccum.uniform1f("ac2",AC2);
+    hydroAccum.uniform1f("frag_limit",FRAG_LIMIT);
 
     mpu::gph::ShaderProgram pressureShader({{PROJECT_SHADER_PATH"Acceleration/smo-SPHpressureAccGravity.comp"}},
                                            {
@@ -99,7 +101,9 @@ int main()
     pressureShader.uniform1f("sink_r",SINK_R);
     pressureShader.uniform1f("dt",DT);
     pressureShader.uniform1f("k",K);
-    pressureShader.uniform1f("ac",AC);
+    hydroAccum.uniform1f("ac1",AC1);
+    hydroAccum.uniform1f("ac2",AC2);
+    hydroAccum.uniform1f("frag_limit",FRAG_LIMIT);
 
     mpu::gph::ShaderProgram accAccum({{PROJECT_SHADER_PATH"Acceleration/accAccumulator.comp"}},
                                       {
@@ -156,9 +160,6 @@ int main()
 
     // initial conditions
     // TODO: add rotational velocity
-
-    // sph
-    // TODO: test fractation EOS
 
     // performance
     // TODO: adaptive timestep and fix the time integration scheme
@@ -218,11 +219,15 @@ int main()
             glm::vec4 sum = std::accumulate( hdata.begin(), hdata.end(),glm::vec4(0));
             sum /= hdata.size();
 
+            glm::vec4 maxRho = *std::max_element(hdata.begin(), hdata.end(),[](const glm::vec4 &a, const glm::vec4 &b){ return(a.y < b.y);});
+            glm::vec4 maxP = *std::max_element(hdata.begin(), hdata.end(),[](const glm::vec4 &a, const glm::vec4 &b){ return(a.y < b.y);});
+
 //            for(auto &&item : hdata)
 //            {
 //                logDEBUG("Particle data") << "Hydro: " << glm::to_string(item);
 //            }
-            logDEBUG("Particle data") << "Mean density: " << sum.y << " Mean Pressure: " << sum.x << " Mean Smoothing length: " << sum.z;
+            logDEBUG("Particle data") << "Mean density: " << sum.y << " Mean Pressure: " << sum.x;
+            logDEBUG("Particle data") << "Max density: " << maxRho.y << " Max Pressure: " << maxP.x;
 
             mpu::gph::Buffer temp;
             temp.allocate<glm::vec4>(pb.size(),GL_MAP_READ_BIT | GL_MAP_PERSISTENT_BIT);
@@ -256,11 +261,11 @@ int main()
 //            }
 
             std::vector<glm::vec4> vdata = pb.velocityBuffer.read<glm::vec4>( pb.size(),0);
-            for(auto &&item : vdata)
-            {
-                    logDEBUG("Particle data") << "vel is: " << glm::to_string(item);
-            }
-
+//            for(auto &&item : vdata)
+//            {
+//                    logDEBUG("Particle data") << "vel is: " << glm::to_string(item);
+//            }
+//
             glm::vec4 pos = std::accumulate( pdata.begin(), pdata.end(),glm::vec4(0,0,0,0));
             logDEBUG("Particle data") << "total mass: " << pos.w;
         }

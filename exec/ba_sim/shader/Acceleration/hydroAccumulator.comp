@@ -15,7 +15,9 @@ layout(binding=PARTICLE_SMLENGTH_BUFFER_BINDING,std430) buffer ParticleSmlength
 };
 
 uniform float k;
-uniform float ac;
+uniform float ac1;
+uniform float ac2;
+uniform float frag_limit;
 uniform float sink_th;
 
 layout(local_size_variable) in;
@@ -33,7 +35,8 @@ void main()
 //    float isSink = (density > sink_th) ? hydro[gl_GlobalInvocationID.x].w : hydro[gl_GlobalInvocationID.x].w;
 
     // calculate pressure
-    float pressure = k * pow(sum.y,ac);
+    const float ac = (sum.y<frag_limit) ? ac1 : ac2;
+    const float pressure = k * pow(sum.y,ac);
 
 #ifndef DISABLE_VISC_VORT_CORRECTION
     // calculate viscosity correction value

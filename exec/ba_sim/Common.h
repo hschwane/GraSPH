@@ -31,7 +31,7 @@ public:
     typedef glm::vec4 posType; // w is mass for gravity
     typedef glm::vec4 velType;
     typedef glm::vec4 accType;
-    typedef glm::vec4 hydrodynamicsType; // x is pressure, y is density, z is the smoothing length h, w is a factor needed for pressure calc
+    typedef glm::vec4 hydrodynamicsType; // x is pressure, y is density, z is the vorticity viscosity correct2ion, w is a factor needed for pressure calc
     typedef float smlengthType;
 
     ParticleBuffer()= default;

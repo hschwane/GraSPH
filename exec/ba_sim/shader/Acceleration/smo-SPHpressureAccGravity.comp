@@ -39,7 +39,9 @@ uniform float eps2_sph_factor;
 uniform float sink_r;
 uniform float dt;
 uniform float k; // entropy of the fluid
-uniform float ac; // adiabatic constant
+uniform float ac1; // adiabatic constant
+uniform float ac2; // adiabatic constant
+uniform float frag_limit; // the density limit when ac2 is used instead of ac1
 uniform float alpha; // controle viscosity
 
 shared vec4 pos[gl_WorkGroupSize.x];
@@ -65,6 +67,7 @@ void main()
     // calculate some values that are the same for all loop iterations
     const float pod2i = (hydroi.x / (hydroi.y*hydroi.y));
     const float hiSpikyGradFactor = spikyGradFactor(hi);
+    const float aci = (hydroi.y < frag_limit) ? ac1 : ac2;
 
     // loop over tiles in a row for as many tiles one thread is configured to calculate
     // calculate the interactions of a particle with gl_WorkGroupSize.x particles in one tile
@@ -116,8 +119,8 @@ void main()
                         accPressure +=  alpha * posj.w  * (velj.xyz - veli.xyz)/hydroj.y * Wvisc(dist,(hi+hj)*0.5);
 #else
                         // calc speed of sound
-                        const float ci = sqrt(ac*hydroi.x/hydroi.y);
-                        const float cj = sqrt(ac*hydroj.x/hydroj.y);
+                        const float ci = sqrt(aci*hydroi.x/hydroi.y);
+                        const float cj = sqrt(((hydroj.y < frag_limit) ? ac1 : ac2 )*hydroj.x/hydroj.y);
 
                         const float vfij = (hydroi.z+hydroj.z)*0.5;
 
