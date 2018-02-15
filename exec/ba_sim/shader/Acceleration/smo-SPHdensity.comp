@@ -9,7 +9,7 @@ layout(binding=PARTICLE_POSITION_BUFFER_BINDING,std430) buffer ParticlePositions
     vec4 positions[];
 };
 
-layout(binding=PARTICLE_POSITION_BUFFER_BINDING,std430) buffer ParticleVelocities
+layout(binding=PARTICLE_VELOCITY_BUFFER_BINDING,std430) buffer ParticleVelocities
 {
     vec4 velocities[];
 };

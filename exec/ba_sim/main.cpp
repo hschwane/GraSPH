@@ -41,13 +41,13 @@ int main()
     spawner.spawnParticlesSphere(TOTAL_MASS,SPAWN_RADIUS);
     spawner.addMultiFrequencyCurl( {
                                         {{1.2},{0.5}},
-                                        {{0.9},{0.8}},
-//                                        {{0.8},{0.8}},
+//                                        {{0.9},{0.8}},
+                                        {{0.8},{0.8}},
                                         {{0.5},{0.5}}
 //                                        {{0.2},{0.5}},
 //                                        {{0.1},{0.3}}
                                        },245,HMIN,HMAX);
-//    spawner.addSimplexVelocityField(1,1,10);
+    spawner.addSimplexVelocityField(0.8,0.4,42);
 //    spawner.addSimplexVelocityField(0.3,0.05,452);
 //    spawner.addSimplexVelocityField(0.1,0.15,876);
     spawner.addAngularVelocity({0,0.15f,0});
@@ -222,10 +222,10 @@ int main()
             glm::vec4 maxRho = *std::max_element(hdata.begin(), hdata.end(),[](const glm::vec4 &a, const glm::vec4 &b){ return(a.y < b.y);});
             glm::vec4 maxP = *std::max_element(hdata.begin(), hdata.end(),[](const glm::vec4 &a, const glm::vec4 &b){ return(a.y < b.y);});
 
-//            for(auto &&item : hdata)
-//            {
-//                logDEBUG("Particle data") << "Hydro: " << glm::to_string(item);
-//            }
+            for(auto &&item : hdata)
+            {
+                logDEBUG("Particle data") << "Hydro: " << glm::to_string(item);
+            }
             logDEBUG("Particle data") << "Mean density: " << sum.y << " Mean Pressure: " << sum.x;
             logDEBUG("Particle data") << "Max density: " << maxRho.y << " Max Pressure: " << maxP.x;
 
