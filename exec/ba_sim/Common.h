@@ -29,7 +29,7 @@ struct ParticleBuffer
 public:
 
     typedef glm::vec4 posType; // w is mass for gravity
-    typedef glm::vec4 velType;
+    typedef glm::vec4 velType; // w is the speed of sound
     typedef glm::vec4 accType;
     typedef glm::vec4 hydrodynamicsType; // x is pressure, y is density, z is the vorticity viscosity correct2ion, w is a factor needed for pressure calc
     typedef float smlengthType;

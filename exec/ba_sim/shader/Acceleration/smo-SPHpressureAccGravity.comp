@@ -4,7 +4,6 @@
 
 #include "common.glsl"
 #include "kernel.glsl"
-#include "softGravity.glsl"
 
 layout(binding=PARTICLE_POSITION_BUFFER_BINDING,std430) buffer ParticlePositions
 {
@@ -47,7 +46,7 @@ uniform float alpha; // controle viscosity
 shared vec4 pos[gl_WorkGroupSize.x];
 shared vec4 hyd[gl_WorkGroupSize.x];
 shared float h[gl_WorkGroupSize.x];
-shared vec3 vel[gl_WorkGroupSize.x];
+shared vec4 vel[gl_WorkGroupSize.x];
 
 // This shader updates a particles acceleration by interacting with all other particles,
 // using shared memory to speed up memory access
@@ -60,7 +59,8 @@ void main()
     const vec4 hydroi = hydro[idxi];
     const vec4 posi = positions[idxi];
     const float hi = smlength[idxi];
-    const vec3 veli = velocities[idxi].xyz;
+    const vec4 veli = velocities[idxi];
+
     vec3 accPressure = vec3(0); // lets sum up the acceleration here
     vec4 accGravity = vec4(0); // lets sum up the acceleration here .w is the desired mass change caused by sink particles
 
@@ -72,100 +72,67 @@ void main()
     // loop over tiles in a row for as many tiles one thread is configured to calculate
     // calculate the interactions of a particle with gl_WorkGroupSize.x particles in one tile
     // repeat until all interactions in all tiles are calculatedsss
-        for(uint tile = 0; tile < TILES_PER_THREAD; tile++)
+    for(uint tile = 0; tile < TILES_PER_THREAD; tile++)
+    {
+        // fill fields in shared memory
+        const uint tileStartIndex = gl_WorkGroupSize.x * (startTile + tile); // the index in the global buffer where this tile begins
+        const uint idx= tileStartIndex + gl_LocalInvocationID.x;
+        pos[gl_LocalInvocationID.x] = positions[idx];
+        hyd[gl_LocalInvocationID.x] = hydro[idx];
+        h[gl_LocalInvocationID.x] = smlength[idx];
+        vel[gl_LocalInvocationID.x] = velocities[idx];
+        // sync
+        memoryBarrierShared();
+        barrier();
+        // calculate the row up to here use sink function if this is a sink particle
+        for(uint j=0; j<gl_WorkGroupSize.x; j++) // go over everything in this tile
         {
-            // fill fields in shared memory
-            const uint tileStartIndex = gl_WorkGroupSize.x * (startTile + tile); // the index in the global buffer where this tile begins
-            const uint idx= tileStartIndex + gl_LocalInvocationID.x;
-            pos[gl_LocalInvocationID.x] = positions[idx];
-            hyd[gl_LocalInvocationID.x] = hydro[idx];
-            h[gl_LocalInvocationID.x] = smlength[idx];
-            vel[gl_LocalInvocationID.x] = velocities[idx].xyz;
-            // sync
-            memoryBarrierShared();
-            barrier();
-            // calculate the row up to here use sink function if this is a sink particle
-//            if(myHydro.w > 0) // is this a normal particle?
-//            {
-                for(uint j=0; j<gl_WorkGroupSize.x; j++) // go over everything in this tile
-                {
-                    const vec4 posj = pos[j];
-                    const float hj = h[j];
-                    const vec4 hydroj = hyd[j];
-                    const vec3 velj = vel[j];
+            const vec4 posj = pos[j];
+            const float hj = h[j];
+            const vec4 hydroj = hyd[j];
+            const vec4 velj = vel[j];
 
-                    const vec3 rij = posi.xyz - posj.xyz; // vector from i to j
-                    const float dist = length(rij); // distance from i to j
+            const vec3 rij = posi.xyz - posj.xyz; // vector from i to j
+            const float r2 = dot(rij,rij);
+            const float dist = sqrt(r2); // distance from i to j
 
-//                    if(iHydro.w > 0)
-//                    {
-//
-                        accGravity.xyz += interaction(posi, posj, hi*eps2_sph_factor);
-                        const float pod2j = hydroj.x / (hydroj.y*hydroj.y);
+            // gravity
+            accGravity.xyz +=  posj.w * -rij / sqrt(pow(r2+(hi*eps2_sph_factor),3));
+
+            // pressure
+            const float pod2j = hydroj.x / (hydroj.y*hydroj.y);
 
 #ifdef FAST_PRESSURE
-                        accPressure -= posj.w * (pod2i+pod2j) * WspikyGrad(rij,dist,(hi+hj)*0.5);
+            accPressure -= posj.w * (pod2i+pod2j) * WspikyGrad(rij,dist,(hi+hj)*0.5);
 #else
-                        const float pfi=1.0/(1+ hi/(3*hydroi.y) * hydroi.w);
-                        const float pfj=1.0/(1+ hj/(3*hydroj.y) * hydroj.w);
+            const float pfi=1.0/(1+ hi/(3*hydroi.y) * hydroi.w);
+            const float pfj=1.0/(1+ hj/(3*hydroj.y) * hydroj.w);
 
-                        const vec3 gradi = WspikyGrad(rij,dist,hi,hiSpikyGradFactor);
-                        const vec3 gradj = WspikyGrad(rij,dist,hj);
+            const vec3 gradi = WspikyGrad(rij,dist,hi,hiSpikyGradFactor);
+            const vec3 gradj = WspikyGrad(rij,dist,hj);
 
-                        accPressure -= posj.w * (pfi*pod2i* gradi + pfj*pod2j* gradj);
+            accPressure -= posj.w * (pfi*pod2i* gradi + pfj*pod2j* gradj);
 #endif
 
+            // viscosity
 #ifdef LAPLACE_VISC
-                        accPressure +=  alpha * posj.w  * (velj.xyz - veli.xyz)/hydroj.y * Wvisc(dist,(hi+hj)*0.5);
+            accPressure +=  alpha * posj.w  * (velj.xyz - veli.xyz)/hydroj.y * Wvisc(dist,(hi+hj)*0.5);
 #else
-                        // calc speed of sound
-                        const float ci = sqrt(aci*hydroi.x/hydroi.y);
-                        const float cj = sqrt(((hydroj.y < frag_limit) ? ac1 : ac2 )*hydroj.x/hydroj.y);
+            const float vfij = (hydroi.z+hydroj.z)*0.5;
 
-                        const float vfij = (hydroi.z+hydroj.z)*0.5;
+            float wij = dot(veli.xyz - velj.xyz,rij)/dist;
+            wij = (wij <0) ? wij : 0;
+            const float vsig = veli.w+velj.w - 3.0*wij;
+            const float rhoij = (hydroj.y + hydroi.y)*0.5;
+            const float II = vfij * -alpha*0.5 * vsig * wij / rhoij;
 
-                        float wij = dot(veli.xyz - velj.xyz,rij)/dist;
-                        wij = (wij <0) ? wij : 0;
-                        const float vsig = ci+cj - 3.0*wij;
-                        const float rhoij = (hydroj.y + hydroi.y)*0.5;
-                        const float II = vfij * -alpha*0.5 * vsig * wij / rhoij;
-
-                        accPressure -=  posj.w  * II * (gradi+gradj)*0.5f;
+            accPressure -=  posj.w  * II * (gradi+gradj)*0.5f;
 #endif
-//                    }
+            }
+        // sync
+        memoryBarrierShared();
+        barrier();
+    }
 
-                }
-//            }
-//            else
-//            {
-//                for(uint i=0; i<gl_WorkGroupSize.x; i++) // go over everything in this tile
-//                {
-//                    const vec4 iPos = pos[i];
-//
-//                    const vec3 r = myPosition.xyz - iPos.xyz;
-//                    const float dist = length(r);
-//
-//
-//                        float iMassID;
-//                        if( ((dist < sink_r && hyd[i].w > 0) /*|| (dist < sink_r/4 && iHydro.y < myHydro.y)*/ )
-//                            &&((iMassID = atomicExchange(accelerations[tileStartIndex+i].w,-1)) >= 0))
-//                        {
-//                            atomicAdd(accelerations[myIdx].w,iPos.w);
-//                            accGravity.w += iPos.w;
-//                            accGravity.xyz += (((myPosition.w*myVel.xyz + iPos.w*vel[i].xyz) /  (iPos.w + myPosition.w)) - myVel.xyz) / 0.01;
-//                        }
-//                        else
-//                            accGravity.xyz += interaction(myPosition, iPos, smoothing_epsilon_squared);
-//                }
-//            }
-            // sync
-            memoryBarrierShared();
-            barrier();
-        }
-
-    // if needed write back velocity
-//    if(myHydro.w > 0)
-//        velocities[gl_GlobalInvocationID.x] = myVel;
-    // write back acceleration
     accelerations[gl_GlobalInvocationID.x] = vec4(accGravity.xyz*gravity_constant+accPressure,accGravity.w);
 }

@@ -166,20 +166,18 @@ int main()
     // TODO: add datastructure
 
     // output and visualisation
-    // TODO: test gas visualisation improvement
     // TODO: output information of stars
-    // TODO: make variable particle sizes possible
     // TODO: make star visualisation better
 
     // usability and debugging
-    // TODO: class tp generate different simulation settings (fast mode usw...)
     // TODO: print particles to readable file for debug
-    // TODO: finally code a f***ing gui
+    // TODO: finally code a gui
     // TODO: better speed control for fast simulations <- haha not needed, all the simulations are slow as f**k
 
     // not so important stuff
+    // TODO: make variable particle sizes possible / better gas rendering
+    // TODO: class tp generate different simulation settings (fast mode usw...)
     // TODO: add gpu stopwatch
-    // TODO: spawn orbiting particles
     // TODO: better accumulator
     // TODO: 2D mode
 
@@ -223,9 +221,9 @@ int main()
             glm::vec4 maxP = *std::max_element(hdata.begin(), hdata.end(),[](const glm::vec4 &a, const glm::vec4 &b){ return(a.y < b.y);});
 
             for(auto &&item : hdata)
-            {
-                logDEBUG("Particle data") << "Hydro: " << glm::to_string(item);
-            }
+//            {
+//                logDEBUG("Particle data") << "Hydro: " << glm::to_string(item);
+//            }
             logDEBUG("Particle data") << "Mean density: " << sum.y << " Mean Pressure: " << sum.x;
             logDEBUG("Particle data") << "Max density: " << maxRho.y << " Max Pressure: " << maxP.x;
 
@@ -261,11 +259,11 @@ int main()
 //            }
 
             std::vector<glm::vec4> vdata = pb.velocityBuffer.read<glm::vec4>( pb.size(),0);
-//            for(auto &&item : vdata)
-//            {
-//                    logDEBUG("Particle data") << "vel is: " << glm::to_string(item);
-//            }
-//
+            for(auto &&item : vdata)
+            {
+                    logDEBUG("Particle data") << "vel is: " << glm::to_string(item);
+            }
+
             glm::vec4 pos = std::accumulate( pdata.begin(), pdata.end(),glm::vec4(0,0,0,0));
             logDEBUG("Particle data") << "total mass: " << pos.w;
         }
