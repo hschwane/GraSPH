@@ -24,6 +24,7 @@ ParticleSpawner::ParticleSpawner()
           m_initialVelocitySimplexShader({{PROJECT_SHADER_PATH"ParticleSpawner/initialVelocitySimplex.comp"}}),
           m_initialVelocityCurlShader({{PROJECT_SHADER_PATH"ParticleSpawner/initialVelocityCurl.comp"}}),
           m_addSimplexShader({{PROJECT_SHADER_PATH"ParticleSpawner/addPotential.comp"}}),
+          m_angVelShader({{PROJECT_SHADER_PATH"ParticleSpawner/angVel.comp"}}),
           m_sphereSpawnShader({{PROJECT_SHADER_PATH"ParticleSpawner/sphereSpawn.comp"}})
 {
 }
@@ -212,4 +213,12 @@ void ParticleSpawner::addMultiFrequencyCurl(std::vector<std::pair<float, float>>
     densityShader.dispatch(m_particleBuffer.size()*1/calcWorkgroupSize(m_particleBuffer.size()));
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
     doCurlShader.dispatch(m_particleBuffer.size()*1/calcWorkgroupSize(m_particleBuffer.size()));
+}
+
+void ParticleSpawner::addAngularVelocity(glm::vec3 axis)
+{
+    m_particleBuffer.bindAll(PARTICLE_BUFFER_BINDING, GL_SHADER_STORAGE_BUFFER);
+    m_angVelShader.uniform3f("axis", axis);
+    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+    m_angVelShader.dispatch(m_particleBuffer.size(),calcWorkgroupSize(m_particleBuffer.size()));
 }

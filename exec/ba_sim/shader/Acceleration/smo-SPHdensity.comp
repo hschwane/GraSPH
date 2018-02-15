@@ -26,7 +26,7 @@ layout(binding=PARTICLE_SMLENGTH_BUFFER_BINDING,std430) buffer ParticleSmlength
 
 layout(local_size_x=WGSIZE,local_size_y=1,local_size_z=1) in;
 
-uniform float eps = 0.001;
+uniform float heps_factor = 0.1;
 
 shared vec4 pos[gl_WorkGroupSize.x];
 shared vec3 vel[gl_WorkGroupSize.x];
@@ -53,6 +53,7 @@ void main()
     const float hiPoly6Factor = poly6Factor(hi);
 
 #ifndef DISABLE_DH_CORRECTION
+    const float eps = hi*heps_factor;
     const float hipe = hi+eps;
     const float hime = hi-eps;
     const float hipe2 = hipe*hipe;

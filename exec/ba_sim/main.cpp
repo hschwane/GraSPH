@@ -20,7 +20,7 @@ constexpr int WIDTH = 800;
 int main()
 {
     // initialise log
-    mpu::Log mainLog(mpu::ALL, mpu::ConsoleSink());
+    mpu::Log mainLog(mpu::DEBUG, mpu::ConsoleSink());
 
     // create window and init gl
     mpu::gph::Window window(WIDTH,HEIGHT,"GravitySim");
@@ -40,15 +40,17 @@ int main()
     spawner.setBuffer(pb);
     spawner.spawnParticlesSphere(TOTAL_MASS,SPAWN_RADIUS);
     spawner.addMultiFrequencyCurl( {
-//                                        {{0.6},{0.2}},
-                                        {{0.4},{0.6}},
-                                        {{0.3},{1}},
-                                        {{0.1},{0.8}}
-//                                        {{0.08},{0.8}}
-                                       },74,HMIN,HMAX);
-//    spawner.addSimplexVelocityField(0.5,0.15,10);
+                                        {{1.2},{0.5}},
+                                        {{0.9},{0.8}},
+//                                        {{0.8},{0.8}},
+                                        {{0.5},{0.5}}
+//                                        {{0.2},{0.5}},
+//                                        {{0.1},{0.3}}
+                                       },245,HMIN,HMAX);
+//    spawner.addSimplexVelocityField(1,1,10);
 //    spawner.addSimplexVelocityField(0.3,0.05,452);
 //    spawner.addSimplexVelocityField(0.1,0.15,876);
+    spawner.addAngularVelocity({0,0.15f,0});
 
 
     // create a renderer
@@ -74,7 +76,7 @@ int main()
                                             {"NUM_PARTICLES",{mpu::toString(NUM_PARTICLES)}},
                                             {"TILES_PER_THREAD",{mpu::toString(NUM_PARTICLES / DENSITY_WGSIZE / DENSITY_THREADS_PER_PARTICLE)}}
                                           });
-    densityShader.uniform1f("eps",HEPS);
+    densityShader.uniform1f("heps_factor",HEPS_FACTOR);
 
     uint32_t wgSize=calcWorkgroupSize(NUM_PARTICLES);
     mpu::gph::ShaderProgram hydroAccum({{PROJECT_SHADER_PATH"Acceleration/hydroAccumulator.comp"}},
@@ -158,15 +160,13 @@ int main()
     // TODO: add sph border conditions at  sink particles
     // TODO: maybe optimize tagging and make absorption faster
 
-    // initial conditions
-    // TODO: add rotational velocity
-
     // performance
     // TODO: adaptive timestep and fix the time integration scheme
     // TODO: enable prerenderd simulation
     // TODO: add datastructure
 
     // output and visualisation
+    // TODO: test gas visualisation improvement
     // TODO: output information of stars
     // TODO: make variable particle sizes possible
     // TODO: make star visualisation better

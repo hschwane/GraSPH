@@ -127,19 +127,19 @@ inline uint32_t calcWorkgroupSize(uint32_t totalInvocations)
 
     if(totalInvocations % THREAD_GROUPING_SIZE == 0)
     {
-        logINFO("WGSize") << "Selecting workgroup size "<<THREAD_GROUPING_SIZE<<" for " << totalInvocations
+        logDEBUG2("WGSize") << "Selecting workgroup size "<<THREAD_GROUPING_SIZE<<" for " << totalInvocations
                           << " total invocations. Resulting in " << totalInvocations / THREAD_GROUPING_SIZE << " groups";
         return THREAD_GROUPING_SIZE;
     }
     else if (totalInvocations % THREADS_PER_CORE == 0)
     {
-        logINFO("WGSize") << "Selecting workgroup size "<<THREADS_PER_CORE<<" for " << totalInvocations
+        logDEBUG2("WGSize") << "Selecting workgroup size "<<THREADS_PER_CORE<<" for " << totalInvocations
                           << " total invocations. Resulting in " << totalInvocations / THREADS_PER_CORE << " groups";
         return THREADS_PER_CORE;
     }
     else if(totalInvocations <= 32)
     {
-        logINFO("WGSize") << "Selecting workgroup size " << totalInvocations << " for " << totalInvocations
+        logDEBUG2("WGSize") << "Selecting workgroup size " << totalInvocations << " for " << totalInvocations
                           << " total invocations. Resulting in 1 group";
         return totalInvocations;
     }
@@ -161,7 +161,7 @@ inline uint32_t calcWorkgroupSize(uint32_t totalInvocations)
         }
     }
 
-    logINFO("WGSize") << "Selecting workgroup size " << result << " for " << totalInvocations
+    logDEBUG2("WGSize") << "Selecting workgroup size " << result << " for " << totalInvocations
                       << " total invocations. Resulting in " << totalInvocations / result << " groups";
     return result;
 }
