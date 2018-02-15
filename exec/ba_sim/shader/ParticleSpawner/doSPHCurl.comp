@@ -78,5 +78,5 @@ void main()
     }
 
     curl /= hydro[gl_GlobalInvocationID.x].y;
-    velocities[gl_GlobalInvocationID.x] = vec4(curl,0);
+    velocities[gl_GlobalInvocationID.x] += vec4(curl,0);
 }
