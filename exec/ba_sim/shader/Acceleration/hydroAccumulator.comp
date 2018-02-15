@@ -23,7 +23,6 @@ uniform float k;
 uniform float ac1;
 uniform float ac2;
 uniform float frag_limit;
-uniform float sink_th;
 
 layout(local_size_variable) in;
 

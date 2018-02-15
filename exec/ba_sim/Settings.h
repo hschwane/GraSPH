@@ -41,9 +41,6 @@ constexpr float AC1      = 1;
 constexpr float AC2      = 6.0f/5.0f;  //13.0f/10.0f; //7.0f/5.0f;
 constexpr float FRAG_LIMIT = 30;
 
-const float SINK_R  = 0.4;
-const float SINK_TH = 4;
-
 // visuals
 constexpr float PARTICLE_RENDER_SIZE    = 0.008; // radius of a particle
 constexpr float PARTICLE_BRIGHTNESS     = 1; // radius of a particle

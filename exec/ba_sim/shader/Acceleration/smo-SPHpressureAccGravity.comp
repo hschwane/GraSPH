@@ -33,14 +33,8 @@ layout(binding=PARTICLE_SMLENGTH_BUFFER_BINDING,std430) buffer ParticleSmlength
 layout(local_size_x=WGSIZE,local_size_y=1,local_size_z=1) in;
 
 uniform float gravity_constant;
-uniform float smoothing_epsilon_squared;
 uniform float eps2_sph_factor;
-uniform float sink_r;
-uniform float dt;
 uniform float k; // entropy of the fluid
-uniform float ac1; // adiabatic constant
-uniform float ac2; // adiabatic constant
-uniform float frag_limit; // the density limit when ac2 is used instead of ac1
 uniform float alpha; // controle viscosity
 
 shared vec4 pos[gl_WorkGroupSize.x];
@@ -67,7 +61,6 @@ void main()
     // calculate some values that are the same for all loop iterations
     const float pod2i = (hydroi.x / (hydroi.y*hydroi.y));
     const float hiSpikyGradFactor = spikyGradFactor(hi);
-    const float aci = (hydroi.y < frag_limit) ? ac1 : ac2;
 
     // loop over tiles in a row for as many tiles one thread is configured to calculate
     // calculate the interactions of a particle with gl_WorkGroupSize.x particles in one tile
