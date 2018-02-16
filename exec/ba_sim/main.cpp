@@ -8,10 +8,6 @@
 #include "Common.h"
 #include "ParticleSpawner.h"
 #include "ParticleRenderer.h"
-#include "DEsolver/SimpleDEsolver.h"
-#include "DEsolver/Leapfrog.h"
-#include "DEsolver/Verlet.h"
-#include "DEsolver/VelocityVerlet.h"
 #include "Settings.h"
 
 constexpr int HEIGHT = 800;
@@ -23,7 +19,7 @@ int main()
     mpu::Log mainLog(mpu::DEBUG, mpu::ConsoleSink());
 
     // create window and init gl
-    mpu::gph::Window window(WIDTH,HEIGHT,"GravitySim");
+    mpu::gph::Window window(WIDTH,HEIGHT,"Star Formation Sim");
 
     // add the shader include pathes
     mpu::gph::addShaderIncludePath(LIB_SHADER_PATH);
@@ -100,11 +96,14 @@ int main()
     pressureShader.uniform1f("eps2_sph_factor",EPS2_SPH_FACTOR);
     pressureShader.uniform1f("k",K);
 
-    mpu::gph::ShaderProgram accAccum({{PROJECT_SHADER_PATH"Acceleration/accAccumulator.comp"}},
+    mpu::gph::ShaderProgram integrator({{PROJECT_SHADER_PATH"Acceleration/integrator.comp"}},
                                       {
                                        {"NUM_PARTICLES",{mpu::toString(NUM_PARTICLES)}},
                                        {"ACCELERATIONS_PER_PARTICLE",{mpu::toString(ACCEL_THREADS_PER_PARTICLE)}}
                                       });
+    integrator.uniform1f("dt",DT);
+    integrator.uniform1f("vel_dt",DT/2);
+
 
     mpu::gph::ShaderProgram adjustH({{PROJECT_SHADER_PATH"Acceleration/adjustH.comp"}});
     adjustH.uniform1f("hmin",HMIN);
@@ -113,7 +112,7 @@ int main()
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
     densityShader.dispatch(NUM_PARTICLES*DENSITY_THREADS_PER_PARTICLE/DENSITY_WGSIZE);
 
-    auto accFunc = [densityShader,pressureShader,wgSize,hydroAccum,accAccum,adjustH](){
+    auto simulate = [densityShader,pressureShader,wgSize,hydroAccum,integrator,adjustH](){
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
         adjustH.dispatch(NUM_PARTICLES,wgSize);
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
@@ -123,12 +122,12 @@ int main()
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
         pressureShader.dispatch(NUM_PARTICLES*ACCEL_THREADS_PER_PARTICLE/PRESSURE_WGSIZE);
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-        accAccum.dispatch(NUM_PARTICLES,wgSize);
+        integrator.dispatch(NUM_PARTICLES,wgSize);
     };
 
-    //  create a simulator
-    Leapfrog simulation(accFunc,pb,DT);
-    simulation.start();
+    simulate();
+    integrator.uniform1f("vel_dt",DT);
+
 
     float brightness=PARTICLE_BRIGHTNESS;
     float size=PARTICLE_RENDER_SIZE;
@@ -267,7 +266,7 @@ int main()
 
         if(runSim)
         {
-            simulation.advanceTime();
+            simulate();
             lag += DT;
             simulationTime += DT;
         }

@@ -21,13 +21,21 @@ layout(binding=PARTICLE_ACCELERATION_BUFFER_BINDING,std430) buffer ParticleAccel
 layout(local_size_variable) in;
 
 uniform float dt;
+uniform float vel_dt;
 
-// This shader performs a semi-implicit euler step on one particle.
 void main()
 {
-    vec3 vel = velocities[gl_GlobalInvocationID.x].xyz + accelerations[gl_GlobalInvocationID.x].xyz * dt;
+    vec4 acc = vec4(0,0,0,0);
+    for(uint i=0; i < ACCELERATIONS_PER_PARTICLE; i++)
+    {
+        acc += accelerations[NUM_PARTICLES * i + gl_GlobalInvocationID.x];
+    }
+
+    // update the velocity i-1/2 to i+1/2
+    vec3 vel = velocities[gl_GlobalInvocationID.x].xyz + acc.xyz * vel_dt;
+
+    // update position i to i+1
     positions[gl_GlobalInvocationID.x].xyz += vel * dt;
 
     velocities[gl_GlobalInvocationID.x].xyz = vel;
-    accelerations[gl_GlobalInvocationID.x] = vec4(0,0,0,0);
 }
