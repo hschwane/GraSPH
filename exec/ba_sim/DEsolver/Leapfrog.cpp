@@ -32,7 +32,7 @@ Leapfrog::Leapfrog(std::function<void(void)> accelerator, ParticleBuffer particl
                                 m_dt(dt)
 {
     m_shader.uniform1f("dt",dt);
-    m_shader.uniform1f("vel_dt",dt);
+    m_shader.uniform1f("vel_dt",dt/2);
     particleBuffer.bindAll(PARTICLE_BUFFER_BINDING, GL_SHADER_STORAGE_BUFFER);
 }
 
@@ -45,7 +45,7 @@ void Leapfrog::setDT(double dt)
 {
     m_dt = dt;
     m_shader.uniform1f("dt",dt);
-    m_shader.uniform1f("vel_dt",dt);
+    m_shader.uniform1f("vel_dt",dt/2);
 }
 
 void Leapfrog::setParticles(ParticleBuffer particleBuffer)
@@ -59,7 +59,7 @@ void Leapfrog::start()
 {
     m_calcAcceleration();
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-    m_shader.uniform1f("vel_dt",m_dt/2);
+    m_shader.uniform1f("vel_dt",m_dt);
     m_shader.dispatch(m_numParticles,m_wgSize);
     m_shader.uniform1f("vel_dt",m_dt);
 }
