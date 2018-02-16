@@ -38,7 +38,7 @@ constexpr float HMIN    = 0.05;
 constexpr float HMAX    = 3;
 constexpr float HEPS_FACTOR    = 0.01;
 constexpr float AC1      = 1;
-constexpr float AC2      = 6.0f/5.0f;  //13.0f/10.0f; //7.0f/5.0f;
+constexpr float AC2      = 7.0f/5.0f;  //13.0f/10.0f; //7.0f/5.0f;
 constexpr float FRAG_LIMIT = 30;
 
 // visuals

@@ -110,8 +110,6 @@ int main()
     adjustH.uniform1f("hmin",HMIN);
     adjustH.uniform1f("hmax",HMAX);
 
-    mpu::gph::ShaderProgram sinkHandler({{PROJECT_SHADER_PATH"Acceleration/sinkHandler.comp"}});
-
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
     densityShader.dispatch(NUM_PARTICLES*DENSITY_THREADS_PER_PARTICLE/DENSITY_WGSIZE);
 
@@ -126,8 +124,6 @@ int main()
         pressureShader.dispatch(NUM_PARTICLES*ACCEL_THREADS_PER_PARTICLE/PRESSURE_WGSIZE);
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
         accAccum.dispatch(NUM_PARTICLES,wgSize);
-//        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-//        sinkHandler.dispatch(NUM_PARTICLES,wgSize);
     };
 
     //  create a simulator
