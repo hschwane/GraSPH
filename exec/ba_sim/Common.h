@@ -37,14 +37,7 @@ public:
     ParticleBuffer()= default;
     explicit ParticleBuffer(uint32_t numParticles, uint32_t accMulti = 1, uint32_t hydroMulti = 1, GLbitfield flags = 0)
     {
-        positionBuffer.allocate<posType>(numParticles,flags);
-        velocityBuffer.allocate<velType>(numParticles,flags);
-        accelerationBuffer.allocate<accType>(numParticles*accMulti,flags);
-        hydrodynamicsBuffer.allocate<hydrodynamicsType>(numParticles*hydroMulti,flags);
-        smlengthBuffer.allocate<smlengthType>(numParticles,flags);
-        m_numberOfParticles=numParticles;
-        m_accMulti = accMulti;
-        m_hydMulti = hydroMulti;
+        reallocateAll(numParticles, accMulti, hydroMulti, flags);
     }
 
     void reallocateAll(uint32_t numParticles, uint32_t accMulti = 1,  uint32_t hydroMulti = 1, GLbitfield flags = 0)
@@ -74,7 +67,7 @@ public:
     }
 
     uint32_t size(){return m_numberOfParticles;} //!< returns the number of particles
-    uint32_t accPerParticle(){ return m_accMulti;} //!< returns the number of different accelerations that can be stored per particle
+    uint32_t accPerParticle(){ return m_accMulti;} //!< returns the number of different accelerations that can be stored per particle (actually one more acceleration per particle can be stored to allow storing of the acceleration at t-1)
     uint32_t hydPerParticle(){ return m_hydMulti;} //!< returns the number of different hydro states that can be stored per particle
 
     mpu::gph::Buffer positionBuffer;

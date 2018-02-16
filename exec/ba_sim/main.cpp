@@ -102,7 +102,8 @@ int main()
                                        {"ACCELERATIONS_PER_PARTICLE",{mpu::toString(ACCEL_THREADS_PER_PARTICLE)}}
                                       });
     integrator.uniform1f("dt",DT);
-    integrator.uniform1f("vel_dt",DT/2);
+    integrator.uniform1f("next_dt",DT);
+    integrator.uniform1f("not_first_step",0);
 
 
     mpu::gph::ShaderProgram adjustH({{PROJECT_SHADER_PATH"Acceleration/adjustH.comp"}});
@@ -126,7 +127,7 @@ int main()
     };
 
     simulate();
-    integrator.uniform1f("vel_dt",DT);
+    integrator.uniform1f("not_first_step",1);
 
 
     float brightness=PARTICLE_BRIGHTNESS;

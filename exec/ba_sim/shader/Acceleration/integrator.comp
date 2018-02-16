@@ -21,21 +21,42 @@ layout(binding=PARTICLE_ACCELERATION_BUFFER_BINDING,std430) buffer ParticleAccel
 layout(local_size_variable) in;
 
 uniform float dt;
-uniform float vel_dt;
+uniform float next_dt; // next_dt and dt need to be the same for the first integration step (there is no point anyway in changing dt during the first step...)
+uniform float not_first_step; // set to 0 for the first step, to 1 for all other steps
+
+// for the first step (not_first_step = 0) we get:
+// calculate the total acceleration a_0( r_0, v_0)
+// calculate velocity v_1/2( v_0, a_0)
+// calculate position r_1( r_0, v_1/2)
+// r_1 can then be used to calculate the next acceleration
+
+// for every other step (not_first_step = 1)
+// calculate total acceleration a_t( r_t, v_t-1/2)
+// calculate velocity v_t( v_t-1/2, a_t)
+// we have calculated r_t, a_t and v_t, dt may now be changed
+// calculate velocity v_t+1/2( v_t, a_t) using the new timestep
+// calculate position r_t+1( r_t, v_t+1/2) using new timestep
+// r_t+1 can now be used to calculate the next acceleration a_t+1
 
 void main()
 {
+    // calculate the total acceleration a_t
     vec4 acc = vec4(0,0,0,0);
     for(uint i=0; i < ACCELERATIONS_PER_PARTICLE; i++)
     {
         acc += accelerations[NUM_PARTICLES * i + gl_GlobalInvocationID.x];
     }
 
-    // update the velocity i-1/2 to i+1/2
-    vec3 vel = velocities[gl_GlobalInvocationID.x].xyz + acc.xyz * vel_dt;
+    // calculate velocity a_t
+    vec3 vel_t = velocities[gl_GlobalInvocationID.x].xyz + acc.xyz * (dt*0.5f);
 
-    // update position i to i+1
-    positions[gl_GlobalInvocationID.x].xyz += vel * dt;
+    // we could now change delta t here
 
-    velocities[gl_GlobalInvocationID.x].xyz = vel;
+    // calculate velocity a_t+1/2
+    vec3 vel_t_12 = vel_t + acc.xyz * (next_dt*0.5f) * not_first_step;
+
+    // calculate position r_t+1
+    positions[gl_GlobalInvocationID.x].xyz += vel_t_12 * next_dt;
+
+    velocities[gl_GlobalInvocationID.x].xyz = vel_t_12;
 }
