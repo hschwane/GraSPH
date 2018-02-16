@@ -24,6 +24,11 @@ layout(binding=PARTICLE_HYDRO_BUFFER_BINDING,std430) buffer ParticleHydro
     vec4 hydro[];
 };
 
+layout(binding=PARTICLE_SMLENGTH_BUFFER_BINDING,std430) buffer ParticleSmlength
+{
+    float smlength[];
+};
+
 layout(local_size_variable) in;
 
 uniform vec3 upper_bound;
@@ -32,6 +37,9 @@ uniform float mass;
 uniform float density;
 uniform float temperature;
 uniform uint num_of_particles;
+
+uniform uint accMulti=1;
+uniform uint hydMulti=1;
 
 uniform uint random_seed;
 
@@ -42,8 +50,13 @@ void main()
     vec3 randomPos = (rand3(seed) * (upper_bound - lower_bound)+lower_bound);
     positions[gl_GlobalInvocationID.x] = vec4(randomPos,mass);
 
-    // set all the attributes
+    // set all the other attributes
     velocities[gl_GlobalInvocationID.x] = vec4(0,0,0,0);
-    accelerations[gl_GlobalInvocationID.x] = vec4(0,0,0,0);
-    hydro[gl_GlobalInvocationID.x] = vec4(0,0,0,mass);
+    smlength[gl_GlobalInvocationID.x] = 0.3;
+
+    for(uint i=0; i<accMulti; i++ )
+        accelerations[gl_GlobalInvocationID.x + i*num_of_particles] = vec4(0,0,0,0);
+
+    for(uint i=0; i<hydMulti; i++ )
+        hydro[gl_GlobalInvocationID.x + i*num_of_particles] = vec4(0,0,0,0);
 }

@@ -58,9 +58,9 @@ void ParticleSpawner::spawnParticlesCube(const float totalMass, const glm::vec3 
     m_cubeSpawnShader.uniform3f("lower_bound",lowerBound);
     m_cubeSpawnShader.uniform1f("mass",m_particleMass);
     m_cubeSpawnShader.uniform1ui("random_seed", std::time(nullptr)); // time as pseudo random seed
-    m_sphereSpawnShader.uniform1ui("num_of_particles", m_particleBuffer.size());
-    m_sphereSpawnShader.uniform1ui("accMulti", m_particleBuffer.accPerParticle());
-    m_sphereSpawnShader.uniform1ui("hydMulti", m_particleBuffer.hydPerParticle());
+    m_cubeSpawnShader.uniform1ui("num_of_particles", m_particleBuffer.size());
+    m_cubeSpawnShader.uniform1ui("accMulti", m_particleBuffer.accPerParticle());
+    m_cubeSpawnShader.uniform1ui("hydMulti", m_particleBuffer.hydPerParticle());
     m_cubeSpawnShader.dispatch(m_particleBuffer.size(),calcWorkgroupSize(m_particleBuffer.size()));
 }
 
