@@ -37,6 +37,7 @@ uniform float mass;
 uniform float density;
 uniform float temperature;
 uniform uint num_of_particles;
+uniform float initial_smlength=0.3;
 
 uniform uint accMulti=1;
 uniform uint hydMulti=1;
@@ -52,7 +53,7 @@ void main()
 
     // set all the other attributes
     velocities[gl_GlobalInvocationID.x] = vec4(0,0,0,0);
-    smlength[gl_GlobalInvocationID.x] = 0.3;
+    smlength[gl_GlobalInvocationID.x] = initial_smlength;
 
     for(uint i=0; i<accMulti; i++ )
         accelerations[gl_GlobalInvocationID.x + i*num_of_particles] = vec4(0,0,0,0);

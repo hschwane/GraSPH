@@ -23,8 +23,7 @@ constexpr double DT = 0.002;
 constexpr float TOTAL_MASS              = 20;//1e-22*1.98892e30 /1000;
 constexpr unsigned int NUM_PARTICLES    = 16000;
 constexpr float SPAWN_RADIUS            = 6;
-const glm::vec3 LOWER_BOUND             = glm::vec3(-1,-1,-1);
-const glm::vec3 UPPER_BOUND             = glm::vec3(1,1,1);
+constexpr float INITIAL_H               = 0.3;
 
 // gravity
 constexpr float EPS_FACTOR  = 0.2; // a particle behaves like a plummer sphere with a radius equal to its smoothing length multiplied by this factor
