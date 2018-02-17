@@ -33,7 +33,8 @@ public:
     typedef glm::vec4 accType; // w is max(vsig) over all neighbours of the particle (used for timestep criterion)
     typedef glm::vec4 hydrodynamicsType; // x is pressure, y is density, z is the vorticity viscosity correct2ion, w is a factor needed for pressure calc
     typedef float smlengthType;
-    typedef float timestepType;
+    typedef float timestepType; // the timestep size of this particle
+    typedef int activeType; // number of smallest timesteps until this particle will be active again
 
     ParticleBuffer()= default;
     explicit ParticleBuffer(uint32_t numParticles, uint32_t accMulti = 1, uint32_t hydroMulti = 1, GLbitfield flags = 0)
@@ -54,7 +55,9 @@ public:
         smlengthBuffer.recreate();
         smlengthBuffer.allocate<smlengthType>(numParticles,flags);
         timestepBuffer.recreate();
-        timestepBuffer.allocate<smlengthType>(numParticles,flags);
+        timestepBuffer.allocate<timestepType>(numParticles,flags);
+        activeBuffer.recreate();
+        activeBuffer.allocate<activeType>(numParticles,flags);
         m_numberOfParticles=numParticles;
         m_accMulti = accMulti;
         m_hydMulti = hydroMulti;
@@ -68,6 +71,7 @@ public:
         hydrodynamicsBuffer.bindBase(binding+3,target);
         smlengthBuffer.bindBase(binding+4,target);
         timestepBuffer.bindBase(binding+5,target);
+        activeBuffer.bindBase(binding+6,target);
     }
 
     uint32_t size(){return m_numberOfParticles;} //!< returns the number of particles
@@ -80,6 +84,7 @@ public:
     mpu::gph::Buffer hydrodynamicsBuffer;
     mpu::gph::Buffer smlengthBuffer;
     mpu::gph::Buffer timestepBuffer;
+    mpu::gph::Buffer activeBuffer;
 private:
     uint32_t m_numberOfParticles;
     uint32_t m_accMulti;
@@ -97,6 +102,7 @@ constexpr unsigned int PARTICLE_ACCELERATION_BUFFER_BINDING = 4;
 constexpr unsigned int PARTICLE_HYDRO_BUFFER_BINDING = 5;
 constexpr unsigned int PARTICLE_SMLENGTH_BUFFER_BINDING = 6;
 constexpr unsigned int PARTICLE_TIMESTEP_BUFFER_BINDING = 7;
+constexpr unsigned int PARTICLE_ACTIVE_BUFFER_BINDING = 8;
 
 constexpr unsigned int VERLET_BUFFER_BINDING = 8;
 constexpr unsigned int RENDERER_POSITION_ARRAY = 0;

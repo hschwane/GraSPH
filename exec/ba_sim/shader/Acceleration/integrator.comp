@@ -1,6 +1,6 @@
 #version 450 core
 #extension GL_ARB_compute_variable_group_size : require
-#extension GL_NV_shader_atomic_float : require
+//#extension GL_NV_shader_atomic_float : require
 
 #include "common.glsl"
 
@@ -21,22 +21,27 @@ layout(binding=PARTICLE_ACCELERATION_BUFFER_BINDING,std430) buffer ParticleAccel
 
 layout(binding=PARTICLE_SMLENGTH_BUFFER_BINDING,std430) buffer ParticleSmlength
 {
-    float smlength[];
+    vec2 smlength[];
 };
 
 layout(binding=PARTICLE_TIMESTEP_BUFFER_BINDING,std430) buffer ParticleTimestep
 {
-    float timestep[];
+    vec2 timestep[];
 };
+
+layout(binding=PARTICLE_ACTIVE_BUFFER_BINDING,std430) buffer ParticleTimestep
+{
+    int isActive[];
+};
+
 
 layout(local_size_variable) in;
 
-uniform float dt;
-uniform float next_dt; // next_dt and dt need to be the same for the first integration step (there is no point anyway in changing dt during the first step...)
-uniform float not_first_step; // set to 0 for the first step, to 1 for all other steps
 uniform float eps_factor;
 uniform float gravity_accuracy;
 uniform float courant_number;
+uniform float smallest_timestep;
+uniform float max_timestep;
 
 // for the first step (not_first_step = 0) we get:
 // calculate the total acceleration a_0( r_0, v_0)
@@ -54,29 +59,47 @@ uniform float courant_number;
 
 void main()
 {
-    // calculate the total acceleration a_t
-    vec3 acc = vec3(0);
-    float maxVsig=0;
-    for(uint i=0; i < ACCELERATIONS_PER_PARTICLE; i++)
+    vec3 vel = velocities[gl_GlobalInvocationID.x].xyz;
+    vec2 tstp = timestep[gl_GlobalInvocationID.x];
+
+    if( isActive[gl_GlobalInvocationID.x] >0)
     {
-        vec4 a = accelerations[NUM_PARTICLES * i + gl_GlobalInvocationID.x];
-        acc = a.xyz;
-        maxVsig = max(maxVsig,a.w);
+        // calculate the total acceleration a_t
+        vec3 acc = vec3(0);
+        float maxVsig=0;
+        for(uint i=0; i < ACCELERATIONS_PER_PARTICLE; i++)
+        {
+            vec4 a = accelerations[NUM_PARTICLES * i + gl_GlobalInvocationID.x];
+            acc = a.xyz;
+            maxVsig = max(maxVsig,a.w);
+        }
+
+        // calculate velocity a_t
+        vel = vel + acc.xyz * (tstp.x*0.5f);
+
+#ifndef FIRST_STEP
+
+        // calculate the maximal for this particle based on the criterion
+        const float hi = smlength[gl_GlobalInvocationID.x];
+        const float maxTimestep = min(max_timestep,courant_number * hi / maxVsig, sqrt(2*gravity_accuracy * hi*eps_factor / length(acc)));
+
+        // find a small enough timestep in the power of two hirachy
+        tstp.x = smallest_timestep;
+        while(tstp.x+smallest_timestep <= maxTimestep)
+        {
+            tstp.x += smallest_timestep;
+        }
+        tstp.y = tstp.x;
+
+        // calculate velocity a_t+1/2
+        vel = vel + acc.xyz * (tstp.x*0.5f);
+        velocities[gl_GlobalInvocationID.x].xyz = vel_t_12;
+#endif
     }
 
-    // calculate velocity a_t
-    const vec3 vel_t = velocities[gl_GlobalInvocationID.x].xyz + acc.xyz * (dt*0.5f);
-
-    // we could now change delta t here
-
-    // calculate velocity a_t+1/2
-    const vec3 vel_t_12 = vel_t + acc.xyz * (next_dt*0.5f) * not_first_step;
-    velocities[gl_GlobalInvocationID.x].xyz = vel_t_12;
+    tstp.y -= smallest_timestep; // particle was inactive for "smallest_timestep" calculate remainig time
+    isActive[gl_GlobalInvocationID.x] = (tstp.y < smallest_timestep) ? 1 : 0;
 
     // calculate position r_t+1
-    positions[gl_GlobalInvocationID.x].xyz += vel_t_12 * next_dt;
-
-    // calculate a timestep for this particle based on the criterion
-    const float hi = smlength[gl_GlobalInvocationID.x];
-    timestep[gl_GlobalInvocationID.x] = min(courant_number * hi / maxVsig, sqrt(2*gravity_accuracy * hi*eps_factor / length(acc)));
+    positions[gl_GlobalInvocationID.x].xyz += vel * smallest_timestep;
 }

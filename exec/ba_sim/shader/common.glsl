@@ -6,6 +6,8 @@
 #define ACC_TYPE vec4
 #define HYDRO_TYPE vec4
 #define SMLENGTH_TYPE float
+#define TIMESTEP_TYPE vec2
+#define ACTIVE_TYPE int
 
 
 // buffer bindings
@@ -18,7 +20,7 @@
 #define PARTICLE_HYDRO_BUFFER_BINDING 5
 #define PARTICLE_SMLENGTH_BUFFER_BINDING 6
 #define PARTICLE_TIMESTEP_BUFFER_BINDING 7
-#define VERLET_BUFFER_BINDING 8
+#define PARTICLE_ACTIVE_BUFFER_BINDING 8
 
 
 // arrays for rendering data
