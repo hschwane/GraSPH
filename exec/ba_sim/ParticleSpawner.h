@@ -57,7 +57,7 @@ public:
 
     void addSimplexVelocityField(float frequency, float scale, int seed); //!< adds a initial random velocity field based on simplex noise to the particles
     void addCurlVelocityField(float frequency, float scale, int seed); //!< adds a initial random velocity fiels based on curl noise to the particles
-    void addMultiFrequencyCurl(std::vector<std::pair<float, float>> freq, int seed, float hmin, float hmax); //!< add multiple frequencies of simplex noise and calculate the curl using sph methods (him and max are parameters for the adjust-H-shader)
+    void addMultiFrequencyCurl(std::vector<std::pair<float, float>> freq, int seed, float hmin, float hmax, float massPerParticle); //!< add multiple frequencies of simplex noise and calculate the curl using sph methods (him and max are parameters for the adjust-H-shader)
     void addAngularVelocity(glm::vec3 axis); //!< adds a angular velocity around the axis "Axis" speed depends on the length of axis
 
     // getter

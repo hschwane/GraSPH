@@ -166,7 +166,7 @@ void ParticleSpawner::addCurlVelocityField(float frequency, float scale, int see
     m_initialVelocityCurlShader.dispatch(m_particleBuffer.size(),calcWorkgroupSize(m_particleBuffer.size()));
 }
 
-void ParticleSpawner::addMultiFrequencyCurl(std::vector<std::pair<float, float>> freq, int seed, float hmin, float hmax)
+void ParticleSpawner::addMultiFrequencyCurl(std::vector<std::pair<float, float>> freq, int seed, float hmin, float hmax, float massPerParticle)
 {
     m_particleBuffer.bindAll(PARTICLE_BUFFER_BINDING, GL_SHADER_STORAGE_BUFFER);
     mpu::gph::ShaderProgram doCurlShader({{PROJECT_SHADER_PATH"ParticleSpawner/doSPHCurl.comp"}},
@@ -186,6 +186,8 @@ void ParticleSpawner::addMultiFrequencyCurl(std::vector<std::pair<float, float>>
     mpu::gph::ShaderProgram adjustH({{PROJECT_SHADER_PATH"Acceleration/adjustH.comp"}});
     adjustH.uniform1f("hmin", hmin);
     adjustH.uniform1f("hmax", hmax);
+    adjustH.uniform1f("mass_per_particle", massPerParticle);
+    adjustH.uniform1f("num_neighbours",50);
 
     // generate the potential field
     srand(seed);

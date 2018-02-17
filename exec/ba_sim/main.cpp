@@ -39,18 +39,19 @@ int main()
     spawner.spawnParticlesSphere(TOTAL_MASS,SPAWN_RADIUS, INITIAL_H);
 
     spawner.addMultiFrequencyCurl( {
-                                        {{1.2},{0.5}},
-//                                        {{0.9},{0.8}},
-                                        {{0.8},{0.8}},
-                                        {{0.5},{0.5}}
-//                                        {{0.2},{0.5}},
-//                                        {{0.1},{0.3}}
-                                       },245,HMIN,HMAX);
-    spawner.addSimplexVelocityField(0.8,0.4,42);
-//    spawner.addSimplexVelocityField(0.3,0.05,452);
+                                        {{0.9},{0.1}},
+                                        {{0.6},{0.25}},
+                                        {{0.4},{0.35}},
+                                        {{0.3},{0.2}}
+//                                        {{0.1},{0.1}}
+                                       },1612,HMIN,HMAX,TOTAL_MASS/SPAWN_RADIUS);
+//    spawner.addSimplexVelocityField(0.8,0.05,42);
+//    spawner.addSimplexVelocityField(0.6,0.05,452);
 //    spawner.addSimplexVelocityField(0.1,0.15,876);
 
-    spawner.addAngularVelocity({0,0.15f,0});
+//    spawner.addCurlVelocityField(0.5,0.1,1111);
+
+    spawner.addAngularVelocity({0,0.09f,0});
 
 
     // create a renderer

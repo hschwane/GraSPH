@@ -20,7 +20,7 @@
 constexpr double INITIAL_DT = 0.002;
 constexpr double MAX_DT = 0.08;
 constexpr double MIN_DT = 0.00001;
-constexpr float GRAV_ACCURACY = 0.08; // the bigger this number the larger timesteps are allowed based on the acceleration criterion
+constexpr float GRAV_ACCURACY = 0.06; // the bigger this number the larger timesteps are allowed based on the acceleration criterion
 constexpr float COURANT_NUMBER = 0.4; // the bigger this number the larger timesteps are allowed based on the sph criterion
 
 // particles
@@ -34,12 +34,12 @@ constexpr float EPS_FACTOR  = 0.2; // a particle behaves like a plummer sphere w
 constexpr float G           = 1;//6.67408e-11 ;//* 1e-9 *1000;
 
 // sph
-constexpr float K       = 0.06;
+constexpr float K       = 0.08;
 constexpr float VISC    = 1;
 
 constexpr float AC1      = 1;
 constexpr float AC2      = 7.0f/5.0f;  //13.0f/10.0f; //7.0f/5.0f;
-constexpr float FRAG_LIMIT = 30;
+constexpr float FRAG_LIMIT = 50;
 
 constexpr float NUM_NEIGHBOURS = 50;
 constexpr float HMIN    = 0.05;
