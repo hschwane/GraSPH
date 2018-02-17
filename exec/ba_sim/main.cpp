@@ -93,7 +93,7 @@ int main()
                                            });
     pressureShader.uniform1f("alpha",VISC);
     pressureShader.uniform1f("gravity_constant",G);
-    pressureShader.uniform1f("eps2_sph_factor",EPS2_SPH_FACTOR);
+    pressureShader.uniform1f("eps_factor2",EPS_FACTOR*EPS_FACTOR);
     pressureShader.uniform1f("k",K);
 
     mpu::gph::ShaderProgram integrator({{PROJECT_SHADER_PATH"Acceleration/integrator.comp"}},

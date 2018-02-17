@@ -33,7 +33,7 @@ layout(binding=PARTICLE_SMLENGTH_BUFFER_BINDING,std430) buffer ParticleSmlength
 layout(local_size_x=WGSIZE,local_size_y=1,local_size_z=1) in;
 
 uniform float gravity_constant;
-uniform float eps2_sph_factor;
+uniform float eps_factor2;
 uniform float k; // entropy of the fluid
 uniform float alpha; // controle viscosity
 
@@ -90,7 +90,7 @@ void main()
             const float dist = sqrt(r2); // distance from i to j
 
             // gravity
-            accGravity.xyz +=  posj.w * -rij / sqrt(pow(r2+(hi*eps2_sph_factor),3));
+            accGravity.xyz +=  posj.w * -rij / sqrt(pow(r2+(hi*hj*eps_factor2),3)); // e2 =  ((hi*x + hj*x)*0.5)^2
 
             // pressure
             const float pod2j = hydroj.x / (hydroj.y*hydroj.y);
