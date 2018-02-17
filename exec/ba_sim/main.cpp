@@ -13,6 +13,8 @@
 constexpr int HEIGHT = 800;
 constexpr int WIDTH = 800;
 
+double DT = INITIAL_DT;
+
 int main()
 {
     // initialise log
@@ -35,6 +37,7 @@ int main()
     ParticleSpawner spawner;
     spawner.setBuffer(pb);
     spawner.spawnParticlesSphere(TOTAL_MASS,SPAWN_RADIUS, INITIAL_H);
+
     spawner.addMultiFrequencyCurl( {
                                         {{1.2},{0.5}},
 //                                        {{0.9},{0.8}},
@@ -46,6 +49,7 @@ int main()
     spawner.addSimplexVelocityField(0.8,0.4,42);
 //    spawner.addSimplexVelocityField(0.3,0.05,452);
 //    spawner.addSimplexVelocityField(0.1,0.15,876);
+
     spawner.addAngularVelocity({0,0.15f,0});
 
 
@@ -104,6 +108,9 @@ int main()
     integrator.uniform1f("dt",DT);
     integrator.uniform1f("next_dt",DT);
     integrator.uniform1f("not_first_step",0);
+    integrator.uniform1f("eps_factor",EPS_FACTOR);
+    integrator.uniform1f("gravity_accuracy",GRAV_ACCURACY);
+    integrator.uniform1f("courant_number",COURANT_NUMBER);
 
 
     mpu::gph::ShaderProgram adjustH({{PROJECT_SHADER_PATH"Acceleration/adjustH.comp"}});
@@ -143,6 +150,8 @@ int main()
 
     double lag = 0;
     double simulationTime = DT;
+
+    double newDT = DT;
 
     // sink particles and particle merging
     // TODO: make sink particles use impulse
@@ -211,7 +220,7 @@ int main()
             glm::vec4 maxRho = *std::max_element(hdata.begin(), hdata.end(),[](const glm::vec4 &a, const glm::vec4 &b){ return(a.y < b.y);});
             glm::vec4 maxP = *std::max_element(hdata.begin(), hdata.end(),[](const glm::vec4 &a, const glm::vec4 &b){ return(a.y < b.y);});
 
-            for(auto &&item : hdata)
+//            for(auto &&item : hdata)
 //            {
 //                logDEBUG("Particle data") << "Hydro: " << glm::to_string(item);
 //            }
@@ -250,10 +259,10 @@ int main()
 //            }
 
             std::vector<glm::vec4> vdata = pb.velocityBuffer.read<glm::vec4>( pb.size(),0);
-            for(auto &&item : vdata)
-            {
-                    logDEBUG("Particle data") << "vel is: " << glm::to_string(item);
-            }
+//            for(auto &&item : vdata)
+//            {
+//                    logDEBUG("Particle data") << "vel is: " << glm::to_string(item);
+//            }
 
             glm::vec4 pos = std::accumulate( pdata.begin(), pdata.end(),glm::vec4(0,0,0,0));
             logDEBUG("Particle data") << "total mass: " << pos.w;
@@ -267,11 +276,35 @@ int main()
         else if(window.getKey(GLFW_KEY_2) == GLFW_PRESS)
             runSim = false;
 
+        mpu::gph::Buffer temp;
+        temp.allocate<float>(pb.size(),GL_MAP_READ_BIT | GL_MAP_PERSISTENT_BIT);
+        pb.timestepBuffer.copyTo(temp);
+        std::vector<float> dtdata = temp.read<float>( pb.size(),0);
+        float desiredMaxDT = *std::min(dtdata.begin(),dtdata.end());
+
+//        while(newDT < MAX_DT && newDT < desiredMaxDT)
+//        {
+//            newDT = newDT*2;
+//        }
+//
+//        while(newDT > MIN_DT && newDT > desiredMaxDT)
+//        {
+//            newDT = newDT/2;
+//        }
+//        desiredMaxDT *=0.9;
+        newDT = glm::clamp( desiredMaxDT, float(MIN_DT),float(MAX_DT));
+        integrator.uniform1f("next_dt",newDT);
+
         if(runSim)
         {
             simulate();
             lag += DT;
             simulationTime += DT;
+            if(newDT != DT)
+            {
+                DT = newDT;
+                integrator.uniform1f("dt",DT);
+            }
         }
 
         // render the particles
@@ -283,7 +316,7 @@ int main()
         elapsedPerT += dt;
         if(elapsedPerT >= 2.0)
         {
-            printf("%f ms/frame -- %f fps -- %f simSpeed -- %f simTime\n", 1000.0*elapsedPerT/double(nbframes), nbframes/elapsedPerT, lag/elapsedPerT, simulationTime);
+            printf("%f ms/frame -- %f fps -- %f simSpeed -- %f simTime -- %f average dt\n", 1000.0*elapsedPerT/double(nbframes), nbframes/elapsedPerT, lag/elapsedPerT, simulationTime, lag/nbframes);
             nbframes = 0;
             elapsedPerT = 0;
             lag = 0;

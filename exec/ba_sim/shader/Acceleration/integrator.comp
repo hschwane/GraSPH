@@ -68,8 +68,6 @@ void main()
     const vec3 vel_t = velocities[gl_GlobalInvocationID.x].xyz + acc.xyz * (dt*0.5f);
 
     // we could now change delta t here
-    const float hi = smlength[gl_GlobalInvocationID.x];
-    timestep[gl_GlobalInvocationID.x] = min(courant_number * hi / maxVsig, sqrt(2*gravity_accuracy * hi*eps_factor / length(acc)));
 
     // calculate velocity a_t+1/2
     const vec3 vel_t_12 = vel_t + acc.xyz * (next_dt*0.5f) * not_first_step;
@@ -77,4 +75,8 @@ void main()
 
     // calculate position r_t+1
     positions[gl_GlobalInvocationID.x].xyz += vel_t_12 * next_dt;
+
+    // calculate a timestep for this particle based on the criterion
+    const float hi = smlength[gl_GlobalInvocationID.x];
+    timestep[gl_GlobalInvocationID.x] = min(courant_number * hi / maxVsig, sqrt(2*gravity_accuracy * hi*eps_factor / length(acc)));
 }

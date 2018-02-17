@@ -67,7 +67,7 @@ public:
         accelerationBuffer.bindBase(binding+2,target);
         hydrodynamicsBuffer.bindBase(binding+3,target);
         smlengthBuffer.bindBase(binding+4,target);
-        timestepBuffer.bindBase(binding+4,target);
+        timestepBuffer.bindBase(binding+5,target);
     }
 
     uint32_t size(){return m_numberOfParticles;} //!< returns the number of particles
