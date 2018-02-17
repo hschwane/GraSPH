@@ -1,5 +1,6 @@
 #version 450 core
 #extension GL_ARB_compute_variable_group_size : require
+#extension GL_NV_shader_atomic_float : require
 
 #include "common.glsl"
 
@@ -18,11 +19,24 @@ layout(binding=PARTICLE_ACCELERATION_BUFFER_BINDING,std430) buffer ParticleAccel
     vec4 accelerations[];
 };
 
+layout(binding=PARTICLE_SMLENGTH_BUFFER_BINDING,std430) buffer ParticleSmlength
+{
+    float smlength[];
+};
+
+layout(binding=PARTICLE_TIMESTEP_BUFFER_BINDING,std430) buffer ParticleTimestep
+{
+    float timestep[];
+};
+
 layout(local_size_variable) in;
 
 uniform float dt;
 uniform float next_dt; // next_dt and dt need to be the same for the first integration step (there is no point anyway in changing dt during the first step...)
 uniform float not_first_step; // set to 0 for the first step, to 1 for all other steps
+uniform float eps_factor;
+uniform float gravity_accuracy;
+uniform float courant_number;
 
 // for the first step (not_first_step = 0) we get:
 // calculate the total acceleration a_0( r_0, v_0)
@@ -36,27 +50,31 @@ uniform float not_first_step; // set to 0 for the first step, to 1 for all other
 // we have calculated r_t, a_t and v_t, dt may now be changed
 // calculate velocity v_t+1/2( v_t, a_t) using the new timestep
 // calculate position r_t+1( r_t, v_t+1/2) using new timestep
-// r_t+1 can now be used to calculate the next acceleration a_t+1
+// r_t+1 and v_t+1/2 can now be used to calculate the next acceleration a_t+1
 
 void main()
 {
     // calculate the total acceleration a_t
-    vec4 acc = vec4(0,0,0,0);
+    vec3 acc = vec3(0);
+    float maxVsig=0;
     for(uint i=0; i < ACCELERATIONS_PER_PARTICLE; i++)
     {
-        acc += accelerations[NUM_PARTICLES * i + gl_GlobalInvocationID.x];
+        vec4 a = accelerations[NUM_PARTICLES * i + gl_GlobalInvocationID.x];
+        acc = a.xyz;
+        maxVsig = max(maxVsig,a.w);
     }
 
     // calculate velocity a_t
-    vec3 vel_t = velocities[gl_GlobalInvocationID.x].xyz + acc.xyz * (dt*0.5f);
+    const vec3 vel_t = velocities[gl_GlobalInvocationID.x].xyz + acc.xyz * (dt*0.5f);
 
     // we could now change delta t here
+    const float hi = smlength[gl_GlobalInvocationID.x];
+    timestep[gl_GlobalInvocationID.x] = min(courant_number * hi / maxVsig, sqrt(2*gravity_accuracy * hi*eps_factor / length(acc)));
 
     // calculate velocity a_t+1/2
-    vec3 vel_t_12 = vel_t + acc.xyz * (next_dt*0.5f) * not_first_step;
+    const vec3 vel_t_12 = vel_t + acc.xyz * (next_dt*0.5f) * not_first_step;
+    velocities[gl_GlobalInvocationID.x].xyz = vel_t_12;
 
     // calculate position r_t+1
     positions[gl_GlobalInvocationID.x].xyz += vel_t_12 * next_dt;
-
-    velocities[gl_GlobalInvocationID.x].xyz = vel_t_12;
 }

@@ -1,6 +1,5 @@
 #version 450 core
 // we have to use a fixed work group size here
-#extension GL_NV_shader_atomic_float : require
 
 #include "common.glsl"
 #include "kernel.glsl"
@@ -56,7 +55,8 @@ void main()
     const vec4 veli = velocities[idxi];
 
     vec3 accPressure = vec3(0); // lets sum up the acceleration here
-    vec4 accGravity = vec4(0); // lets sum up the acceleration here .w is the desired mass change caused by sink particles
+    vec3 accGravity = vec3(0); // lets sum up the acceleration here
+    float maxVsig = 0; // needed for the timestep criterion
 
     // calculate some values that are the same for all loop iterations
     const float pod2i = (hydroi.x / (hydroi.y*hydroi.y));
@@ -110,6 +110,7 @@ void main()
             // viscosity
 #ifdef LAPLACE_VISC
             accPressure +=  alpha * posj.w  * (velj.xyz - veli.xyz)/hydroj.y * Wvisc(dist,(hi+hj)*0.5);
+            maxVsig = max(maxVsig,length(velj));
 #else
             const float vfij = (hydroi.z+hydroj.z)*0.5;
 
@@ -119,6 +120,7 @@ void main()
             const float rhoij = (hydroj.y + hydroi.y)*0.5;
             const float II = vfij * -alpha*0.5 * vsig * wij / rhoij;
 
+            maxVsig = max(maxVsig,vsig);
             accPressure -=  posj.w  * II * (gradi+gradj)*0.5f;
 #endif
             }
@@ -127,5 +129,5 @@ void main()
         barrier();
     }
 
-    accelerations[gl_GlobalInvocationID.x] = vec4(accGravity.xyz*gravity_constant+accPressure,accGravity.w);
+    accelerations[gl_GlobalInvocationID.x] = vec4(accGravity*gravity_constant+accPressure,maxVsig);
 }
