@@ -109,6 +109,8 @@ int main()
     mpu::gph::ShaderProgram adjustH({{PROJECT_SHADER_PATH"Acceleration/adjustH.comp"}});
     adjustH.uniform1f("hmin",HMIN);
     adjustH.uniform1f("hmax",HMAX);
+    adjustH.uniform1f("mass_per_particle", TOTAL_MASS / NUM_PARTICLES);
+    adjustH.uniform1f("num_neighbours",NUM_NEIGHBOURS);
 
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
     densityShader.dispatch(NUM_PARTICLES*DENSITY_THREADS_PER_PARTICLE/DENSITY_WGSIZE);

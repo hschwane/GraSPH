@@ -27,12 +27,13 @@ const glm::vec3 LOWER_BOUND             = glm::vec3(-1,-1,-1);
 const glm::vec3 UPPER_BOUND             = glm::vec3(1,1,1);
 
 // gravity
-constexpr double EPS_FACTOR  = 0.2; // a particle behaves like a plummer sphere with a radius equal to its smoothing length multiplied by this factor
+constexpr float EPS_FACTOR  = 0.2; // a particle behaves like a plummer sphere with a radius equal to its smoothing length multiplied by this factor
 constexpr float G           = 1;//6.67408e-11 ;//* 1e-9 *1000;
 
 // sph
 constexpr float K       = 0.06;
 constexpr float VISC    = 1;
+constexpr float NUM_NEIGHBOURS = 50;
 constexpr float HMIN    = 0.05;
 constexpr float HMAX    = 3;
 constexpr float HEPS_FACTOR    = 0.01;
