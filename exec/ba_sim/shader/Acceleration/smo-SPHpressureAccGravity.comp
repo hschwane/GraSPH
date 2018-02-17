@@ -90,7 +90,7 @@ void main()
             const float dist = sqrt(r2); // distance from i to j
 
             // gravity
-            accGravity.xyz +=  posj.w * -rij / sqrt(pow(r2+(hi*hj*eps_factor2),3)); // e2 =  ((hi*x + hj*x)*0.5)^2
+            accGravity.xyz +=  posj.w * -rij / sqrt(pow(r2+(hi*hj*eps_factor2),3));
 
             // pressure
             const float pod2j = hydroj.x / (hydroj.y*hydroj.y);
