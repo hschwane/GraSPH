@@ -13,7 +13,7 @@
 constexpr int HEIGHT = 800;
 constexpr int WIDTH = 800;
 
-double DT = INITIAL_DT;
+double DT = MIN_DT;
 
 int main()
 {
@@ -48,11 +48,8 @@ int main()
 //    spawner.addSimplexVelocityField(0.8,0.05,42);
 //    spawner.addSimplexVelocityField(0.6,0.05,452);
 //    spawner.addSimplexVelocityField(0.1,0.15,876);
-
 //    spawner.addCurlVelocityField(0.5,0.1,1111);
-
     spawner.addAngularVelocity({0,0.09f,0});
-
 
     // create a renderer
     ParticleRenderer renderer;
@@ -70,7 +67,14 @@ int main()
     camera.setMVP(&renderer);
     camera.setClip(0.01,200);
 
-    // create hydrodynamics based acceleration function
+
+    // compile and confiure all the shader
+    mpu::gph::ShaderProgram adjustH({{PROJECT_SHADER_PATH"Acceleration/adjustH.comp"}});
+    adjustH.uniform1f("hmin",HMIN);
+    adjustH.uniform1f("hmax",HMAX);
+    adjustH.uniform1f("mass_per_particle", TOTAL_MASS / NUM_PARTICLES);
+    adjustH.uniform1f("num_neighbours",NUM_NEIGHBOURS);
+
     mpu::gph::ShaderProgram densityShader({{PROJECT_SHADER_PATH"Acceleration/smo-SPHdensity.comp"}},
                                           {
                                             {"WGSIZE",{mpu::toString(DENSITY_WGSIZE)}},
@@ -106,24 +110,46 @@ int main()
                                        {"NUM_PARTICLES",{mpu::toString(NUM_PARTICLES)}},
                                        {"ACCELERATIONS_PER_PARTICLE",{mpu::toString(ACCEL_THREADS_PER_PARTICLE)}}
                                       });
-    integrator.uniform1f("dt",DT);
-    integrator.uniform1f("next_dt",DT);
-    integrator.uniform1f("not_first_step",0);
     integrator.uniform1f("eps_factor",EPS_FACTOR);
     integrator.uniform1f("gravity_accuracy",GRAV_ACCURACY);
     integrator.uniform1f("courant_number",COURANT_NUMBER);
+    integrator.uniform1f("smallest_timestep",MIN_DT);
+    integrator.uniform1f("max_timestep",MAX_DT);
 
+    mpu::gph::ShaderProgram integratorFirstStep({{PROJECT_SHADER_PATH"Acceleration/integrator.comp"}},
+                                       {
+                                               {"NUM_PARTICLES",{mpu::toString(NUM_PARTICLES)}},
+                                               {"FIRST_STEP"},
+                                               {"ACCELERATIONS_PER_PARTICLE",{mpu::toString(ACCEL_THREADS_PER_PARTICLE)}}
+                                       });
+    integrator.uniform1f("smallest_timestep",INITIAL_DT);
 
-    mpu::gph::ShaderProgram adjustH({{PROJECT_SHADER_PATH"Acceleration/adjustH.comp"}});
-    adjustH.uniform1f("hmin",HMIN);
-    adjustH.uniform1f("hmax",HMAX);
-    adjustH.uniform1f("mass_per_particle", TOTAL_MASS / NUM_PARTICLES);
-    adjustH.uniform1f("num_neighbours",NUM_NEIGHBOURS);
+    // group shader dispatches into useful functions
+    auto findSmoothingLength = [adjustH,densityShader,wgSize](int iterations)
+    {
+        for(int i = 0; i < iterations; ++i)
+        {
+            glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+            densityShader.dispatch(NUM_PARTICLES*DENSITY_THREADS_PER_PARTICLE/DENSITY_WGSIZE);
+            glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+            adjustH.dispatch(NUM_PARTICLES,wgSize);
+        }
+    };
 
-    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-    densityShader.dispatch(NUM_PARTICLES*DENSITY_THREADS_PER_PARTICLE/DENSITY_WGSIZE);
+    auto startSimulation = [densityShader,pressureShader,wgSize,hydroAccum,integrator,adjustH]()
+    {
+        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+        densityShader.dispatch(NUM_PARTICLES*DENSITY_THREADS_PER_PARTICLE/DENSITY_WGSIZE);
+        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+        hydroAccum.dispatch(NUM_PARTICLES,wgSize);
+        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+        pressureShader.dispatch(NUM_PARTICLES*ACCEL_THREADS_PER_PARTICLE/PRESSURE_WGSIZE);
+        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+        integrator.dispatch(NUM_PARTICLES,wgSize);
+    };
 
-    auto simulate = [densityShader,pressureShader,wgSize,hydroAccum,integrator,adjustH](){
+    auto simulate = [densityShader,pressureShader,wgSize,hydroAccum,integrator,adjustH]()
+    {
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
         adjustH.dispatch(NUM_PARTICLES,wgSize);
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
@@ -136,9 +162,8 @@ int main()
         integrator.dispatch(NUM_PARTICLES,wgSize);
     };
 
-    simulate();
-    integrator.uniform1f("not_first_step",1);
-
+    findSmoothingLength(4);
+    startSimulation();
 
     float brightness=PARTICLE_BRIGHTNESS;
     float size=PARTICLE_RENDER_SIZE;
@@ -150,9 +175,7 @@ int main()
     double elapsedPerT = 0;
 
     double lag = 0;
-    double simulationTime = DT;
-
-    double newDT = DT;
+    double simulationTime = INITIAL_DT; // one initial dt was already simulated
 
     // sink particles and particle merging
     // TODO: make sink particles use impulse
@@ -277,35 +300,17 @@ int main()
         else if(window.getKey(GLFW_KEY_2) == GLFW_PRESS)
             runSim = false;
 
-        mpu::gph::Buffer temp;
-        temp.allocate<float>(pb.size(),GL_MAP_READ_BIT | GL_MAP_PERSISTENT_BIT);
-        pb.timestepBuffer.copyTo(temp);
-        std::vector<float> dtdata = temp.read<float>( pb.size(),0);
-        float desiredMaxDT = *std::min(dtdata.begin(),dtdata.end());
-
-//        while(newDT < MAX_DT && newDT < desiredMaxDT)
-//        {
-//            newDT = newDT*2;
-//        }
-//
-//        while(newDT > MIN_DT && newDT > desiredMaxDT)
-//        {
-//            newDT = newDT/2;
-//        }
-//        desiredMaxDT *=0.9;
-        newDT = glm::clamp( desiredMaxDT, float(MIN_DT),float(MAX_DT));
-        integrator.uniform1f("next_dt",newDT);
+//        mpu::gph::Buffer temp;
+//        temp.allocate<float>(pb.size(),GL_MAP_READ_BIT | GL_MAP_PERSISTENT_BIT);
+//        pb.timestepBuffer.copyTo(temp);
+//        std::vector<float> dtdata = temp.read<float>( pb.size(),0);
+//        float desiredMaxDT = *std::min(dtdata.begin(),dtdata.end());
 
         if(runSim)
         {
             simulate();
             lag += DT;
             simulationTime += DT;
-            if(newDT != DT)
-            {
-                DT = newDT;
-                integrator.uniform1f("dt",DT);
-            }
         }
 
         // render the particles
@@ -317,7 +322,7 @@ int main()
         elapsedPerT += dt;
         if(elapsedPerT >= 2.0)
         {
-            printf("%f ms/frame -- %f fps -- %f simSpeed -- %f simTime -- %f average dt\n", 1000.0*elapsedPerT/double(nbframes), nbframes/elapsedPerT, lag/elapsedPerT, simulationTime, lag/nbframes);
+            printf("%f ms/frame -- %f fps -- %f simSpeed -- %f simTime -- %f average min dt\n", 1000.0*elapsedPerT/double(nbframes), nbframes/elapsedPerT, lag/elapsedPerT, simulationTime, lag/nbframes);
             nbframes = 0;
             elapsedPerT = 0;
             lag = 0;
