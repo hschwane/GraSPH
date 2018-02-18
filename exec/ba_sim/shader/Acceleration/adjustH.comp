@@ -14,6 +14,12 @@ layout(binding=PARTICLE_SMLENGTH_BUFFER_BINDING,std430) buffer ParticleSmlength
     float smlength[];
 };
 
+layout(binding=PARTICLE_ACTIVE_BUFFER_BINDING,std430) buffer ParticleTimestep
+{
+    int isActive[];
+};
+
+
 layout(local_size_variable) in;
 
 uniform float hmax;
@@ -23,6 +29,9 @@ uniform float num_neighbours;
 
 void main()
 {
+    if(isActive[gl_GlobalInvocationID.x] < 1)
+        return;
+
     vec4 hydi = hydro[gl_GlobalInvocationID.x];
     float hi = clamp(pow(3.0f*num_neighbours*mass_per_particle / (hydi.y*4.0f*PI),1.0f/3.0f),hmin,hmax);
     smlength[gl_GlobalInvocationID.x] = hi;

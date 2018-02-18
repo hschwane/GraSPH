@@ -19,6 +19,12 @@ layout(binding=PARTICLE_VELOCITY_BUFFER_BINDING,std430) buffer ParticleVelocitie
     vec4 velocities[];
 };
 
+layout(binding=PARTICLE_ACTIVE_BUFFER_BINDING,std430) buffer ParticleTimestep
+{
+    int isActive[];
+};
+
+
 uniform float k;
 uniform float ac1;
 uniform float ac2;
@@ -28,6 +34,9 @@ layout(local_size_variable) in;
 
 void main()
 {
+    if(isActive[gl_GlobalInvocationID.x] < 1)
+        return;
+
     vec4 sum = vec4(0);
 
     for(uint i=0; i < HYDROS_PER_PARTICLE; i++)
