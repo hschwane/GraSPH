@@ -36,7 +36,7 @@ int main()
     ParticleBuffer pb(NUM_PARTICLES,ACCEL_THREADS_PER_PARTICLE,DENSITY_THREADS_PER_PARTICLE);
     ParticleSpawner spawner;
     spawner.setBuffer(pb);
-    spawner.spawnParticlesSphere(TOTAL_MASS,SPAWN_RADIUS, INITIAL_H);
+    spawner.spawnParticlesSphere(TOTAL_MASS,SPAWN_RADIUS,INITIAL_H,INITIAL_DT);
 
     spawner.addMultiFrequencyCurl( {
                                         {{0.9},{0.1}},

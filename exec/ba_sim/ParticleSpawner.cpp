@@ -29,7 +29,7 @@ ParticleSpawner::ParticleSpawner()
 {
 }
 
-void ParticleSpawner::spawnParticlesCube(const float totalMass, const glm::vec3 &upperBound, const glm::vec3 &lowerBound, const float initialSmlength)
+void ParticleSpawner::spawnParticlesCube(const float totalMass, const glm::vec3 &upperBound, const glm::vec3 &lowerBound, const float initialSmlength, const float initialTimestep)
 {
     logINFO("Spawner") << "Spawning " << m_particleBuffer.size() << " in a cube volume from " << glm::to_string(lowerBound)
                        << " to " << glm::to_string(upperBound);
@@ -58,6 +58,7 @@ void ParticleSpawner::spawnParticlesCube(const float totalMass, const glm::vec3 
     m_cubeSpawnShader.uniform3f("lower_bound",lowerBound);
     m_cubeSpawnShader.uniform1f("mass",m_particleMass);
     m_cubeSpawnShader.uniform1f("initial_smlength", initialSmlength);
+    m_cubeSpawnShader.uniform1f("initial_timestep", initialTimestep);
     m_cubeSpawnShader.uniform1ui("random_seed", std::time(nullptr)); // time as pseudo random seed
     m_cubeSpawnShader.uniform1ui("num_of_particles", m_particleBuffer.size());
     m_cubeSpawnShader.uniform1ui("accMulti", m_particleBuffer.accPerParticle());
@@ -65,7 +66,7 @@ void ParticleSpawner::spawnParticlesCube(const float totalMass, const glm::vec3 
     m_cubeSpawnShader.dispatch(m_particleBuffer.size(),calcWorkgroupSize(m_particleBuffer.size()));
 }
 
-void ParticleSpawner::spawnParticlesSphere(const float totalMass, const float radius, const float initialSmlength, const glm::vec3 &center)
+void ParticleSpawner::spawnParticlesSphere(const float totalMass, const float radius, const float initialSmlength, const float initialTimestep, const glm::vec3 &center)
 {
     logINFO("Spawner") << "Spawning " << m_particleBuffer.size() << " in a sphere volume at position " << glm::to_string(center)
                        << " with radius " << radius;
@@ -93,6 +94,7 @@ void ParticleSpawner::spawnParticlesSphere(const float totalMass, const float ra
     m_sphereSpawnShader.uniform1f("radius",radius);
     m_sphereSpawnShader.uniform1f("mass",m_particleMass);
     m_sphereSpawnShader.uniform1f("initial_smlength", initialSmlength);
+    m_sphereSpawnShader.uniform1f("initial_timestep", initialTimestep);
     m_sphereSpawnShader.uniform1ui("random_seed", std::time(nullptr)); // time as pseudo random seed
     m_sphereSpawnShader.uniform1ui("num_of_particles", m_particleBuffer.size());
     m_sphereSpawnShader.uniform1ui("accMulti", m_particleBuffer.accPerParticle());
@@ -100,7 +102,7 @@ void ParticleSpawner::spawnParticlesSphere(const float totalMass, const float ra
     m_sphereSpawnShader.dispatch(m_particleBuffer.size(),calcWorkgroupSize(m_particleBuffer.size()));
 }
 
-void ParticleSpawner::spawnParticlesMultiSphere(const float totalMass, const std::vector<Sphere> spheres, const float initialSmlength)
+void ParticleSpawner::spawnParticlesMultiSphere(const float totalMass, const std::vector<Sphere> spheres, const float initialSmlength, const float initialTimestep)
 {
     logINFO("Spawner") << "Spawning " << m_particleBuffer.size() << " in " << spheres.size() << " Spheres.";
 
@@ -127,6 +129,7 @@ void ParticleSpawner::spawnParticlesMultiSphere(const float totalMass, const std
         m_sphereSpawnShader.uniform1f("radius", s.radius);
         m_sphereSpawnShader.uniform1f("mass", m_particleMass);
         m_sphereSpawnShader.uniform1f("initial_smlength", initialSmlength);
+        m_sphereSpawnShader.uniform1f("initial_timestep", initialTimestep);
         m_sphereSpawnShader.uniform1ui("random_seed", std::time(nullptr)); // time as pseudo random seed
         m_sphereSpawnShader.uniform1ui("num_of_particles", particles);
         m_sphereSpawnShader.uniform1ui("particle_offset", writtenParticles);

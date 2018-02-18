@@ -17,9 +17,9 @@
 //--------------------
 
 // time
-constexpr double INITIAL_DT = 0.002;
-constexpr double MAX_DT = 0.08;
-constexpr double MIN_DT = 0.00001;
+constexpr float INITIAL_DT = 0.002;
+constexpr float MAX_DT = 0.08;
+constexpr float MIN_DT = 0.00001;
 constexpr float GRAV_ACCURACY = 0.06; // the bigger this number the larger timesteps are allowed based on the acceleration criterion
 constexpr float COURANT_NUMBER = 0.4; // the bigger this number the larger timesteps are allowed based on the sph criterion
 

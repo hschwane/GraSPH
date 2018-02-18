@@ -97,7 +97,7 @@ void main()
 #endif
     }
 
-    tstp.y -= smallest_timestep; // particle was inactive for "smallest_timestep" calculate remainig time
+    tstp.y -= smallest_timestep; // calculate time until particle bekomes active
     isActive[gl_GlobalInvocationID.x] = (tstp.y < smallest_timestep) ? 1 : 0;
 
     // calculate position r_t+1

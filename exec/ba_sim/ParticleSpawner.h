@@ -51,9 +51,9 @@ class ParticleSpawner
 {
 public:
     ParticleSpawner(); //!< constructor will compile shader
-    void spawnParticlesCube(const float totalMass, const glm::vec3 &upperBound, const glm::vec3 &lowerBound, const float initialSmlength); //!< spawns particles in a cube
-    void spawnParticlesSphere(const float totalMass, const float radius, const float initialSmlength, const glm::vec3 &center = {0, 0, 0}); //!< spawns particles in a sphere
-    void spawnParticlesMultiSphere(const float totalMass, const std::vector<Sphere> spheres, const float initialSmlength); //!< spawns particles in a multiple spheres
+    void spawnParticlesCube(const float totalMass, const glm::vec3 &upperBound, const glm::vec3 &lowerBound, const float initialSmlength, const float initialTimestep); //!< spawns particles in a cube
+    void spawnParticlesSphere(const float totalMass, const float radius, const float initialSmlength, const float initialTimestep, const glm::vec3 &center = {0, 0, 0}); //!< spawns particles in a sphere
+    void spawnParticlesMultiSphere(const float totalMass, const std::vector<Sphere> spheres, const float initialSmlength, const float initialTimestep); //!< spawns particles in a multiple spheres
 
     void addSimplexVelocityField(float frequency, float scale, int seed); //!< adds a initial random velocity field based on simplex noise to the particles
     void addCurlVelocityField(float frequency, float scale, int seed); //!< adds a initial random velocity fiels based on curl noise to the particles
