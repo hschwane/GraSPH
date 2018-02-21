@@ -29,7 +29,7 @@ layout(binding=PARTICLE_SMLENGTH_BUFFER_BINDING,std430) buffer ParticleSmlength
     float smlength[];
 };
 
-layout(binding=PARTICLE_ACTIVE_BUFFER_BINDING,std430) buffer ParticleTimestep
+layout(binding=PARTICLE_ACTIVE_BUFFER_BINDING,std430) buffer IsParticleActive
 {
     int isActive[];
 };

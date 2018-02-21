@@ -34,7 +34,7 @@ layout(binding=PARTICLE_TIMESTEP_BUFFER_BINDING,std430) buffer ParticleTimestep
     vec2 timestep[];
 };
 
-layout(binding=PARTICLE_ACTIVE_BUFFER_BINDING,std430) buffer ParticleTimestep
+layout(binding=PARTICLE_ACTIVE_BUFFER_BINDING,std430) buffer IsParticleActive
 {
     int isActive[];
 };

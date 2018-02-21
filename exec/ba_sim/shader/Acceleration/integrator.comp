@@ -21,7 +21,7 @@ layout(binding=PARTICLE_ACCELERATION_BUFFER_BINDING,std430) buffer ParticleAccel
 
 layout(binding=PARTICLE_SMLENGTH_BUFFER_BINDING,std430) buffer ParticleSmlength
 {
-    vec2 smlength[];
+    float smlength[];
 };
 
 layout(binding=PARTICLE_TIMESTEP_BUFFER_BINDING,std430) buffer ParticleTimestep
@@ -29,7 +29,7 @@ layout(binding=PARTICLE_TIMESTEP_BUFFER_BINDING,std430) buffer ParticleTimestep
     vec2 timestep[];
 };
 
-layout(binding=PARTICLE_ACTIVE_BUFFER_BINDING,std430) buffer ParticleTimestep
+layout(binding=PARTICLE_ACTIVE_BUFFER_BINDING,std430) buffer IsParticleActive
 {
     int isActive[];
 };
@@ -81,7 +81,7 @@ void main()
 
         // calculate the maximal for this particle based on the criterion
         const float hi = smlength[gl_GlobalInvocationID.x];
-        const float maxTimestep = min(max_timestep,courant_number * hi / maxVsig, sqrt(2*gravity_accuracy * hi*eps_factor / length(acc)));
+        const float maxTimestep = min(max_timestep, min(courant_number * hi / maxVsig, sqrt(2*gravity_accuracy * hi*eps_factor / length(acc))));
 
         // find a small enough timestep in the power of two hirachy
         tstp.x = smallest_timestep;
@@ -93,7 +93,7 @@ void main()
 
         // calculate velocity a_t+1/2
         vel = vel + acc.xyz * (tstp.x*0.5f);
-        velocities[gl_GlobalInvocationID.x].xyz = vel_t_12;
+        velocities[gl_GlobalInvocationID.x].xyz = vel1;
 #endif
     }
 
