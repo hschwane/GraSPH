@@ -136,7 +136,7 @@ int main()
         }
     };
 
-    auto startSimulation = [densityShader,pressureShader,wgSize,hydroAccum,integrator,adjustH]()
+    auto startSimulation = [densityShader,pressureShader,wgSize,hydroAccum,integratorFirstStep,adjustH]()
     {
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
         densityShader.dispatch(NUM_PARTICLES*DENSITY_THREADS_PER_PARTICLE/DENSITY_WGSIZE);
@@ -145,7 +145,7 @@ int main()
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
         pressureShader.dispatch(NUM_PARTICLES*ACCEL_THREADS_PER_PARTICLE/PRESSURE_WGSIZE);
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-        integrator.dispatch(NUM_PARTICLES,wgSize);
+        integratorFirstStep.dispatch(NUM_PARTICLES,wgSize);
     };
 
     auto simulate = [densityShader,pressureShader,wgSize,hydroAccum,integrator,adjustH]()

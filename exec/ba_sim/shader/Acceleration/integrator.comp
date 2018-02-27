@@ -93,7 +93,6 @@ void main()
 
         // calculate velocity a_t+1/2
         vel = vel + acc.xyz * (tstp.x*0.5f);
-        velocities[gl_GlobalInvocationID.x].xyz = vel1;
 #endif
     }
 
@@ -102,4 +101,5 @@ void main()
 
     // calculate position r_t+1
     positions[gl_GlobalInvocationID.x].xyz += vel * smallest_timestep;
+    velocities[gl_GlobalInvocationID.x].xyz = vel;
 }
