@@ -162,7 +162,6 @@ int main()
     // TODO: maybe optimize tagging and make absorption faster
 
     // performance
-    // TODO: adaptive timestep and fix the time integration scheme
     // TODO: enable prerenderd simulation
     // TODO: add datastructure
 
@@ -173,7 +172,6 @@ int main()
     // usability and debugging
     // TODO: print particles to readable file for debug
     // TODO: finally code a gui
-    // TODO: better speed control for fast simulations <- haha not needed, all the simulations are slow as f**k
 
     // not so important stuff
     // TODO: make variable particle sizes possible / better gas rendering
