@@ -35,6 +35,8 @@ void main()
         sum += hydro[NUM_PARTICLES * i + gl_GlobalInvocationID.x];
     }
 
+    float hi = smlength[gl_GlobalInvocationID.x];
+
     // calculate pressure
     const float ac = (sum.y<frag_limit) ? ac1 : ac2;
     const float pressure = k * pow(sum.y,ac);
@@ -45,11 +47,12 @@ void main()
     // calculate viscosity correction value
     float vorticity = (sum.x/sum.y);
     float divergence = (sum.z/sum.y);
-    float fi = divergence / (divergence + vorticity+0.001*ci/smlength[gl_GlobalInvocationID.x]);
+    float fiv = divergence / (divergence + vorticity+0.001*ci/smlength[gl_GlobalInvocationID.x]);
 #else
-    float fi = 1;
+    float fiv = 1;
 #endif
 
-    hydro[gl_GlobalInvocationID.x] = vec4(pressure, sum.y, fi, sum.w);
+    float fip = 1.0/(1.0+ ((hi/(3*sum.y)) * sum.w));
+    hydro[gl_GlobalInvocationID.x] = vec4(pressure, sum.y, fiv, fip);
     velocities[gl_GlobalInvocationID.x].w = ci;
 }

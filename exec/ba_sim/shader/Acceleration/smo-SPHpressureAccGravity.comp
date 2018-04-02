@@ -98,13 +98,10 @@ void main()
 #ifdef FAST_PRESSURE
             accPressure -= posj.w * (pod2i+pod2j) * WspikyGrad(rij,dist,(hi+hj)*0.5);
 #else
-            const float pfi=1.0/(1+ hi/(3*hydroi.y) * hydroi.w);
-            const float pfj=1.0/(1+ hj/(3*hydroj.y) * hydroj.w);
-
             const vec3 gradi = WspikyGrad(rij,dist,hi,hiSpikyGradFactor);
             const vec3 gradj = WspikyGrad(rij,dist,hj);
 
-            accPressure -= posj.w * (pfi*pod2i* gradi + pfj*pod2j* gradj);
+            accPressure -= posj.w * (hydroi.w*pod2i* gradi + hydroj.w*pod2j* gradj);
 #endif
 
             // viscosity
