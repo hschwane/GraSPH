@@ -15,10 +15,33 @@ constexpr int WIDTH = 800;
 
 double DT = INITIAL_DT;
 
+void spawnParticles(ParticleBuffer pb)
+{
+    // generate some particles
+    ParticleSpawner spawner;
+    spawner.setBuffer(pb);
+    spawner.spawnParticlesSphere(TOTAL_MASS,SPAWN_RADIUS, INITIAL_H);
+
+    spawner.addMultiFrequencyCurl( {
+                                           {{0.9},{0.1}},
+                                           {{0.6},{0.3}},
+                                           {{0.4},{0.3}},
+                                           {{0.3},{0.6}},
+//                                        {{0.1},{0.2}}
+                                   },1612,HMIN,HMAX,TOTAL_MASS / NUM_PARTICLES);
+//    spawner.addSimplexVelocityField(0.8,0.05,42);
+//    spawner.addSimplexVelocityField(0.6,0.05,452);
+//    spawner.addSimplexVelocityField(0.1,0.15,876);
+
+//    spawner.addCurlVelocityField(0.5,0.1,1111);
+
+    spawner.addAngularVelocity({0,0.12f,0});
+}
+
 int main()
 {
     // initialise log
-    mpu::Log mainLog(mpu::DEBUG, mpu::ConsoleSink());
+    mpu::Log mainLog(mpu::WARNING, mpu::ConsoleSink());
 
     // create window and init gl
     mpu::gph::Window window(WIDTH,HEIGHT,"Star Formation Sim");
@@ -32,27 +55,8 @@ int main()
     glClearDepth(1.f);
     mpu::gph::enableVsync(false);
 
-    // generate some particles
     ParticleBuffer pb(NUM_PARTICLES,ACCEL_THREADS_PER_PARTICLE,DENSITY_THREADS_PER_PARTICLE);
-    ParticleSpawner spawner;
-    spawner.setBuffer(pb);
-    spawner.spawnParticlesSphere(TOTAL_MASS,SPAWN_RADIUS, INITIAL_H);
-
-    spawner.addMultiFrequencyCurl( {
-                                        {{0.9},{0.1}},
-                                        {{0.6},{0.25}},
-                                        {{0.4},{0.35}},
-                                        {{0.3},{0.2}}
-//                                        {{0.1},{0.1}}
-                                       },1612,HMIN,HMAX,TOTAL_MASS/SPAWN_RADIUS);
-//    spawner.addSimplexVelocityField(0.8,0.05,42);
-//    spawner.addSimplexVelocityField(0.6,0.05,452);
-//    spawner.addSimplexVelocityField(0.1,0.15,876);
-
-//    spawner.addCurlVelocityField(0.5,0.1,1111);
-
-    spawner.addAngularVelocity({0,0.09f,0});
-
+    spawnParticles(pb);
 
     // create a renderer
     ParticleRenderer renderer;
@@ -180,8 +184,10 @@ int main()
     // TODO: better accumulator
     // TODO: 2D mode
 
+    double runningAverage = 0;
+    int numberOfRuns = 0;
 
-    bool runSim = false;
+    bool runSim = true;
     bool printButtonDown = false;
     while( window.update())
     {
@@ -313,12 +319,38 @@ int main()
         // performance display
         nbframes++;
         elapsedPerT += dt;
-        if(elapsedPerT >= 2.0)
+        if(simulationTime >= 5.0)
         {
-            printf("%f ms/frame -- %f fps -- %f simSpeed -- %f simTime -- %f average dt\n", 1000.0*elapsedPerT/double(nbframes), nbframes/elapsedPerT, lag/elapsedPerT, simulationTime, lag/nbframes);
-            nbframes = 0;
+            if(numberOfRuns !=0)
+            {
+
+                logWARNING("TIMING") << "run " << numberOfRuns << " average time: "
+                                     << 1000.0 * elapsedPerT / double(nbframes);
+                runningAverage += (1000.0 * elapsedPerT / double(nbframes) - runningAverage) / numberOfRuns;
+
+                if (numberOfRuns >= 5)
+                {
+                    logWARNING("ERROR") << "5 runs average time: " << runningAverage;
+                    return 0;
+                }
+            }
+            numberOfRuns++;
+
+            spawnParticles(pb);
+
+            DT = INITIAL_DT;
+            dt=0;
+            nbframes =0;
             elapsedPerT = 0;
             lag = 0;
+            simulationTime = DT;
+            newDT = DT;
+
+            integrator.uniform1f("dt",DT);
+            integrator.uniform1f("next_dt",DT);
+            integrator.uniform1f("not_first_step",0);
+            simulate();
+            integrator.uniform1f("not_first_step",1);
         }
     }
 
