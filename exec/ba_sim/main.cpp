@@ -15,11 +15,13 @@ constexpr int WIDTH = 800;
 
 double DT = INITIAL_DT;
 
-unsigned int NUM_PARTICLES    = 8192;
+unsigned int NUM_PARTICLES    = 4096;
 unsigned int DENSITY_THREADS_PER_PARTICLE = 1;
 unsigned int ACCEL_THREADS_PER_PARTICLE   = 1;
 unsigned int DENSITY_WGSIZE               = 128;
 unsigned int PRESSURE_WGSIZE              = 128;
+
+unsigned int lastTotalFrames = 0;
 
 void spawnParticles(ParticleBuffer pb)
 {
@@ -190,6 +192,9 @@ double run()
     double runningAverage = 0;
     int numberOfRuns = 0;
 
+    long long framesTotalAverage = 0;
+    long long framesTotal =1;
+
     bool runSim = true;
     bool printButtonDown = false;
     while( window.update())
@@ -314,6 +319,7 @@ double run()
                 integrator.uniform1f("dt",DT);
             }
 
+            framesTotal++;
             nbframes++;
             elapsedPerT += dt;
             if(simulationTime >= 5.0 || (simulationTime >= 1.5 && numberOfRuns == 0))
@@ -322,12 +328,15 @@ double run()
                 {
 
                     logWARNING("TIMING") << "run " << numberOfRuns << " average time: "
-                                         << 1000.0 * elapsedPerT / double(nbframes);
-                    runningAverage += (1000.0 * elapsedPerT / double(nbframes) - runningAverage) / numberOfRuns;
+                                         << 1000.0 * elapsedPerT / double(nbframes) << " total frames: " << framesTotal;
+                    runningAverage += (1000.0 * elapsedPerT / double(nbframes) - runningAverage) / (numberOfRuns);
+                    framesTotalAverage += (framesTotal - framesTotalAverage) / (numberOfRuns);
 
                     if (numberOfRuns >= 5)
                     {
 //                    logWARNING("ERROR") << "5 runs average time: " << runningAverage;
+
+                        lastTotalFrames = framesTotalAverage;
                         return runningAverage;
                     }
                 }
@@ -342,6 +351,7 @@ double run()
                 lag = 0;
                 simulationTime = DT;
                 newDT = DT;
+                framesTotal =1;
 
                 integrator.uniform1f("dt",DT);
                 integrator.uniform1f("next_dt",DT);
@@ -369,10 +379,10 @@ int main()
 
     std::ofstream outData("/home/hschwane/baTimingData_"+ mpu::toString(std::time(nullptr))+".csv");
     outData << "Star formation simulator timings\n";
-    outData << "particle count, threads density, threads acc, time\n";
+    outData << "particle count, threads density, threads acc, time in ms, total frames simulated\n";
     outData.flush();
 
-    for(int i=0; i<10; i++) // particle count
+    for(int i=0; i<12; i++) // particle count
     {
         for(unsigned int i =1; i <= 8; i=i*2)
         {
@@ -382,8 +392,8 @@ int main()
                 ACCEL_THREADS_PER_PARTICLE = j;
                 double time = run();
 
-                logERROR("TIMING") << NUM_PARTICLES << " particle, " <<  DENSITY_THREADS_PER_PARTICLE << " density threads, " << ACCEL_THREADS_PER_PARTICLE << " acc threads," << time << "ms";
-                outData << NUM_PARTICLES << "," <<  DENSITY_THREADS_PER_PARTICLE << "," << ACCEL_THREADS_PER_PARTICLE << "," << time << "\n";
+                logERROR("TIMING") << NUM_PARTICLES << " particle, " <<  DENSITY_THREADS_PER_PARTICLE << " density threads, " << ACCEL_THREADS_PER_PARTICLE << " acc threads," << time << " ms " << lastTotalFrames << " frames";
+                outData << NUM_PARTICLES << "," <<  DENSITY_THREADS_PER_PARTICLE << "," << ACCEL_THREADS_PER_PARTICLE << "," << time << "," << lastTotalFrames << "\n";
                 outData.flush();
             }
         }
