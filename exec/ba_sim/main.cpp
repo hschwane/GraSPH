@@ -15,6 +15,12 @@ constexpr int WIDTH = 800;
 
 double DT = INITIAL_DT;
 
+unsigned int NUM_PARTICLES    = 8192;
+unsigned int DENSITY_THREADS_PER_PARTICLE = 1;
+unsigned int ACCEL_THREADS_PER_PARTICLE   = 1;
+unsigned int DENSITY_WGSIZE               = 128;
+unsigned int PRESSURE_WGSIZE              = 128;
+
 void spawnParticles(ParticleBuffer pb)
 {
     // generate some particles
@@ -38,11 +44,8 @@ void spawnParticles(ParticleBuffer pb)
     spawner.addAngularVelocity({0,0.12f,0});
 }
 
-int main()
+double run()
 {
-    // initialise log
-    mpu::Log mainLog(mpu::WARNING, mpu::ConsoleSink());
-
     // create window and init gl
     mpu::gph::Window window(WIDTH,HEIGHT,"Star Formation Sim");
 
@@ -330,8 +333,8 @@ int main()
 
                 if (numberOfRuns >= 5)
                 {
-                    logWARNING("ERROR") << "5 runs average time: " << runningAverage;
-                    return 0;
+//                    logWARNING("ERROR") << "5 runs average time: " << runningAverage;
+                    return runningAverage;
                 }
             }
             numberOfRuns++;
@@ -355,4 +358,35 @@ int main()
     }
 
     return 0;
+}
+
+int main()
+{
+    // initialise log
+    mpu::Log mainLog(mpu::WARNING, mpu::ConsoleSink());
+
+
+    std::ofstream outData("/home/hschwane/baTimingData_"+ mpu::toString(std::time(nullptr))+".csv");
+    outData << "Star formation simulator timings\n";
+    outData << "particle count, threads density, threads acc, time\n";
+    outData.flush();
+
+    for(int i=0; i<10; i++) // particle count
+    {
+        for(unsigned int i =1; i <= 8; i=i*2)
+        {
+            DENSITY_THREADS_PER_PARTICLE = i;
+            for(unsigned int j =1; j <= 8; j=j*2)
+            {
+                ACCEL_THREADS_PER_PARTICLE = j;
+                double time = run();
+
+                logERROR("TIMING") << NUM_PARTICLES << " particle, " <<  DENSITY_THREADS_PER_PARTICLE << " density threads, " << ACCEL_THREADS_PER_PARTICLE << " acc threads," << time << "ms";
+                outData << NUM_PARTICLES << "," <<  DENSITY_THREADS_PER_PARTICLE << "," << ACCEL_THREADS_PER_PARTICLE << "," << time << "\n";
+                outData.flush();
+            }
+        }
+    NUM_PARTICLES = NUM_PARTICLES*2;
+    }
+
 }
