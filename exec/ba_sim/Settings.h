@@ -25,7 +25,7 @@ constexpr float COURANT_NUMBER = 0.4; // the bigger this number the larger times
 
 // particles
 constexpr float TOTAL_MASS              = 20;//1e-22*1.98892e30 /1000;
-constexpr unsigned int NUM_PARTICLES    = 16000;
+constexpr unsigned int NUM_PARTICLES    = 32000;
 constexpr float SPAWN_RADIUS            = 6;
 constexpr float INITIAL_H               = 0.3;
 
@@ -52,8 +52,8 @@ constexpr float PARTICLE_BRIGHTNESS     = 1; // radius of a particle
 const glm::vec4 PARTICLE_COLOR          = glm::vec4(0.9,0.3,0.1,1);
 
 // threads and workgroups
-constexpr unsigned int DENSITY_THREADS_PER_PARTICLE = 4;
-constexpr unsigned int ACCEL_THREADS_PER_PARTICLE   = 2;
+constexpr unsigned int DENSITY_THREADS_PER_PARTICLE = 5;
+constexpr unsigned int ACCEL_THREADS_PER_PARTICLE   = 5;
 constexpr unsigned int DENSITY_WGSIZE               = 128;
 constexpr unsigned int PRESSURE_WGSIZE              = 128;
 

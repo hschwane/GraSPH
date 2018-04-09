@@ -59,8 +59,8 @@ void main()
     float maxVsig=0;
     for(uint i=0; i < ACCELERATIONS_PER_PARTICLE; i++)
     {
-        vec4 a = accelerations[NUM_PARTICLES * i + gl_GlobalInvocationID.x];
-        acc = a.xyz;
+        const vec4 a = accelerations[NUM_PARTICLES * i + gl_GlobalInvocationID.x];
+        acc = acc + a.xyz;
         maxVsig = max(maxVsig,a.w);
     }
 
