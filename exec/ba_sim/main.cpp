@@ -316,7 +316,7 @@ double run()
 
             nbframes++;
             elapsedPerT += dt;
-            if(simulationTime >= 5.0)
+            if(simulationTime >= 5.0 || (simulationTime >= 1.5 && numberOfRuns == 0))
             {
                 if(numberOfRuns !=0)
                 {
