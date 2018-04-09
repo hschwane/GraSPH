@@ -313,6 +313,42 @@ double run()
                 DT = newDT;
                 integrator.uniform1f("dt",DT);
             }
+
+            nbframes++;
+            elapsedPerT += dt;
+            if(simulationTime >= 5.0)
+            {
+                if(numberOfRuns !=0)
+                {
+
+                    logWARNING("TIMING") << "run " << numberOfRuns << " average time: "
+                                         << 1000.0 * elapsedPerT / double(nbframes);
+                    runningAverage += (1000.0 * elapsedPerT / double(nbframes) - runningAverage) / numberOfRuns;
+
+                    if (numberOfRuns >= 5)
+                    {
+//                    logWARNING("ERROR") << "5 runs average time: " << runningAverage;
+                        return runningAverage;
+                    }
+                }
+                numberOfRuns++;
+
+                spawnParticles(pb);
+
+                DT = INITIAL_DT;
+                dt=0;
+                nbframes =0;
+                elapsedPerT = 0;
+                lag = 0;
+                simulationTime = DT;
+                newDT = DT;
+
+                integrator.uniform1f("dt",DT);
+                integrator.uniform1f("next_dt",DT);
+                integrator.uniform1f("not_first_step",0);
+                simulate();
+                integrator.uniform1f("not_first_step",1);
+            }
         }
 
         // render the particles
@@ -320,41 +356,6 @@ double run()
         renderer.draw();
 
         // performance display
-        nbframes++;
-        elapsedPerT += dt;
-        if(simulationTime >= 5.0)
-        {
-            if(numberOfRuns !=0)
-            {
-
-                logWARNING("TIMING") << "run " << numberOfRuns << " average time: "
-                                     << 1000.0 * elapsedPerT / double(nbframes);
-                runningAverage += (1000.0 * elapsedPerT / double(nbframes) - runningAverage) / numberOfRuns;
-
-                if (numberOfRuns >= 5)
-                {
-//                    logWARNING("ERROR") << "5 runs average time: " << runningAverage;
-                    return runningAverage;
-                }
-            }
-            numberOfRuns++;
-
-            spawnParticles(pb);
-
-            DT = INITIAL_DT;
-            dt=0;
-            nbframes =0;
-            elapsedPerT = 0;
-            lag = 0;
-            simulationTime = DT;
-            newDT = DT;
-
-            integrator.uniform1f("dt",DT);
-            integrator.uniform1f("next_dt",DT);
-            integrator.uniform1f("not_first_step",0);
-            simulate();
-            integrator.uniform1f("not_first_step",1);
-        }
     }
 
     return 0;
