@@ -15,7 +15,7 @@ constexpr int WIDTH = 800;
 
 double DT = INITIAL_DT;
 
-unsigned int NUM_PARTICLES    = 4096;
+unsigned int NUM_PARTICLES    = 65536;//4096;
 unsigned int DENSITY_THREADS_PER_PARTICLE = 1;
 unsigned int ACCEL_THREADS_PER_PARTICLE   = 1;
 unsigned int DENSITY_WGSIZE               = 128;
@@ -322,7 +322,7 @@ double run()
             framesTotal++;
             nbframes++;
             elapsedPerT += dt;
-            if(simulationTime >= 5.0 || (simulationTime >= 1.5 && numberOfRuns == 0))
+            if(simulationTime >= 5.0 || (simulationTime >= 0.5 && numberOfRuns == 0))
             {
                 if(numberOfRuns !=0)
                 {
@@ -332,7 +332,7 @@ double run()
                     runningAverage += (1000.0 * elapsedPerT / double(nbframes) - runningAverage) / (numberOfRuns);
                     framesTotalAverage += (framesTotal - framesTotalAverage) / (numberOfRuns);
 
-                    if (numberOfRuns >= 5)
+                    if (numberOfRuns >= 3)
                     {
 //                    logWARNING("ERROR") << "5 runs average time: " << runningAverage;
 
@@ -397,6 +397,21 @@ int main()
                 outData.flush();
             }
         }
+
+        for(unsigned int i =16; i <= 32; i=i*2)
+        {
+            DENSITY_THREADS_PER_PARTICLE = i;
+            for(unsigned int j =16; j <= 32; j=j*2)
+            {
+                ACCEL_THREADS_PER_PARTICLE = j;
+                double time = run();
+
+                logERROR("TIMING") << NUM_PARTICLES << " particle, " <<  DENSITY_THREADS_PER_PARTICLE << " density threads, " << ACCEL_THREADS_PER_PARTICLE << " acc threads," << time << " ms " << lastTotalFrames << " frames";
+                outData << NUM_PARTICLES << "," <<  DENSITY_THREADS_PER_PARTICLE << "," << ACCEL_THREADS_PER_PARTICLE << "," << time << "," << lastTotalFrames << "\n";
+                outData.flush();
+            }
+        }
+
     NUM_PARTICLES = NUM_PARTICLES*2;
     }
 
