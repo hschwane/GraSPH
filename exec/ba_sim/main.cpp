@@ -15,7 +15,7 @@ constexpr int WIDTH = 800;
 
 double DT = INITIAL_DT;
 
-unsigned int NUM_PARTICLES    = 65536;//4096;
+unsigned int NUM_PARTICLES    = 4096;
 unsigned int DENSITY_THREADS_PER_PARTICLE = 1;
 unsigned int ACCEL_THREADS_PER_PARTICLE   = 1;
 unsigned int DENSITY_WGSIZE               = 128;
@@ -379,36 +379,50 @@ int main()
 
     std::ofstream outData("/home/hschwane/baTimingData_"+ mpu::toString(std::time(nullptr))+".csv");
     outData << "Star formation simulator timings\n";
-    outData << "particle count, threads density, threads acc, time in ms, total frames simulated\n";
+    outData << "particle count, threads density, threads acc, wgsize, time in ms, total frames simulated\n";
     outData.flush();
 
     for(int i=0; i<12; i++) // particle count
     {
-        for(unsigned int i =1; i <= 8; i=i*2)
+        for(unsigned int x=32; x<=512; x=x*2) // workgroup size
         {
-            DENSITY_THREADS_PER_PARTICLE = i;
-            for(unsigned int j =1; j <= 8; j=j*2)
-            {
-                ACCEL_THREADS_PER_PARTICLE = j;
-                double time = run();
+            unsigned int DENSITY_WGSIZE = x;
+            unsigned int PRESSURE_WGSIZE = x;
 
-                logERROR("TIMING") << NUM_PARTICLES << " particle, " <<  DENSITY_THREADS_PER_PARTICLE << " density threads, " << ACCEL_THREADS_PER_PARTICLE << " acc threads," << time << " ms " << lastTotalFrames << " frames";
-                outData << NUM_PARTICLES << "," <<  DENSITY_THREADS_PER_PARTICLE << "," << ACCEL_THREADS_PER_PARTICLE << "," << time << "," << lastTotalFrames << "\n";
-                outData.flush();
+            for (unsigned int ii = 1; ii <= 8; ii = ii * 2) {
+                DENSITY_THREADS_PER_PARTICLE = ii;
+                for (unsigned int j = 1; j <= 8; j = j * 2) {
+                    ACCEL_THREADS_PER_PARTICLE = j;
+
+                    if( NUM_PARTICLES % (DENSITY_THREADS_PER_PARTICLE*DENSITY_WGSIZE) != 0 || NUM_PARTICLES % (ACCEL_THREADS_PER_PARTICLE*PRESSURE_WGSIZE) !=0)
+                        continue;
+
+                    double time = run();
+
+                    logERROR("TIMING") << NUM_PARTICLES << " particle, " << DENSITY_THREADS_PER_PARTICLE
+                                       << " density threads, " << ACCEL_THREADS_PER_PARTICLE << " acc threads, " << x << " wgsize, " << time
+                                       << " ms " << lastTotalFrames << " frames";
+                    outData << NUM_PARTICLES << "," << DENSITY_THREADS_PER_PARTICLE << "," << ACCEL_THREADS_PER_PARTICLE
+                            << "," << x << "," << time << "," << lastTotalFrames << "\n";
+                    outData.flush();
+                }
             }
-        }
+            for (unsigned int ii = 16; ii <= 32; ii = ii * 2) {
+                DENSITY_THREADS_PER_PARTICLE = ii;
+                for (unsigned int j = 16; j <= 32; j = j * 2) {
+                    ACCEL_THREADS_PER_PARTICLE = j;
+                    double time = run();
 
-        for(unsigned int i =16; i <= 32; i=i*2)
-        {
-            DENSITY_THREADS_PER_PARTICLE = i;
-            for(unsigned int j =16; j <= 32; j=j*2)
-            {
-                ACCEL_THREADS_PER_PARTICLE = j;
-                double time = run();
+                    if( NUM_PARTICLES % (DENSITY_THREADS_PER_PARTICLE*DENSITY_WGSIZE) != 0 || NUM_PARTICLES % (ACCEL_THREADS_PER_PARTICLE*PRESSURE_WGSIZE) !=0)
+                        continue;
 
-                logERROR("TIMING") << NUM_PARTICLES << " particle, " <<  DENSITY_THREADS_PER_PARTICLE << " density threads, " << ACCEL_THREADS_PER_PARTICLE << " acc threads," << time << " ms " << lastTotalFrames << " frames";
-                outData << NUM_PARTICLES << "," <<  DENSITY_THREADS_PER_PARTICLE << "," << ACCEL_THREADS_PER_PARTICLE << "," << time << "," << lastTotalFrames << "\n";
-                outData.flush();
+                    logERROR("TIMING") << NUM_PARTICLES << " particle, " << DENSITY_THREADS_PER_PARTICLE
+                                       << " density threads, " << ACCEL_THREADS_PER_PARTICLE << " acc threads, " << x << " wgsize, " << time
+                                       << " ms " << lastTotalFrames << " frames";
+                    outData << NUM_PARTICLES << "," << DENSITY_THREADS_PER_PARTICLE << "," << ACCEL_THREADS_PER_PARTICLE
+                            << "," << x << "," << time << "," << lastTotalFrames << "\n";
+                    outData.flush();
+                }
             }
         }
 
