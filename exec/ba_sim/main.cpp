@@ -16,10 +16,10 @@ constexpr int WIDTH = 800;
 double DT = INITIAL_DT;
 
 unsigned int NUM_PARTICLES    = 4096;
-unsigned int DENSITY_THREADS_PER_PARTICLE = 1;
-unsigned int ACCEL_THREADS_PER_PARTICLE   = 1;
-unsigned int DENSITY_WGSIZE               = 128;
-unsigned int PRESSURE_WGSIZE              = 128;
+unsigned int DENSITY_THREADS_PER_PARTICLE = 0;
+unsigned int ACCEL_THREADS_PER_PARTICLE   = 0;
+unsigned int DENSITY_WGSIZE               = 0;
+unsigned int PRESSURE_WGSIZE              = 0;
 
 unsigned int lastTotalFrames = 0;
 
@@ -322,7 +322,7 @@ double run()
             framesTotal++;
             nbframes++;
             elapsedPerT += dt;
-            if(simulationTime >= 5.0 || (simulationTime >= 0.5 && numberOfRuns == 0))
+            if(simulationTime >= 4.0 || (simulationTime >= 0.5 && numberOfRuns == 0))
             {
                 if(numberOfRuns !=0)
                 {
@@ -382,39 +382,24 @@ int main()
     outData << "particle count, threads density, threads acc, wgsize, time in ms, total frames simulated\n";
     outData.flush();
 
-    for(int i=0; i<12; i++) // particle count
+    for(unsigned int i=4096; i<=20000; i=i*2) // particle count
     {
-        for(unsigned int x=32; x<=512; x=x*2) // workgroup size
+        for(unsigned int j=32; j<=1024; j=j*2) // workgroup size
         {
-            unsigned int DENSITY_WGSIZE = x;
-            unsigned int PRESSURE_WGSIZE = x;
-
-            for (unsigned int ii = 1; ii <= 8; ii = ii * 2) {
-                DENSITY_THREADS_PER_PARTICLE = ii;
-                for (unsigned int j = 1; j <= 8; j = j * 2) {
-                    ACCEL_THREADS_PER_PARTICLE = j;
+            for (unsigned int x = 1; x <= 128; x = x * 2)
+            {
+                for (unsigned int y = 1; y <= x; y = y * 2)
+                {
+                    NUM_PARTICLES = i;
+                    DENSITY_WGSIZE = j;
+                    PRESSURE_WGSIZE = j;
+                    ACCEL_THREADS_PER_PARTICLE = y;
+                    DENSITY_THREADS_PER_PARTICLE = x;
 
                     if( NUM_PARTICLES % (DENSITY_THREADS_PER_PARTICLE*DENSITY_WGSIZE) != 0 || NUM_PARTICLES % (ACCEL_THREADS_PER_PARTICLE*PRESSURE_WGSIZE) !=0)
                         continue;
 
                     double time = run();
-
-                    logERROR("TIMING") << NUM_PARTICLES << " particle, " << DENSITY_THREADS_PER_PARTICLE
-                                       << " density threads, " << ACCEL_THREADS_PER_PARTICLE << " acc threads, " << x << " wgsize, " << time
-                                       << " ms " << lastTotalFrames << " frames";
-                    outData << NUM_PARTICLES << "," << DENSITY_THREADS_PER_PARTICLE << "," << ACCEL_THREADS_PER_PARTICLE
-                            << "," << x << "," << time << "," << lastTotalFrames << "\n";
-                    outData.flush();
-                }
-            }
-            for (unsigned int ii = 16; ii <= 32; ii = ii * 2) {
-                DENSITY_THREADS_PER_PARTICLE = ii;
-                for (unsigned int j = 16; j <= 32; j = j * 2) {
-                    ACCEL_THREADS_PER_PARTICLE = j;
-                    double time = run();
-
-                    if( NUM_PARTICLES % (DENSITY_THREADS_PER_PARTICLE*DENSITY_WGSIZE) != 0 || NUM_PARTICLES % (ACCEL_THREADS_PER_PARTICLE*PRESSURE_WGSIZE) !=0)
-                        continue;
 
                     logERROR("TIMING") << NUM_PARTICLES << " particle, " << DENSITY_THREADS_PER_PARTICLE
                                        << " density threads, " << ACCEL_THREADS_PER_PARTICLE << " acc threads, " << x << " wgsize, " << time
@@ -425,8 +410,5 @@ int main()
                 }
             }
         }
-
-    NUM_PARTICLES = NUM_PARTICLES*2;
     }
-
 }
