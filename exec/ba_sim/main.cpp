@@ -322,7 +322,7 @@ double run()
             framesTotal++;
             nbframes++;
             elapsedPerT += dt;
-            if(simulationTime >= 4.0 || (simulationTime >= 0.5 && numberOfRuns == 0))
+            if(simulationTime >= 3.5 || (simulationTime >= 0.5 && numberOfRuns == 0))
             {
                 if(numberOfRuns !=0)
                 {
@@ -382,9 +382,9 @@ int main()
     outData << "particle count, threads density, threads acc, wgsize, time in ms, total frames simulated\n";
     outData.flush();
 
-    for(unsigned int i=4096; i<=20000; i=i*2) // particle count
+    for(unsigned int i=4096; i<=40000; i=i*2) // particle count
     {
-        for(unsigned int j=32; j<=1024; j=j*2) // workgroup size
+        for(unsigned int j=32; j<=512; j=j*2) // workgroup size
         {
             for (unsigned int x = 1; x <= 128; x = x * 2)
             {
@@ -402,10 +402,10 @@ int main()
                     double time = run();
 
                     logERROR("TIMING") << NUM_PARTICLES << " particle, " << DENSITY_THREADS_PER_PARTICLE
-                                       << " density threads, " << ACCEL_THREADS_PER_PARTICLE << " acc threads, " << x << " wgsize, " << time
+                                       << " density threads, " << ACCEL_THREADS_PER_PARTICLE << " acc threads, " << j << " wgsize, " << time
                                        << " ms " << lastTotalFrames << " frames";
                     outData << NUM_PARTICLES << "," << DENSITY_THREADS_PER_PARTICLE << "," << ACCEL_THREADS_PER_PARTICLE
-                            << "," << x << "," << time << "," << lastTotalFrames << "\n";
+                            << "," << j << "," << time << "," << lastTotalFrames << "\n";
                     outData.flush();
                 }
             }
