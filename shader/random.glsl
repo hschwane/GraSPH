@@ -34,14 +34,14 @@ uint WangHash(in uint a)
 }
 
 // xor shift as part of the rnd
-uint rng_state = 0;
+uint _rng_state = 0;
 uint rand_xorshift()
 {
 	// Xorshift algorithm from George Marsaglia's paper
-	rng_state ^= (rng_state << 13);
-	rng_state ^= (rng_state >> 17);
-	rng_state ^= (rng_state << 5);
-	return rng_state;
+	_rng_state ^= (_rng_state << 13);
+	_rng_state ^= (_rng_state >> 17);
+	_rng_state ^= (_rng_state << 5);
+	return _rng_state;
 }
 
 // ----------------------------------------------------------------------------
@@ -50,7 +50,7 @@ uint rand_xorshift()
 // generate a random number from the seed number will be inbetween 0 and 1
 float rand(uint seed)
 {
-	rng_state += WangHash(seed);
+	_rng_state += WangHash(seed);
 	return float(rand_xorshift()) * (1.0f / UINT_MAX_F);
 }
 
@@ -65,9 +65,32 @@ vec3 rand3(uint seed)
 }
 
 // hammersley point set
-// pass a random seed and the total number of points to generate
+// pass a random seed and the total number of points to generate a hammersleySet
 vec2 genHammersleySet(uint seed, uint samples){
 	return hammersley2d(uint(clamp(rand(seed), 0.f, 1.f) * samples), 1/float(samples));
+}
+
+// Box-Müller
+// pass a random seed and the total number of values generated to generate gaussian distributed random variable [-inf,inf]
+float _last_z1=0;
+bool _generate=false;
+float gaussian(uint seed, uint samples, float mu, float sigma)
+{
+    _generate = !_generate;
+    if(!_generate)
+        return _last_z1 * sigma + mu;
+
+    vec2 u;
+    do
+    {
+        u = genHammersleySet(seed, samples);
+    }
+    while(u.x < F_EPSILON); // repeat if that was 0
+
+    float root = sqrt(-2*log(u.x));
+    float angle = 2 * PI * u.y;
+    _last_z1 = root*sin(angle);
+    return root*cos(angle)*sigma+mu;
 }
 
 // random positions on the surface of a spere with radius 1
