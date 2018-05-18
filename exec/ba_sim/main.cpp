@@ -48,9 +48,7 @@ int main()
 //    spawner.addSimplexVelocityField(0.8,0.05,42);
 //    spawner.addSimplexVelocityField(0.6,0.05,452);
 //    spawner.addSimplexVelocityField(0.1,0.15,876);
-
 //    spawner.addCurlVelocityField(0.5,0.1,1111);
-
     spawner.addAngularVelocity({0,0.12f,0});
 
 
@@ -70,7 +68,14 @@ int main()
     camera.setMVP(&renderer);
     camera.setClip(0.01,200);
 
-    // create hydrodynamics based acceleration function
+
+    // compile and confiure all the shader
+    mpu::gph::ShaderProgram adjustH({{PROJECT_SHADER_PATH"Acceleration/adjustH.comp"}});
+    adjustH.uniform1f("hmin",HMIN);
+    adjustH.uniform1f("hmax",HMAX);
+    adjustH.uniform1f("mass_per_particle", TOTAL_MASS / NUM_PARTICLES);
+    adjustH.uniform1f("num_neighbours",NUM_NEIGHBOURS);
+
     mpu::gph::ShaderProgram densityShader({{PROJECT_SHADER_PATH"Acceleration/smo-SPHdensity.comp"}},
                                           {
                                             {"WGSIZE",{mpu::toString(DENSITY_WGSIZE)}},
@@ -114,16 +119,35 @@ int main()
     integrator.uniform1f("courant_number",COURANT_NUMBER);
 
 
-    mpu::gph::ShaderProgram adjustH({{PROJECT_SHADER_PATH"Acceleration/adjustH.comp"}});
-    adjustH.uniform1f("hmin",HMIN);
-    adjustH.uniform1f("hmax",HMAX);
-    adjustH.uniform1f("mass_per_particle", TOTAL_MASS / NUM_PARTICLES);
-    adjustH.uniform1f("num_neighbours",NUM_NEIGHBOURS);
+    // group shader dispatches into useful functions
+    auto findSmoothingLength = [adjustH,densityShader,wgSize](int iterations)
+    {
+        for(int i = 0; i < iterations; ++i)
+        {
+            glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+            densityShader.dispatch(NUM_PARTICLES*DENSITY_THREADS_PER_PARTICLE/DENSITY_WGSIZE);
+            glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+            adjustH.dispatch(NUM_PARTICLES,wgSize);
+        }
+    };
 
-    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-    densityShader.dispatch(NUM_PARTICLES*DENSITY_THREADS_PER_PARTICLE/DENSITY_WGSIZE);
+    auto startSimulation = [densityShader,pressureShader,wgSize,hydroAccum,integrator,adjustH]()
+    {
 
-    auto simulate = [densityShader,pressureShader,wgSize,hydroAccum,integrator,adjustH](){
+        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+        densityShader.dispatch(NUM_PARTICLES*DENSITY_THREADS_PER_PARTICLE/DENSITY_WGSIZE);
+        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+        hydroAccum.dispatch(NUM_PARTICLES,wgSize);
+        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+        pressureShader.dispatch(NUM_PARTICLES*ACCEL_THREADS_PER_PARTICLE/PRESSURE_WGSIZE);
+        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+        integrator.uniform1f("not_first_step",1);
+        integrator.dispatch(NUM_PARTICLES,wgSize);
+        integrator.uniform1f("not_first_step",1);
+    };
+
+    auto simulate = [densityShader,pressureShader,wgSize,hydroAccum,integrator,adjustH]()
+    {
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
         adjustH.dispatch(NUM_PARTICLES,wgSize);
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
@@ -136,9 +160,8 @@ int main()
         integrator.dispatch(NUM_PARTICLES,wgSize);
     };
 
-    simulate();
-    integrator.uniform1f("not_first_step",1);
-
+    findSmoothingLength(4);
+    startSimulation();
 
     float brightness=PARTICLE_BRIGHTNESS;
     float size=PARTICLE_RENDER_SIZE;
@@ -153,33 +176,6 @@ int main()
     double simulationTime = DT;
 
     double newDT = DT;
-
-    // sink particles and particle merging
-    // TODO: make sink particles use impulse
-    // TODO: make sink paricle better interact with each other
-    // TODO: make sink particles spawning more realistic
-    // TODO: add sph border conditions at  sink particles
-    // TODO: maybe optimize tagging and make absorption faster
-
-    // performance
-    // TODO: enable prerenderd simulation
-    // TODO: add datastructure
-
-    // output and visualisation
-    // TODO: output information of stars
-    // TODO: make star visualisation better
-
-    // usability and debugging
-    // TODO: print particles to readable file for debug
-    // TODO: finally code a gui
-
-    // not so important stuff
-    // TODO: make variable particle sizes possible / better gas rendering
-    // TODO: class tp generate different simulation settings (fast mode usw...)
-    // TODO: add gpu stopwatch
-    // TODO: better accumulator
-    // TODO: 2D mode
-
 
     bool runSim = false;
     bool printButtonDown = false;
