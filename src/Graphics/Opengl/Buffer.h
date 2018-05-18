@@ -290,7 +290,7 @@ private:
     template <typename T>
     Buffer Buffer::clone(const ptrdiff_t count, const ptrdiff_t src_offset, const ptrdiff_t dst_offset) const
     {
-        static_assert(false, "THIS MIGHT NOT WORK");
+        throw std::logic_error("THIS MIGHT NOT WORK");
         Buffer newBuffer;
         copyTo(newBuffer, count * sizeof(T), src_offset*sizeof(T), dst_offset*sizeof(T));
         return newBuffer;
