@@ -10,8 +10,8 @@
 #include "ParticleRenderer.h"
 #include "Settings.h"
 
-constexpr int HEIGHT = 800;
-constexpr int WIDTH = 800;
+constexpr int HEIGHT = 1000;
+constexpr int WIDTH = 1000;
 
 double DT = INITIAL_DT;
 
@@ -39,19 +39,19 @@ int main()
     spawner.spawnParticlesSphere(TOTAL_MASS,SPAWN_RADIUS, INITIAL_H);
 
     spawner.addMultiFrequencyCurl( {
-                                        {{0.9},{0.1}},
-                                        {{0.6},{0.25}},
-                                        {{0.4},{0.35}},
-                                        {{0.3},{0.2}}
-//                                        {{0.1},{0.1}}
-                                       },1612,HMIN,HMAX,TOTAL_MASS/SPAWN_RADIUS);
+                                           {{0.9},{0.1}},
+                                           {{0.6},{0.3}},
+                                           {{0.4},{0.3}},
+                                           {{0.3},{0.6}},
+//                                        {{0.1},{0.2}}
+                                   },1612,HMIN,HMAX,TOTAL_MASS / NUM_PARTICLES);
 //    spawner.addSimplexVelocityField(0.8,0.05,42);
 //    spawner.addSimplexVelocityField(0.6,0.05,452);
 //    spawner.addSimplexVelocityField(0.1,0.15,876);
 
 //    spawner.addCurlVelocityField(0.5,0.1,1111);
 
-    spawner.addAngularVelocity({0,0.09f,0});
+    spawner.addAngularVelocity({0,0.12f,0});
 
 
     // create a renderer
