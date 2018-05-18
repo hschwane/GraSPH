@@ -43,12 +43,7 @@ int main()
                                            {{0.6},{0.3}},
                                            {{0.4},{0.3}},
                                            {{0.3},{0.6}},
-//                                        {{0.1},{0.2}}
                                    },1612,HMIN,HMAX,TOTAL_MASS / NUM_PARTICLES);
-//    spawner.addSimplexVelocityField(0.8,0.05,42);
-//    spawner.addSimplexVelocityField(0.6,0.05,452);
-//    spawner.addSimplexVelocityField(0.1,0.15,876);
-//    spawner.addCurlVelocityField(0.5,0.1,1111);
     spawner.addAngularVelocity({0,0.12f,0});
 
 
@@ -178,7 +173,6 @@ int main()
     double newDT = DT;
 
     bool runSim = false;
-    bool printButtonDown = false;
     while( window.update())
     {
         dt = timer.getDeltaTime();
@@ -201,70 +195,6 @@ int main()
             size -= size *0.5*dt;
         renderer.setSize(size);
 
-        // particle debug output
-        if(window.getKey(GLFW_KEY_P) == GLFW_PRESS && !printButtonDown)
-        {
-            printButtonDown = true;
-            glFinish();
-            glMemoryBarrier(GL_ALL_BARRIER_BITS);
-            std::vector<glm::vec4> hdata = pb.hydrodynamicsBuffer.read<glm::vec4>(pb.size(),0);
-
-            glm::vec4 sum = std::accumulate( hdata.begin(), hdata.end(),glm::vec4(0));
-            sum /= hdata.size();
-
-            glm::vec4 maxRho = *std::max_element(hdata.begin(), hdata.end(),[](const glm::vec4 &a, const glm::vec4 &b){ return(a.y < b.y);});
-            glm::vec4 maxP = *std::max_element(hdata.begin(), hdata.end(),[](const glm::vec4 &a, const glm::vec4 &b){ return(a.y < b.y);});
-
-//            for(auto &&item : hdata)
-//            {
-//                logDEBUG("Particle data") << "Hydro: " << glm::to_string(item);
-//            }
-            logDEBUG("Particle data") << "Mean density: " << sum.y << " Mean Pressure: " << sum.x;
-            logDEBUG("Particle data") << "Max density: " << maxRho.y << " Max Pressure: " << maxP.x;
-
-            mpu::gph::Buffer temp;
-            temp.allocate<glm::vec4>(pb.size(),GL_MAP_READ_BIT | GL_MAP_PERSISTENT_BIT);
-            pb.positionBuffer.copyTo(temp);
-            glMemoryBarrier(GL_ALL_BARRIER_BITS);
-            std::vector<glm::vec4> pdata = temp.read<glm::vec4>(pb.size(),0);
-//            for(auto &&item : pdata)
-//            {
-//                logDEBUG("Particle data") << "Position: " << glm::to_string(item);
-//            }
-
-            temp.recreate();
-            temp.allocate<float>(pb.size(),GL_MAP_READ_BIT | GL_MAP_PERSISTENT_BIT);
-            pb.smlengthBuffer.copyTo(temp);
-            glMemoryBarrier(GL_ALL_BARRIER_BITS);
-            std::vector<float> smlength = temp.read<float>(pb.size(),0);
-//            int i=0;
-//            for(auto &&item : hdata)
-//            {
-//                logDEBUG("Particle data") << "mass under curve: " << 4 * glm::pi<float>() /3 * smlength[i]*smlength[i]*smlength[i] * item.y << " H:" << smlength[i];
-//                i++;
-//            }
-
-//            std::vector<glm::vec4> adata = pb.accelerationBuffer.read<glm::vec4>( pb.size()*pb.accPerParticle(),0);
-//            int i=0;
-//            for(auto &&item : adata)
-//            {
-//                if(i < 600)
-//                logDEBUG("Particle data") << "acc is: " << glm::to_string(item) << " at entry " << i;
-//                i++;
-//            }
-
-            std::vector<glm::vec4> vdata = pb.velocityBuffer.read<glm::vec4>( pb.size(),0);
-//            for(auto &&item : vdata)
-//            {
-//                    logDEBUG("Particle data") << "vel is: " << glm::to_string(item);
-//            }
-
-            glm::vec4 pos = std::accumulate( pdata.begin(), pdata.end(),glm::vec4(0,0,0,0));
-            logDEBUG("Particle data") << "total mass: " << pos.w;
-        }
-        else if(window.getKey(GLFW_KEY_P) == GLFW_RELEASE)
-            printButtonDown = false;
-
         // run the simulation
         if(window.getKey(GLFW_KEY_1) == GLFW_PRESS && window.getKey(GLFW_KEY_2) == GLFW_RELEASE)
             runSim = true;
@@ -277,16 +207,6 @@ int main()
         std::vector<float> dtdata = temp.read<float>( pb.size(),0);
         float desiredMaxDT = *std::min(dtdata.begin(),dtdata.end());
 
-//        while(newDT < MAX_DT && newDT < desiredMaxDT)
-//        {
-//            newDT = newDT*2;
-//        }
-//
-//        while(newDT > MIN_DT && newDT > desiredMaxDT)
-//        {
-//            newDT = newDT/2;
-//        }
-//        desiredMaxDT *=0.9;
         newDT = glm::clamp( desiredMaxDT, float(MIN_DT),float(MAX_DT));
         integrator.uniform1f("next_dt",newDT);
 
