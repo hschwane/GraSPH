@@ -1,4 +1,4 @@
-# myPersonalUtilities
+# mpUtils
 a ~~platform independent~~ linux c++ library with some utility classes I use for my personal projects and university assignments
 
 -------------------------
@@ -35,22 +35,22 @@ Now set up you own project and link mpUtils as a shared library
 --------------------------
 ## features
 
+- wrapper for some  openGl (using GLEW) and glfw functionality
+- utilities that help with graphical programming
 - highly customisable thread safe logger
-- ini-Style configuration files
-- different timers
-    - Timer (a simple coutdown timer you have to poll)
-    - AsyncTimer (like Timer but running in a seperate thread)
-    - Stopwatch (a timer that works like a stopwatch)
-    - DeltaTimer (timer that calculates the time since it was last polled)
-    - all timers can use the cpu_clock or std::chrono defined clocks
-    
-- documentation in doxygen style comments
+- ini-Style configuration file parser
+- different timers including asynchronous ones
+- doxygen style documentation
+
 ------------------------
 ## planned features
 
-- wrappers for basic openGL / window management and imGUI
-- code for network communication
-- code for serial communication
-- jason and/or xml (probably external library)
+- wrapper for the remaining openGL features
+- more utilities for graphics programming (maybe game engine style functionality)
+- include a GUI
+- network communication
+- serial communication
+- jason and/or xml
 - a argument parser for command line apps
-- maybe windows and mac support
+- windows and mac support
+- improvements to the log (lock-free-queue, more sinks with better format, different depths for massages)

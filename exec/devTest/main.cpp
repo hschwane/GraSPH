@@ -41,15 +41,7 @@ double dTime =0;
 
 int main()
 {
-    CpuStopwatch timer; //
-
-    // TODO: make the line comments doxygen ones
-    // TODO: add network
-    // TODO: add serial
-    // TODO: add arg parser
-    // TODO: json / xml parser / class serialization
-    // TODO: make stuff windows and mac compatible
-    // TODO maybe use lock free queue for logger
+    CpuStopwatch timer;
 
 //        Log myLog(LogPolicy::CONSOLE, LogLvl::ALL);
 
