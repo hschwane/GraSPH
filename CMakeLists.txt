@@ -8,7 +8,7 @@ include(GNUInstallDirs)
 include(GetVersionFromGit)
 
 # create project
-project(mpUtils VERSION "${VERSION_SHORT}")
+project(GraSPH VERSION "${VERSION_SHORT}")
 
 # find directories
 set(LIB_SHADER_PATH ${CMAKE_SOURCE_DIR}/shader CACHE PATH "Library Shader Path. Set manually if it was not found.")
