@@ -1,0 +1,29 @@
+#version 450 core
+#extension GL_ARB_compute_variable_group_size : require
+
+#include "common.glsl"
+#include "mathConst.glsl"
+
+layout(binding=PARTICLE_HYDRO_BUFFER_BINDING,std430) buffer ParticleHydro
+{
+    vec4 hydro[];
+};
+
+layout(binding=PARTICLE_SMLENGTH_BUFFER_BINDING,std430) buffer ParticleSmlength
+{
+    float smlength[];
+};
+
+layout(local_size_variable) in;
+
+uniform float hmax;
+uniform float hmin;
+uniform float mass_per_particle;
+uniform float num_neighbours;
+
+void main()
+{
+    vec4 hydi = hydro[gl_GlobalInvocationID.x];
+    float hi = clamp(pow(3.0f*num_neighbours*mass_per_particle / (hydi.y*4.0f*PI),1.0f/3.0f),hmin,hmax);
+    smlength[gl_GlobalInvocationID.x] = hi;
+}

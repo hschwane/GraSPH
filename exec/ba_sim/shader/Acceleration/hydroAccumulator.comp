@@ -1,0 +1,58 @@
+#version 450 core
+#extension GL_ARB_compute_variable_group_size : require
+
+#include "common.glsl"
+#include "mathConst.glsl"
+
+layout(binding=PARTICLE_HYDRO_BUFFER_BINDING,std430) buffer ParticleHydro
+{
+    vec4 hydro[];
+};
+
+layout(binding=PARTICLE_SMLENGTH_BUFFER_BINDING,std430) buffer ParticleSmlength
+{
+    float smlength[];
+};
+
+layout(binding=PARTICLE_VELOCITY_BUFFER_BINDING,std430) buffer ParticleVelocities
+{
+    vec4 velocities[];
+};
+
+uniform float k;
+uniform float ac1;
+uniform float ac2;
+uniform float frag_limit;
+
+layout(local_size_variable) in;
+
+void main()
+{
+    vec4 sum = vec4(0);
+
+    for(uint i=0; i < HYDROS_PER_PARTICLE; i++)
+    {
+        sum += hydro[NUM_PARTICLES * i + gl_GlobalInvocationID.x];
+    }
+
+    float hi = smlength[gl_GlobalInvocationID.x];
+
+    // calculate pressure
+    const float ac = (sum.y<frag_limit) ? ac1 : ac2;
+    const float pressure = k * pow(sum.y,ac);
+
+    float ci = sqrt(ac*pressure/sum.y);
+
+#ifndef DISABLE_VISC_VORT_CORRECTION
+    // calculate viscosity correction value
+    float vorticity = (sum.x/sum.y);
+    float divergence = (sum.z/sum.y);
+    float fiv = divergence / (divergence + vorticity+0.001*ci/smlength[gl_GlobalInvocationID.x]);
+#else
+    float fiv = 1;
+#endif
+
+    float fip = 1.0/(1.0+ ((hi/(3*sum.y)) * sum.w));
+    hydro[gl_GlobalInvocationID.x] = vec4(pressure, sum.y, fiv, fip);
+    velocities[gl_GlobalInvocationID.x].w = ci;
+}

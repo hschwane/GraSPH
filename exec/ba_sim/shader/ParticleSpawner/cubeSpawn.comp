@@ -1,0 +1,63 @@
+#version 450
+#extension GL_ARB_compute_variable_group_size : require
+
+#include "common.glsl"
+#include "random.glsl"
+
+layout(binding=PARTICLE_POSITION_BUFFER_BINDING,std430) buffer ParticlePositions
+{
+    vec4 positions[];
+};
+
+layout(binding=PARTICLE_VELOCITY_BUFFER_BINDING,std430) buffer ParticleVelocities
+{
+    vec4 velocities[];
+};
+
+layout(binding=PARTICLE_ACCELERATION_BUFFER_BINDING,std430) buffer ParticleAccelerations
+{
+    vec4 accelerations[];
+};
+
+layout(binding=PARTICLE_HYDRO_BUFFER_BINDING,std430) buffer ParticleHydro
+{
+    vec4 hydro[];
+};
+
+layout(binding=PARTICLE_SMLENGTH_BUFFER_BINDING,std430) buffer ParticleSmlength
+{
+    float smlength[];
+};
+
+layout(local_size_variable) in;
+
+uniform vec3 upper_bound;
+uniform vec3 lower_bound;
+uniform float mass;
+uniform float density;
+uniform float temperature;
+uniform uint num_of_particles;
+uniform float initial_smlength=0.3;
+
+uniform uint accMulti=1;
+uniform uint hydMulti=1;
+
+uniform uint random_seed;
+
+void main()
+{
+    // generate a random position
+    uint seed = random_seed*gl_GlobalInvocationID.x;
+    vec3 randomPos = (rand3(seed) * (upper_bound - lower_bound)+lower_bound);
+    positions[gl_GlobalInvocationID.x] = vec4(randomPos,mass);
+
+    // set all the other attributes
+    velocities[gl_GlobalInvocationID.x] = vec4(0,0,0,0);
+    smlength[gl_GlobalInvocationID.x] = initial_smlength;
+
+    for(uint i=0; i<accMulti; i++ )
+        accelerations[gl_GlobalInvocationID.x + i*num_of_particles] = vec4(0,0,0,0);
+
+    for(uint i=0; i<hydMulti; i++ )
+        hydro[gl_GlobalInvocationID.x + i*num_of_particles] = vec4(0,0,0,0);
+}
