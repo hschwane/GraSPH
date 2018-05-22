@@ -53,3 +53,4 @@ Now set up you own project and link mpUtils as a shared library
 - code for serial communication
 - jason and/or xml (probably external library)
 - a argument parser for command line apps
+- maybe windows and mac support

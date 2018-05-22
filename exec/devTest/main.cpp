@@ -66,7 +66,7 @@ int main()
 
 
 
-
+    timer.getSeconds();
     myLog.close();
     cout << "It took me " << dTime << " seconds on average" << endl;
     return 0;

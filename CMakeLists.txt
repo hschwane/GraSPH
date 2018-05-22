@@ -10,14 +10,33 @@ include(GetVersionFromGit)
 # create project
 project(mpUtils VERSION "${VERSION_SHORT}")
 
+# find directories
+set(LIB_SHADER_PATH ${CMAKE_SOURCE_DIR}/shader CACHE PATH "Library Shader Path. Set manually if it was not found.")
+set(LIB_RESOURCE_PATH ${CMAKE_SOURCE_DIR}/resources CACHE PATH "Library Resource path. Set manually if it was not found.")
+
 # set compiler flags
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
+
+# set defines
+add_definitions(-DLIB_SHADER_PATH="${LIB_SHADER_PATH}/")
+add_definitions(-DLIB_RESOURCE_PATH="${LIB_RESOURCE_PATH}/")
+add_definitions(-DMPU_LIB_VERSION="${VERSION_SHORT}")
+add_definitions(-DGLFW_INCLUDE_GLCOREARB)
+add_definitions(-DGLEW_NO_GLU)
 
 # find packages
+# --------------------
+# mutithreading
 find_package( Threads ) # the systems thread lib
 
+# openGL and window managing
+find_package(OpenGL REQUIRED)
+find_package(GLEW REQUIRED)
+find_package(GLFW3 REQUIRED)
+find_package(GLM REQUIRED)
+
 # search for src files
-file(GLOB SOURCE_FILES src/*.cpp) # yes i know, this is not recommended, but i still like it better and had no problems with it
+file(GLOB_RECURSE SOURCE_FILES ${CMAKE_SOURCE_DIR}/src/*.cpp) # yes i know, this is not recommended, but i still like it better and had no problems with it
 
 # create target
 add_library(mpUtils SHARED ${SOURCE_FILES})
@@ -30,9 +49,21 @@ target_link_libraries( mpUtils stdc++fs )
 set_target_properties(mpUtils PROPERTIES VERSION ${VERSION_SHORT} SOVERSION ${VERSION_MAJOR})
 
 # set include dir (in this case also the src)
-target_include_directories(mpUtils PUBLIC src)
+target_include_directories(mpUtils PUBLIC src
+        ${OPENGL_INCLUDE_DIRS}
+        ${GLEW_INCLUDE_PATH}
+        ${GLFW3_INCLUDE_PATH}
+        ${GLM_INCLUDE_PATH}
+        )
         #$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/>
         #$<INSTALL_INTERFACE:src/>)
+
+# link with external libs
+target_link_libraries( mpUtils
+        ${GLFW3_LIBRARIES}
+        ${GLEW_LIBRARIES}
+        ${OPENGL_LIBRARY}
+        )
 
 # set install options
 install(TARGETS mpUtils
