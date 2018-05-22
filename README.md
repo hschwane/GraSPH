@@ -1,4 +1,4 @@
-# GraSHP
+# GraSPH
 GraSPH is a Smoothed Partical Hydrodynamics code developed for astrophysical simulation of 
 self gravitating fluid. The majority of the calculation is done on the GPU using openGL compute shader, 
 which enables real time visualisation on most modern Graphics Cards. It was initially developed as part of 
