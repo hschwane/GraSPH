@@ -32,7 +32,6 @@ namespace gph {
 	/// <b>Handle::handle_type</b> The handle type that is wrapped inside. Usually a uint32_t, but can also differ.<br/>
 	/// <b>Handle::creator_type</b> The type of the OpenGL object creator function used for this handle type.<br/>
 	/// <b>Handle::destroyer_type</b> The type of the OpenGL object destructor function used for this handle type.<br/>
-    // TODO: Wait for P0127R2 or equivalent to be implemented in MSVC, then replace this mess with auto non-type template parameters.
 	template<typename THandle, typename TCreate, TCreate Creator, typename TDestroy, TDestroy Destroyer, typename... TArgs>
 	class Handle
 	{
