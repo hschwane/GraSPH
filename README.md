@@ -4,7 +4,7 @@ self gravitating fluid. The majority of the calculation is done on the GPU using
 which enables real time visualisation on most modern Graphics Cards. It was initially developed as part of 
 my bachelor-thesis at the University of Koblenz in Germany which can be downloaded here (german): [opus](https://kola.opus.hbz-nrw.de/frontdoor/index/index/docId/1638)
 
-You can see the code in action - simulating star formation from a molecular cloud - in the following video (which was created on a consumer notebook) [video](https://www.youtube.com/watch?v=PUyE3j0aoMw)
+You can see the code in action - simulating star formation from a molecular cloud - in the following video (which was created on a consumer notebook) [youtube](https://www.youtube.com/watch?v=PUyE3j0aoMw)
 
 -------------------------
 
@@ -23,7 +23,7 @@ make
 ```
 The executable will be saved to ``bin/exec/GraSPH``.
 
-The code is build around my 'mpUtils' framework, which is however included in this repository.
+The code is build around my [mpUtils](https://github.com/hschwane/mpUtils) framework, which is however included in this repository.
 Files relevant to he simulation are contained in the ``exec/GraSPH`` subfolder. To change simulation settings
 see the ``Settings.h`` file. To change initial conditions you have to change the code in ``main.cpp``.
 More user friendly ways to change settings might be implemented in the future.
