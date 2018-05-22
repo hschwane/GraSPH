@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.3)
 
 # create project
-project(ba_sim)
+project(GraSPH)
 
 # set src files
 set(SOURCE_FILES
@@ -19,8 +19,8 @@ add_definitions(-DPROJECT_SHADER_PATH="${PROJECT_SHADER_PATH}/")
 add_definitions(-DROJECT_RESOURCE_PATH="${ROJECT_RESOURCE_PATH}/")
 
 # create target
-add_executable(ba_sim ${SOURCE_FILES})
+add_executable(GraSPH ${SOURCE_FILES})
 
 # link libraries
-target_link_libraries(ba_sim mpUtils)
+target_link_libraries(GraSPH mpUtils)
 
