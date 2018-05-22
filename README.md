@@ -1,56 +1,29 @@
-# mpUtils
-a ~~platform independent~~ linux c++ library with some utility classes I use for my personal projects and university assignments
+# GraSHP
+GraSPH is a Smoothed Partical Hydrodynamics code for developed for astrophysical simulation containing 
+self gravitating fluid. The majority of the calculation is done on the GPU using openGL compute shader, 
+which enables real time visualisation on most modern Graphics Cards. It was initially developed as part of 
+my bachelor-thesis at the University of Koblenz in Germany which can be downloaded here (german): [opus](https://kola.opus.hbz-nrw.de/frontdoor/index/index/docId/1638)
+
+You can see the code in action - simulating star formation from a molecular cloud - in the following video (which was created on a consumer notebook) [video](https://www.youtube.com/watch?v=PUyE3j0aoMw)
 
 -------------------------
 
 ## usage / install
 
-#### as a framework
+If you want to use the code yourself you will need a openGL 4.5 compatible graphics card. 
+While it might work on different operating systems, I only work on Linux, so use anything else on your own risk.
+To compile the code you will need openGL, GLEW, GLFW, GLM, cmake and a compiler that supports
+C++17. After checking out the repository use the  following commands to compile.
 
-You can create your own projects as subfolders inside the "exec"-folder. Then you only have to provide a CMakeLists.txt
-in your subfolder which handles compilation and links with ``mpUtils``. See the existing executables for reference.
-To build use any cmake compatible IDE or your console:
 ```
 mkdir bin
 cd bin
 cmake ..
 make
 ```
-In ``bin/exec/yorExecutable`` should now wait your compiled project.
+The executable will be saved to ``bin/exec/GraSPH``.
 
-
-
-#### as a library
-
-You can install this library to your systems lib and include directories:
-```
-mkdir bin
-cd bin
-cmake ..
-make 
-sudo make install
-```
-Now set up you own project and link mpUtils as a shared library
-
---------------------------
-## features
-
-- wrapper for some  openGl (using GLEW) and glfw functionality
-- utilities that help with graphical programming
-- highly customisable thread safe logger
-- ini-Style configuration file parser
-- different timers including asynchronous ones
-- doxygen style documentation
-
-------------------------
-## planned features
-
-- wrapper for the remaining openGL features
-- more utilities for graphics programming (maybe game engine style functionality)
-- include a GUI
-- network communication
-- serial communication
-- jason and/or xml
-- a argument parser for command line apps
-- windows and mac support
-- improvements to the log (lock-free-queue, more sinks with better format, different depths for massages)
+The code is build around my 'mpUtils' framework, which is however included in this repository.
+Files relevant to he simulation are contained in the ``exec/GraSPH`` subfolder. To change simulation settings
+see the ``Settings.h`` file. To change initial conditions you have to change the code in ``main.cpp``.
+More user friendly ways to change settings might be implemented in the future.
