@@ -48,8 +48,7 @@
                     else mpu::Log::getGlobal()(mpu::LogLvl::WARNING, MPU_FILEPOS, MODULE)
 #define logINFO(MODULE) if(mpu::Log::noGlobal() || mpu::Log::getGlobal().getLogLevel() < mpu::LogLvl::INFO) ; \
                     else mpu::Log::getGlobal()(mpu::LogLvl::INFO, MPU_FILEPOS, MODULE)
-#define assert_critical(TEST,MODULE,MESSAGE) if(!TEST){ logERROR(MODULE) << MESSAGE ; throw std::runtime_error(MESSAGE);}
-
+#define assert_critical(TEST,MODULE,MESSAGE) if(!( TEST )){ logFATAL_ERROR(MODULE) << "Assert failed: " << (MESSAGE) ; throw std::runtime_error(MESSAGE);}
 
 // debug is disabled on release build
 #ifdef NDEBUG
@@ -62,7 +61,7 @@
                         else mpu::Log::getGlobal()(mpu::LogLvl::DEBUG, MPU_FILEPOS, MODULE)
     #define logDEBUG2(MODULE) if(mpu::Log::noGlobal() || mpu::Log::getGlobal().getLogLevel() < mpu::LogLvl::DEBUG2) ; \
                         else mpu::Log::getGlobal()(mpu::LogLvl::DEBUG2, MPU_FILEPOS, MODULE)
-    #define assert_true(TEST,MODULE,MESSAGE) if(!( TEST )){ logERROR(MODULE) << MESSAGE ; throw std::runtime_error(MESSAGE);}
+    #define assert_true(TEST,MODULE,MESSAGE) if(!( TEST )){ logERROR(MODULE) << "Assert failed: " << (MESSAGE) ; throw std::runtime_error(MESSAGE);}
 #endif
 //--------------------
 
