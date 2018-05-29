@@ -60,8 +60,8 @@ void main()
     for(uint i=0; i < ACCELERATIONS_PER_PARTICLE; i++)
     {
         const vec4 a = accelerations[NUM_PARTICLES * i + gl_GlobalInvocationID.x];
-        acc = acc + a.xyz;
-        maxVsig = max(maxVsig,a.w);
+        acc = acc + a.ACCEL;
+        maxVsig = max(maxVsig,a.MAXVSIG);
     }
 
     // calculate velocity a_t
