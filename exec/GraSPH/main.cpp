@@ -65,13 +65,13 @@ int main()
 
 
     // compile and confiure all the shader
-    mpu::gph::ShaderProgram adjustH({{PROJECT_SHADER_PATH"Acceleration/adjustH.comp"}});
+    mpu::gph::ShaderProgram adjustH({{PROJECT_SHADER_PATH"Simulation/adjustH.comp"}});
     adjustH.uniform1f("hmin",HMIN);
     adjustH.uniform1f("hmax",HMAX);
     adjustH.uniform1f("mass_per_particle", TOTAL_MASS / NUM_PARTICLES);
     adjustH.uniform1f("num_neighbours",NUM_NEIGHBOURS);
 
-    mpu::gph::ShaderProgram densityShader({{PROJECT_SHADER_PATH"Acceleration/calculateDensityAndH.comp"}},
+    mpu::gph::ShaderProgram densityShader({{PROJECT_SHADER_PATH"Simulation/calculateDensityAndH.comp"}},
                                           {
                                             {"WGSIZE",{mpu::toString(DENSITY_WGSIZE)}},
                                             {"NUM_PARTICLES",{mpu::toString(NUM_PARTICLES)}},
@@ -80,7 +80,7 @@ int main()
     densityShader.uniform1f("heps_factor",HEPS_FACTOR);
 
     uint32_t wgSize=calcWorkgroupSize(NUM_PARTICLES);
-    mpu::gph::ShaderProgram hydroAccum({{PROJECT_SHADER_PATH"Acceleration/densityAccumulator.comp"}},
+    mpu::gph::ShaderProgram hydroAccum({{PROJECT_SHADER_PATH"Simulation/densityAccumulator.comp"}},
                                   {
                                    {"NUM_PARTICLES",{mpu::toString(NUM_PARTICLES)}},
                                    {"HYDROS_PER_PARTICLE",{mpu::toString(DENSITY_THREADS_PER_PARTICLE)}}
@@ -90,7 +90,7 @@ int main()
     hydroAccum.uniform1f("ac2",AC2);
     hydroAccum.uniform1f("frag_limit",FRAG_LIMIT);
 
-    mpu::gph::ShaderProgram pressureShader({{PROJECT_SHADER_PATH"Acceleration/smo-SPHpressureAccGravity.comp"}},
+    mpu::gph::ShaderProgram pressureShader({{PROJECT_SHADER_PATH"Simulation/smo-SPHpressureAccGravity.comp"}},
                                            {
                                                    {"WGSIZE",{mpu::toString(PRESSURE_WGSIZE)}},
                                                    {"NUM_PARTICLES",{mpu::toString(NUM_PARTICLES)}},
@@ -101,7 +101,7 @@ int main()
     pressureShader.uniform1f("eps_factor2",EPS_FACTOR*EPS_FACTOR);
     pressureShader.uniform1f("k",K);
 
-    mpu::gph::ShaderProgram integrator({{PROJECT_SHADER_PATH"Acceleration/integrator.comp"}},
+    mpu::gph::ShaderProgram integrator({{PROJECT_SHADER_PATH"Simulation/integrator.comp"}},
                                       {
                                        {"NUM_PARTICLES",{mpu::toString(NUM_PARTICLES)}},
                                        {"ACCELERATIONS_PER_PARTICLE",{mpu::toString(ACCEL_THREADS_PER_PARTICLE)}}
