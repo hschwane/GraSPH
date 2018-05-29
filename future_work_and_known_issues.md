@@ -8,6 +8,7 @@
 
 ## physics / accuracy
 - option to use 64bit floating point numbers
+- fix energy/entropy conservation
 - thermal energy
 - viscous heating
 - magnetic fields
