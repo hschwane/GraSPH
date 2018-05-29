@@ -24,6 +24,6 @@ uniform float num_neighbours;
 void main()
 {
     vec4 hydi = hydro[gl_GlobalInvocationID.x];
-    float hi = clamp(pow(3.0f*num_neighbours*mass_per_particle / (hydi.y*4.0f*PI),1.0f/3.0f),hmin,hmax);
+    float hi = clamp(pow(3.0f*num_neighbours*mass_per_particle / (hydi.x*4.0f*PI),1.0f/3.0f),hmin,hmax);
     smlength[gl_GlobalInvocationID.x] = hi;
 }

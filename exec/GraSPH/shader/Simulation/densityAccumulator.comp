@@ -44,5 +44,5 @@ void main()
     const float pressure = a * pow(sum.y,ac);
     float ci = sqrt(ac*pressure/density);
 
-    hydro[gl_GlobalInvocationID.x] = vec4(pressure, sum.x, ci, drhodh);
+    hydro[gl_GlobalInvocationID.x] = vec4(sum.x, pressure, ci, drhodh);
 }

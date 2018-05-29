@@ -176,14 +176,14 @@ void ParticleSpawner::addMultiFrequencyCurl(std::vector<std::pair<float, float>>
                                                  {"TILES_PER_THREAD",{mpu::toString(m_particleBuffer.size() / calcWorkgroupSize(m_particleBuffer.size()) / 1)}}
                                          });
 
-    mpu::gph::ShaderProgram densityShader({{PROJECT_SHADER_PATH"Simulation/calculateDensityAndH.comp"}},
+    mpu::gph::ShaderProgram densityShader({{PROJECT_SHADER_PATH"Simulation/calculateDensity.comp"}},
                                           {
                                                   {"WGSIZE",{mpu::toString(calcWorkgroupSize(m_particleBuffer.size()))}},
                                                   {"NUM_PARTICLES",{mpu::toString(m_particleBuffer.size())}},
                                                   {"TILES_PER_THREAD",{mpu::toString(m_particleBuffer.size() / calcWorkgroupSize(m_particleBuffer.size()) / 1)}}
                                           });
 
-    mpu::gph::ShaderProgram adjustH({{PROJECT_SHADER_PATH"Simulation/adjustH.comp"}});
+    mpu::gph::ShaderProgram adjustH({{PROJECT_SHADER_PATH"Simulation/calculateH.comp"}});
     adjustH.uniform1f("hmin", hmin);
     adjustH.uniform1f("hmax", hmax);
     adjustH.uniform1f("mass_per_particle", massPerParticle);

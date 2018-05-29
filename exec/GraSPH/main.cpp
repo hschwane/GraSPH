@@ -65,13 +65,13 @@ int main()
 
 
     // compile and confiure all the shader
-    mpu::gph::ShaderProgram adjustH({{PROJECT_SHADER_PATH"Simulation/adjustH.comp"}});
+    mpu::gph::ShaderProgram adjustH({{PROJECT_SHADER_PATH"Simulation/calculateH.comp"}});
     adjustH.uniform1f("hmin",HMIN);
     adjustH.uniform1f("hmax",HMAX);
     adjustH.uniform1f("mass_per_particle", TOTAL_MASS / NUM_PARTICLES);
     adjustH.uniform1f("num_neighbours",NUM_NEIGHBOURS);
 
-    mpu::gph::ShaderProgram densityShader({{PROJECT_SHADER_PATH"Simulation/calculateDensityAndH.comp"}},
+    mpu::gph::ShaderProgram densityShader({{PROJECT_SHADER_PATH"Simulation/calculateDensity.comp"}},
                                           {
                                             {"WGSIZE",{mpu::toString(DENSITY_WGSIZE)}},
                                             {"NUM_PARTICLES",{mpu::toString(NUM_PARTICLES)}},
@@ -90,7 +90,7 @@ int main()
     hydroAccum.uniform1f("ac2",AC2);
     hydroAccum.uniform1f("frag_limit",FRAG_LIMIT);
 
-    mpu::gph::ShaderProgram pressureShader({{PROJECT_SHADER_PATH"Simulation/smo-SPHpressureAccGravity.comp"}},
+    mpu::gph::ShaderProgram pressureShader({{PROJECT_SHADER_PATH"Simulation/calculateAcceleration.comp"}},
                                            {
                                                    {"WGSIZE",{mpu::toString(PRESSURE_WGSIZE)}},
                                                    {"NUM_PARTICLES",{mpu::toString(NUM_PARTICLES)}},
@@ -101,7 +101,7 @@ int main()
     pressureShader.uniform1f("eps_factor2",EPS_FACTOR*EPS_FACTOR);
     pressureShader.uniform1f("k",K);
 
-    mpu::gph::ShaderProgram integrator({{PROJECT_SHADER_PATH"Simulation/integrator.comp"}},
+    mpu::gph::ShaderProgram integrator({{PROJECT_SHADER_PATH"Simulation/integrateLeapfrog.comp"}},
                                       {
                                        {"NUM_PARTICLES",{mpu::toString(NUM_PARTICLES)}},
                                        {"ACCELERATIONS_PER_PARTICLE",{mpu::toString(ACCEL_THREADS_PER_PARTICLE)}}
