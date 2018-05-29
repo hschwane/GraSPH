@@ -17,39 +17,38 @@
 //--------------------
 
 // time
-constexpr double INITIAL_DT = 0.002;
-constexpr double MAX_DT = 0.045;
-constexpr double MIN_DT = 0.00001;
+constexpr double INITIAL_DT = 0.002; // initial timestep
+constexpr double MAX_DT = 0.045; // biggest timestep
+constexpr double MIN_DT = 0.00001; // smallest timestep
 constexpr float GRAV_ACCURACY = 0.05; // the bigger this number the larger timesteps are allowed based on the acceleration criterion
 constexpr float COURANT_NUMBER = 0.4; // the bigger this number the larger timesteps are allowed based on the sph criterion
 
 // particles
-constexpr float TOTAL_MASS              = 20;//1e-22*1.98892e30 /1000;
-constexpr unsigned int NUM_PARTICLES    = 16384;
-constexpr float SPAWN_RADIUS            = 6;
-constexpr float INITIAL_H               = 0.3;
+constexpr float TOTAL_MASS              = 20; // total mass of all particles
+constexpr unsigned int NUM_PARTICLES    = 16384; // total number of particles, use power of 2 for convenience
+constexpr float SPAWN_RADIUS            = 6; // radius of the initial cloud
+constexpr float INITIAL_H               = 0.3; // initial kernel radius
 
 // gravity
 constexpr float EPS_FACTOR  = 0.2; // a particle behaves like a plummer sphere with a radius equal to its smoothing length multiplied by this factor
-constexpr float G           = 1;//6.67408e-11 ;//* 1e-9 *1000;
 
 // sph
-constexpr float K       = 0.06;
-constexpr float VISC    = 1;
+constexpr float A       = 0.06; // function of specific entropy
+constexpr float VISC    = 1; // strength of artificial viscosity
 
-constexpr float AC1      = 1;
-constexpr float AC2      = 7.0f/5.0f;  //13.0f/10.0f; //7.0f/5.0f;
+constexpr float AC1      = 1; // adiabatic constant when rho is below FRAG_LIMIT
+constexpr float AC2      = 7.0f/5.0f; // adiabatic constant when rho is above FRAG_LIMIT
 constexpr float FRAG_LIMIT = 80;
 
-constexpr float NUM_NEIGHBOURS = 50;
-constexpr float HMIN    = 0.05;
-constexpr float HMAX    = 3;
+constexpr float NUM_NEIGHBOURS = 50; // the desired number of interaction partners
+constexpr float HMIN    = 0.05; // smallest kernel radius
+constexpr float HMAX    = 3; // biggest kernel radius
 constexpr float HEPS_FACTOR    = 0.01;
 
 // visuals
 constexpr float PARTICLE_RENDER_SIZE    = 0.008; // radius of a particle
 constexpr float PARTICLE_BRIGHTNESS     = 1; // radius of a particle
-const glm::vec4 PARTICLE_COLOR          = glm::vec4(0.9,0.3,0.1,1);
+const glm::vec4 PARTICLE_COLOR          = glm::vec4(0.9,0.3,0.1,1); // color of the particel
 
 // threads and workgroups
 constexpr unsigned int DENSITY_THREADS_PER_PARTICLE = 8;

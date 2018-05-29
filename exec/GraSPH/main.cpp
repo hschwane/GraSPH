@@ -85,7 +85,7 @@ int main()
                                    {"NUM_PARTICLES",{mpu::toString(NUM_PARTICLES)}},
                                    {"HYDROS_PER_PARTICLE",{mpu::toString(DENSITY_THREADS_PER_PARTICLE)}}
                                   });
-    hydroAccum.uniform1f("a",K);
+    hydroAccum.uniform1f("a",A);
     hydroAccum.uniform1f("ac1",AC1);
     hydroAccum.uniform1f("ac2",AC2);
     hydroAccum.uniform1f("frag_limit",FRAG_LIMIT);
