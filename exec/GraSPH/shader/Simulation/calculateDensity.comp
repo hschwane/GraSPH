@@ -26,7 +26,6 @@ layout(local_size_x=WGSIZE,local_size_y=1,local_size_z=1) in;
 uniform float heps_factor = 0.1;
 
 shared vec4 pos[gl_WorkGroupSize.x];
-shared vec3 vel[gl_WorkGroupSize.x];
 
 // This shader updates a particles density by interacting with all other particles,
 // using shared memory to speed up memory access
@@ -64,10 +63,10 @@ void main()
         // fill fields in shared memory
         uint idx = gl_WorkGroupSize.x * (startTile + tile) + gl_LocalInvocationID.x;
         pos[gl_LocalInvocationID.x] = positions[idx];
-        vel[gl_LocalInvocationID.x] = velocities[idx].xyz;
-        // sync
+
         memoryBarrierShared();
         barrier();
+
         // calculate the row up to here
         for(uint j=0; j<gl_WorkGroupSize.x; j++)
         {
@@ -84,7 +83,7 @@ void main()
 #endif
 
         }
-        // sync
+
         memoryBarrierShared();
         barrier();
     }

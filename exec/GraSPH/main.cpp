@@ -97,9 +97,8 @@ int main()
                                                    {"TILES_PER_THREAD",{mpu::toString(NUM_PARTICLES / PRESSURE_WGSIZE / ACCEL_THREADS_PER_PARTICLE)}}
                                            });
     pressureShader.uniform1f("alpha",VISC);
-    pressureShader.uniform1f("gravity_constant",G);
     pressureShader.uniform1f("eps_factor2",EPS_FACTOR*EPS_FACTOR);
-    pressureShader.uniform1f("k",K);
+    pressureShader.uniform1f("a",A);
 
     mpu::gph::ShaderProgram integrator({{PROJECT_SHADER_PATH"Simulation/integrateLeapfrog.comp"}},
                                       {
