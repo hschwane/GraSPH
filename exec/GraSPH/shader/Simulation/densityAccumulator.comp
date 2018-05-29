@@ -26,8 +26,6 @@ void main()
         sum = vec4(sum.xyz + hydroi.xyz, hydroi.z);
     }
 
-    const float density = sum.x;
-
 #ifdef D_RHO_D_H // calculate partial derivative of density with respect to kernel radius
     const float drhodh = (sum.y - sum.z) / (2*sum.w);
 #else
@@ -42,7 +40,7 @@ void main()
 
     // calculate pressure and sound speed
     const float pressure = a * pow(sum.y,ac);
-    float ci = sqrt(ac*pressure/density);
+    float ci = sqrt(ac*pressure/sum.DENSITY);
 
     hydro[gl_GlobalInvocationID.x] = vec4(sum.x, pressure, ci, drhodh);
 }
