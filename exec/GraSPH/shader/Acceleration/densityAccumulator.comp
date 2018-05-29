@@ -1,0 +1,48 @@
+#version 450 core
+#extension GL_ARB_compute_variable_group_size : require
+
+#include "common.glsl"
+#include "mathConst.glsl"
+
+layout(binding=PARTICLE_HYDRO_BUFFER_BINDING,std430) buffer ParticleHydro
+{
+    vec4 hydro[];
+};
+
+uniform float a;
+uniform float ac1;
+uniform float ac2;
+uniform float frag_limit;
+
+layout(local_size_variable) in;
+
+void main()
+{
+    // sum up hydro value from other threads
+    vec4 sum = vec4(0);
+    for(uint i=0; i < HYDROS_PER_PARTICLE; i++)
+    {
+        const vec4 hydroi = hydro[NUM_PARTICLES * i + gl_GlobalInvocationID.x];
+        sum = vec4(sum.xyz + hydroi.xyz, hydroi.z);
+    }
+
+    const float density = sum.x;
+
+#ifdef D_RHO_D_H // calculate partial derivative of density with respect to kernel radius
+    const float drhodh = (sum.y - sum.z) / (2*sum.w);
+#else
+    const float drhodh = 0;
+#endif
+
+#ifdef ARTIFICIAL_TEMPERATURE // change adibatic constant based on density to mimic change in temperature
+    const float ac = (sum.x<frag_limit) ? ac1 : ac2;
+#else
+    const float ac = ac1;
+#endif
+
+    // calculate pressure and sound speed
+    const float pressure = a * pow(sum.y,ac);
+    float ci = sqrt(ac*pressure/density);
+
+    hydro[gl_GlobalInvocationID.x] = vec4(pressure, sum.x, ci, drhodh);
+}

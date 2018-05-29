@@ -4,14 +4,11 @@
 #include "common.glsl"
 #include "kernel.glsl"
 
+#define D_RHO_D_H
+
 layout(binding=PARTICLE_POSITION_BUFFER_BINDING,std430) buffer ParticlePositions
 {
     vec4 positions[];
-};
-
-layout(binding=PARTICLE_VELOCITY_BUFFER_BINDING,std430) buffer ParticleVelocities
-{
-    vec4 velocities[];
 };
 
 layout(binding=PARTICLE_HYDRO_BUFFER_BINDING,std430) buffer ParticleHydro
@@ -31,7 +28,7 @@ uniform float heps_factor = 0.1;
 shared vec4 pos[gl_WorkGroupSize.x];
 shared vec3 vel[gl_WorkGroupSize.x];
 
-// This shader updates a particles acceleration by interacting with all other particles,
+// This shader updates a particles density by interacting with all other particles,
 // using shared memory to speed up memory access
 void main()
 {
@@ -40,19 +37,16 @@ void main()
     const uint idxi = gl_GlobalInvocationID.x % NUM_PARTICLES;
     const vec4 posi = positions[idxi];
     const float hi =  smlength[idxi];
-    const vec3 veli = velocities[idxi].xyz;
 
     float density =0; // lets sum up the density here
     float densityPlus =0; // needed for drho/dh
     float densityMinus =0; // needed for drho/dh
-    vec3 vorticity =vec3(0); // curl operator of the velocity
-    float divergence =0; // divergence of the velocity
 
     // cache those values since we will always use the same h
     const float hi2 = hi*hi;
     const float hiPoly6Factor = poly6Factor(hi);
 
-#ifndef DISABLE_DH_CORRECTION
+#ifdef D_RHO_D_H
     const float eps = hi*heps_factor;
     const float hipe = hi+eps;
     const float hime = hi-eps;
@@ -60,10 +54,6 @@ void main()
     const float hime2 = hime*hime;
     const float hipePoly6Factor = poly6Factor(hipe);
     const float himePoly6Factor = poly6Factor(hime);
-#endif
-
-#ifndef DISABLE_VISC_VORT_CORRECTION
-    const float hiPolyGrad6Factor = poly6GradFactor(hi);
 #endif
 
     // loop over tiles in a row for as many tiles one thread is configured to calculate
@@ -82,30 +72,22 @@ void main()
         for(uint j=0; j<gl_WorkGroupSize.x; j++)
         {
             const vec4 posj = pos[j];
-            const vec3 velj = vel[j];
             const vec3 rij = posi.xyz - posj.xyz;
             const float r2 = dot(rij,rij);
 
             // calculate all densities
             density +=  posj.w * (Wpoly6(r2, hiPoly6Factor, hi2));
 
-#ifndef DISABLE_DH_CORRECTION
+#ifdef D_RHO_D_H
             densityPlus +=  posj.w * (Wpoly6(r2, hipePoly6Factor, hipe2));
             densityMinus +=  posj.w * (Wpoly6(r2, himePoly6Factor, hime2));
 #endif
 
-#ifndef DISABLE_VISC_VORT_CORRECTION // remember to also disable this in the hydro accumulator
-            // calculate vorticity and divergence of the velocity
-            vec3 gradi = Wpoly6Grad(rij,r2,hiPolyGrad6Factor,hi2);
-            vorticity +=  posj.w * cross(veli - velj, gradi);
-            divergence += dot(velj - veli,gradi);
-#endif
         }
         // sync
         memoryBarrierShared();
         barrier();
     }
 
-    float vort = length(vorticity);
-    hydro[gl_GlobalInvocationID.x] = vec4(vort, density, divergence, (densityPlus-densityMinus)/(2*eps));
+    hydro[gl_GlobalInvocationID.x] = vec4(density, densityPlus, densityMinus, eps);
 }

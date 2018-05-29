@@ -10,8 +10,8 @@
 #include "ParticleRenderer.h"
 #include "Settings.h"
 
-constexpr int HEIGHT = 1000;
-constexpr int WIDTH = 1000;
+constexpr int HEIGHT = 600;
+constexpr int WIDTH = 600;
 
 double DT = INITIAL_DT;
 
@@ -71,7 +71,7 @@ int main()
     adjustH.uniform1f("mass_per_particle", TOTAL_MASS / NUM_PARTICLES);
     adjustH.uniform1f("num_neighbours",NUM_NEIGHBOURS);
 
-    mpu::gph::ShaderProgram densityShader({{PROJECT_SHADER_PATH"Acceleration/smo-SPHdensity.comp"}},
+    mpu::gph::ShaderProgram densityShader({{PROJECT_SHADER_PATH"Acceleration/calculateDensityAndH.comp"}},
                                           {
                                             {"WGSIZE",{mpu::toString(DENSITY_WGSIZE)}},
                                             {"NUM_PARTICLES",{mpu::toString(NUM_PARTICLES)}},
@@ -80,12 +80,12 @@ int main()
     densityShader.uniform1f("heps_factor",HEPS_FACTOR);
 
     uint32_t wgSize=calcWorkgroupSize(NUM_PARTICLES);
-    mpu::gph::ShaderProgram hydroAccum({{PROJECT_SHADER_PATH"Acceleration/hydroAccumulator.comp"}},
+    mpu::gph::ShaderProgram hydroAccum({{PROJECT_SHADER_PATH"Acceleration/densityAccumulator.comp"}},
                                   {
                                    {"NUM_PARTICLES",{mpu::toString(NUM_PARTICLES)}},
                                    {"HYDROS_PER_PARTICLE",{mpu::toString(DENSITY_THREADS_PER_PARTICLE)}}
                                   });
-    hydroAccum.uniform1f("k",K);
+    hydroAccum.uniform1f("a",K);
     hydroAccum.uniform1f("ac1",AC1);
     hydroAccum.uniform1f("ac2",AC2);
     hydroAccum.uniform1f("frag_limit",FRAG_LIMIT);
