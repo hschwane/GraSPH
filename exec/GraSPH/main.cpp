@@ -115,17 +115,6 @@ int main()
 
 
     // group shader dispatches into useful functions
-    auto findSmoothingLength = [adjustH,densityShader,wgSize](int iterations)
-    {
-        for(int i = 0; i < iterations; ++i)
-        {
-            glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-            densityShader.dispatch(NUM_PARTICLES*DENSITY_THREADS_PER_PARTICLE/DENSITY_WGSIZE);
-            glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-            adjustH.dispatch(NUM_PARTICLES,wgSize);
-        }
-    };
-
     auto startSimulation = [densityShader,pressureShader,wgSize,hydroAccum,integrator,adjustH]()
     {
 
@@ -155,7 +144,6 @@ int main()
         integrator.dispatch(NUM_PARTICLES,wgSize);
     };
 
-    findSmoothingLength(4);
     startSimulation();
 
     float brightness=PARTICLE_BRIGHTNESS;
