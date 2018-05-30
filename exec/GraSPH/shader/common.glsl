@@ -33,5 +33,5 @@
 #define DENSITY x
 #define PRESSURE y
 #define SPEED_OF_SOUND z
-#define DRHO_DH w
+#define DH_DENSITY_FACTOR w
 

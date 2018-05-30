@@ -9,11 +9,16 @@ layout(binding=PARTICLE_HYDRO_BUFFER_BINDING,std430) buffer ParticleHydro
     vec4 hydro[];
 };
 
+layout(binding=PARTICLE_SMLENGTH_BUFFER_BINDING,std430) buffer ParticleSmlength
+{
+    float smlength[];
+};
+
 uniform float a;
 uniform float ac1;
 uniform float ac2;
 uniform float frag_limit;
-#define D_RHO_D_H
+#define DH_DENSITY_FACTOR
 #define ARTIFICIAL_TEMPERATURE
 
 layout(local_size_variable) in;
@@ -28,10 +33,11 @@ void main()
         sum = vec4(sum.xyz + hydroi.xyz, hydroi.w);
     }
 
-#ifdef D_RHO_D_H // calculate partial derivative of density with respect to kernel radius
+#ifdef DH_DENSITY_FACTOR // calculate the correction factor for pressure based on springel and hernquist 2002
     const float drhodh = (sum.y - sum.z) / (2*sum.w);
+    const float dhDensFac = 1.0/(1.0+ smlength[gl_GlobalInvocationID.x] * drhodh / (3* sum.DENSITY));
 #else
-    const float drhodh = 0;
+    const float dhDensFac = 1;
 #endif
 
 #ifdef ARTIFICIAL_TEMPERATURE // change adibatic constant based on density to mimic change in temperature
@@ -44,5 +50,5 @@ void main()
     const float pressure = a * pow(sum.DENSITY,ac);
     float ci = sqrt(ac*pressure/sum.DENSITY);
 
-    hydro[gl_GlobalInvocationID.x] = vec4(sum.DENSITY, pressure, ci, drhodh);
+    hydro[gl_GlobalInvocationID.x] = vec4(sum.DENSITY, pressure, ci, dhDensFac);
 }
