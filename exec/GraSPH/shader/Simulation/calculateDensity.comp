@@ -4,9 +4,6 @@
 #include "common.glsl"
 #include "kernel.glsl"
 
-#define D_RHO_D_H
-//#define BALSARA_SWITCH
-
 layout(binding=PARTICLE_POSITION_BUFFER_BINDING,std430) buffer ParticlePositions
 {
     vec4 positions[];
@@ -25,7 +22,11 @@ layout(binding=PARTICLE_SMLENGTH_BUFFER_BINDING,std430) buffer ParticleSmlength
 #ifdef BALSARA_SWITCH
 layout(binding=PARTICLE_VELOCITY_BUFFER_BINDING,std430) buffer ParticleVelocity
 {
-    float velocity[];
+    vec4 velocity[];
+};
+layout(binding=PARTICLE_BALSARA_BUFFER_BINDING,std430) buffer ParticleBalsaraValues
+{
+    vec4 balsara[];
 };
 #endif
 
@@ -49,13 +50,13 @@ void main()
     const float hi =  smlength[idxi];
 
 #ifdef BALSARA_SWITCH
-    const vec3 veli = velocity[idx].VELOCIY;
+    const vec3 veli = velocity[idxi].VELOCITY;
 #endif
 
     float density =0; // lets sum up the density here
     float drhodh =0; // partial derivative of density with respect to h
     float divergence =0; // the velocity divergence
-    vec3 vorticity = vec3(0,0,0); // curl of the velocity
+    vec3 curl = vec3(0,0,0); // curl of the velocity
 
     // cache those values since we will always use the same h
     const float hi2 = hi*hi;
@@ -74,7 +75,7 @@ void main()
         uint idx = gl_WorkGroupSize.x * (startTile + tile) + gl_LocalInvocationID.x;
         pos[gl_LocalInvocationID.x] = positions[idx];
 #ifdef BALSARA_SWITCH
-        vel[gl_LocalInvocationID.x] = velocity[idx];
+        vel[gl_LocalInvocationID.x] = velocity[idx].VELOCITY;
 #endif
 
         memoryBarrierShared();
@@ -102,7 +103,7 @@ void main()
             const vec3 velj = vel[j];
             const vec3 velij = veli - velj;
             divergence += posj.MASS * dot(velij,rij) * dw;
-            vorticity += posj.MASS * cross(velij,rij) * dw;
+            curl += posj.MASS * cross(velij,rij) * dw;
 #endif
         }
 
@@ -111,4 +112,7 @@ void main()
     }
 
     hydro[gl_GlobalInvocationID.x] = vec4(density, 0, 0, drhodh);
+#ifdef BALSARA_SWITCH
+    balsara[gl_GlobalInvocationID.x] = vec4(curl,divergence);
+#endif
 }

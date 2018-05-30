@@ -34,14 +34,15 @@ public:
     typedef glm::vec4 hydrodynamicsType; // x is pressure, y is density, z is the vorticity viscosity correct2ion, w is a factor needed for pressure calc
     typedef float smlengthType;
     typedef float timestepType;
+    typedef glm::vec4 balsaraType;
 
     ParticleBuffer()= default;
-    explicit ParticleBuffer(uint32_t numParticles, uint32_t accMulti = 1, uint32_t hydroMulti = 1, GLbitfield flags = 0)
+    explicit ParticleBuffer(uint32_t numParticles, uint32_t accMulti = 1, uint32_t hydroMulti = 1, bool balsara = true, GLbitfield flags = 0)
     {
-        reallocateAll(numParticles, accMulti, hydroMulti, flags);
+        reallocateAll(numParticles, accMulti, hydroMulti, balsara, flags);
     }
 
-    void reallocateAll(uint32_t numParticles, uint32_t accMulti = 1,  uint32_t hydroMulti = 1, GLbitfield flags = 0)
+    void reallocateAll(uint32_t numParticles, uint32_t accMulti = 1,  uint32_t hydroMulti = 1, bool balsara = true, GLbitfield flags = 0)
     {
         positionBuffer.recreate();
         positionBuffer.allocate<posType>(numParticles,flags);
@@ -54,10 +55,17 @@ public:
         smlengthBuffer.recreate();
         smlengthBuffer.allocate<smlengthType>(numParticles,flags);
         timestepBuffer.recreate();
-        timestepBuffer.allocate<smlengthType>(numParticles,flags);
+        timestepBuffer.allocate<timestepType>(numParticles,flags);
+        if(balsara)
+        {
+            balsaraBuffer.recreate();
+            balsaraBuffer.allocate<balsaraType>(numParticles,flags);
+        }
+
         m_numberOfParticles=numParticles;
         m_accMulti = accMulti;
         m_hydMulti = hydroMulti;
+        m_balsara = balsara;
     };
 
     void bindAll( uint32_t binding, GLenum target)
@@ -68,11 +76,13 @@ public:
         hydrodynamicsBuffer.bindBase(binding+3,target);
         smlengthBuffer.bindBase(binding+4,target);
         timestepBuffer.bindBase(binding+5,target);
+        balsaraBuffer.bindBase(binding+6,target);
     }
 
-    uint32_t size(){return m_numberOfParticles;} //!< returns the number of particles
+    uint32_t size(){ return m_numberOfParticles;} //!< returns the number of particles
     uint32_t accPerParticle(){ return m_accMulti;} //!< returns the number of different accelerations that can be stored per particle (actually one more acceleration per particle can be stored to allow storing of the acceleration at t-1)
     uint32_t hydPerParticle(){ return m_hydMulti;} //!< returns the number of different hydro states that can be stored per particle
+    bool hasBalsara(){ return m_balsara;} //!< returns true if this buffer contains a balsara buffer
 
     mpu::gph::Buffer positionBuffer;
     mpu::gph::Buffer velocityBuffer;
@@ -80,10 +90,12 @@ public:
     mpu::gph::Buffer hydrodynamicsBuffer;
     mpu::gph::Buffer smlengthBuffer;
     mpu::gph::Buffer timestepBuffer;
+    mpu::gph::Buffer balsaraBuffer;
 private:
     uint32_t m_numberOfParticles;
     uint32_t m_accMulti;
     uint32_t m_hydMulti;
+    bool m_balsara;
 };
 
 //-------------------------------------------------------------------
@@ -97,8 +109,8 @@ constexpr unsigned int PARTICLE_ACCELERATION_BUFFER_BINDING = 4;
 constexpr unsigned int PARTICLE_HYDRO_BUFFER_BINDING = 5;
 constexpr unsigned int PARTICLE_SMLENGTH_BUFFER_BINDING = 6;
 constexpr unsigned int PARTICLE_TIMESTEP_BUFFER_BINDING = 7;
+constexpr unsigned int PARTICLE_BALSARA_BUFFER_BINDING = 8;
 
-constexpr unsigned int VERLET_BUFFER_BINDING = 8;
 constexpr unsigned int RENDERER_POSITION_ARRAY = 0;
 constexpr unsigned int RENDERER_MASS_ARRAY = 1;
 

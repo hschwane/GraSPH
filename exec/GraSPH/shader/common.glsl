@@ -1,5 +1,14 @@
 #pragma once
 
+// feature options
+#define BALSARA_SWITCH
+#define DH_DENSITY_CORRECTION
+#define ARTIFICIAL_HEATING
+
+#ifdef DH_DENSITY_CORRECTION
+    #define D_RHO_D_H
+#endif
+
 // buffer bindings
 #define RENDERER_POSITION_BUFFER_BINDING 0
 
@@ -10,7 +19,7 @@
 #define PARTICLE_HYDRO_BUFFER_BINDING 5
 #define PARTICLE_SMLENGTH_BUFFER_BINDING 6
 #define PARTICLE_TIMESTEP_BUFFER_BINDING 7
-#define VERLET_BUFFER_BINDING 8
+#define PARTICLE_BALSARA_BUFFER_BINDING 8
 
 // arrays for rendering data
 #define RENDERER_POSITION_ARRAY 0
@@ -34,4 +43,9 @@
 #define PRESSURE y
 #define SPEED_OF_SOUND z
 #define DH_DENSITY_FACTOR w
+
+// balsara buffer
+#define CURL xyz
+#define DIV w
+#define BASWITCH x
 

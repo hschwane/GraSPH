@@ -14,40 +14,63 @@ layout(binding=PARTICLE_SMLENGTH_BUFFER_BINDING,std430) buffer ParticleSmlength
     float smlength[];
 };
 
+#ifdef BALSARA_SWITCH
+layout(binding=PARTICLE_BALSARA_BUFFER_BINDING,std430) buffer ParticleBalsaraValues
+{
+    vec4 balsara[];
+};
+#endif
+
 uniform float a;
 uniform float ac1;
 uniform float ac2;
 uniform float frag_limit;
-#define DH_DENSITY_CORRECTION
-#define ARTIFICIAL_TEMPERATURE
 
 layout(local_size_variable) in;
 
 void main()
 {
-    // sum up hydro value from other threads
-    vec4 sum = vec4(0);
-    for(uint i=0; i < HYDROS_PER_PARTICLE; i++)
-    {
-        sum += hydro[NUM_PARTICLES * i + gl_GlobalInvocationID.x];
-    }
-
-#ifdef DH_DENSITY_CORRECTION // calculate the correction factor for pressure based on springel and hernquist 2002
-    const float hi = smlength[gl_GlobalInvocationID.x];
-    const float dhDensFac = 1.0/(1.0+ hi * sum.w /(3*sum.DENSITY));
-#else
-    const float dhDensFac = 1;
+    // sum up hydro and balsara values from other threads
+    vec4 sumh = vec4(0);
+#ifdef BALSARA_SWITCH
+    vec4 sumb = vec4(0);
 #endif
 
-#ifdef ARTIFICIAL_TEMPERATURE // change adibatic constant based on density to mimic change in temperature
-    const float ac = (sum.DENSITY < frag_limit) ? ac1 : ac2;
+    for(uint i=0; i < HYDROS_PER_PARTICLE; i++)
+    {
+        const uint idxi = NUM_PARTICLES * i + gl_GlobalInvocationID.x;
+        sumh += hydro[idxi];
+#ifdef BALSARA_SWITCH
+        sumb += balsara[idxi];
+#endif
+    }
+
+// change adibatic constant based on density to mimic change in temperature
+#ifdef ARTIFICIAL_HEATING
+    const float ac = (sumh.DENSITY < frag_limit) ? ac1 : ac2;
 #else
     const float ac = ac1;
 #endif
 
     // calculate pressure and sound speed
-    const float pressure = a * pow(sum.DENSITY,ac);
-    float ci = sqrt(ac*pressure/sum.DENSITY);
+    const float pressure = a * pow(sumh.DENSITY,ac);
+    float ci = sqrt(ac*pressure/sumh.DENSITY);
 
-    hydro[gl_GlobalInvocationID.x] = vec4(sum.DENSITY, pressure, ci, dhDensFac);
+// calculate the correction factor for pressure based on springel and hernquist 2002
+#ifdef DH_DENSITY_CORRECTION
+    const float hi = smlength[gl_GlobalInvocationID.x];
+    const float dhDensFac = 1.0/(1.0+ hi * sumh.DH_DENSITY_FACTOR /(3*sumh.DENSITY));
+#else
+    const float dhDensFac = 1;
+#endif
+
+// calculate the balsara switch
+#ifdef BALSARA_SWITCH
+    const float vort = length(sumb.CURL) / sumh.DENSITY;
+    const float div = abs( sumb.DIV / sumh.DENSITY );
+    const float baSwitch = div / ( div + vort + 0.0001*ci/hi);
+    balsara[gl_GlobalInvocationID.x].x = baSwitch;
+#endif
+
+    hydro[gl_GlobalInvocationID.x] = vec4(sumh.DENSITY, pressure, ci, dhDensFac);
 }
