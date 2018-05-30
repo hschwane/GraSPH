@@ -10,8 +10,8 @@
 #include "ParticleRenderer.h"
 #include "Settings.h"
 
-constexpr int HEIGHT = 600;
-constexpr int WIDTH = 600;
+constexpr int HEIGHT = 800;
+constexpr int WIDTH = 800;
 
 double DT = INITIAL_DT;
 

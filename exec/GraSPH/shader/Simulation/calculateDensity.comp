@@ -37,23 +37,14 @@ void main()
     const float hi =  smlength[idxi];
 
     float density =0; // lets sum up the density here
-    float densityPlus =0; // needed for drho/dh
-    float densityMinus =0; // needed for drho/dh
+    float drhodh =0; // partial derivative of density with respect to h
 
     // cache those values since we will always use the same h
     const float hi2 = hi*hi;
     const float hiPoly6Factor = poly6Factor(hi);
 
-#ifdef D_RHO_D_H
-    const float eps = hi*heps_factor;
-    const float hipe = hi+eps;
-    const float hime = hi-eps;
-    const float hipe2 = hipe*hipe;
-    const float hime2 = hime*hime;
-    const float hipePoly6Factor = poly6Factor(hipe);
-    const float himePoly6Factor = poly6Factor(hime);
-#else
-    const float eps = 0;
+#if defined(D_RHO_D_H) || defined(BALSARA_SWITCH)
+    const float hiPolyGrad6Factor = poly6GradFactor(hi);
 #endif
 
     // loop over tiles in a row for as many tiles one thread is configured to calculate
@@ -75,12 +66,19 @@ void main()
             const vec3 rij = posi.xyz - posj.xyz;
             const float r2 = dot(rij,rij);
 
-            // calculate all densities
-            density +=  posj.w * (Wpoly6(r2, hiPoly6Factor, hi2));
+            // kernel functions
+            const float w = Wpoly6(r2, hiPoly6Factor, hi2);
+
+#if defined(D_RHO_D_H) || defined(BALSARA_SWITCH)
+            const float dw = Wpoly6Grad(r2, hiPolyGrad6Factor, hi2);
+#endif
+
+            // calculate the density
+            density +=  posj.MASS * w;
 
 #ifdef D_RHO_D_H
-            densityPlus +=  posj.MASS * (Wpoly6(r2, hipePoly6Factor, hipe2));
-            densityMinus +=  posj.MASS * (Wpoly6(r2, himePoly6Factor, hime2));
+            drhodh += -posj.MASS * ( 3.0/hi * w + 2.0*sqrt(r2)/(2.0*hi) * dw); // some mathematical trickery to get the partial derivative with respect to h
+                                                                          // need to be changed when using different kernel
 #endif
 
         }
@@ -89,5 +87,5 @@ void main()
         barrier();
     }
 
-    hydro[gl_GlobalInvocationID.x] = vec4(density, densityPlus, densityMinus, eps);
+    hydro[gl_GlobalInvocationID.x] = vec4(density, 0, 0, drhodh);
 }

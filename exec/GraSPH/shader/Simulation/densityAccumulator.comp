@@ -18,7 +18,7 @@ uniform float a;
 uniform float ac1;
 uniform float ac2;
 uniform float frag_limit;
-#define DH_DENSITY_FACTOR
+#define DH_DENSITY_CORRECTION
 #define ARTIFICIAL_TEMPERATURE
 
 layout(local_size_variable) in;
@@ -29,13 +29,12 @@ void main()
     vec4 sum = vec4(0);
     for(uint i=0; i < HYDROS_PER_PARTICLE; i++)
     {
-        const vec4 hydroi = hydro[NUM_PARTICLES * i + gl_GlobalInvocationID.x];
-        sum = vec4(sum.xyz + hydroi.xyz, hydroi.w);
+        sum += hydro[NUM_PARTICLES * i + gl_GlobalInvocationID.x];
     }
 
-#ifdef DH_DENSITY_FACTOR // calculate the correction factor for pressure based on springel and hernquist 2002
-    const float drhodh = (sum.y - sum.z) / (2*sum.w);
-    const float dhDensFac = 1.0/(1.0+ smlength[gl_GlobalInvocationID.x] * drhodh / (3* sum.DENSITY));
+#ifdef DH_DENSITY_CORRECTION // calculate the correction factor for pressure based on springel and hernquist 2002
+    const float hi = smlength[gl_GlobalInvocationID.x];
+    const float dhDensFac = 1.0/(1.0+ ((hi/(3*sum.x)) * sum.w));
 #else
     const float dhDensFac = 1;
 #endif
