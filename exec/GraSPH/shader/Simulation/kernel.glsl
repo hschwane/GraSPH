@@ -36,32 +36,32 @@ float Wpoly6(float r2, float h)
 // Wpoly6 gradient
 
 // use the gradient of the poly 6 kernel to perform smoothing
-// rij is a vector posi - posj
+// the vector posi - posj must be manually multiplied to the result
 // r2 the quared distance of the two particles
 // factor is the result of the function poly6GradFactor below
 // h2 is the square of h
-vec3 Wpoly6Grad(vec3 rij, float r2, float factor, float h2)
+float Wpoly6Grad( float r2, float factor, float h2)
 {
-    return (r2 < h2) ? factor * (h2-r2)*(h2-r2) * rij  : vec3(0);
+    return (r2 < h2) ? factor * (h2-r2)*(h2-r2)  : 0;
 }
 
 // calculate the factor for use in the poly 6 kernel gradient
 float poly6GradFactor(float h)
 {
-    return (945 / (32* PI * pow(h,9)));
+    return (-945 / (32* PI * pow(h,9)));
 }
 
 // use the gradient of the poly 6 kernel to perform smoothing
 // h2 and the factor will be computed internally
+// the vector posi - posj must be manually multiplied to the result
 // hint: use this function if a gradient is only computed once for each value of h
 //       if not use the above functions to reuse h2 and the factor
-// rij is a vector posi - posj
 // r2 the quared distance of the two particles
 // h is the smoothing length
-vec3 Wpoly6Grad(vec3 rij, float r2, float h)
+float Wpoly6Grad(float r2, float h)
 {
     const float h2 = h*h;
-    return (r2 < h2) ? (945 / (32* PI * pow(h,9))) * (h2-r2)*(h2-r2) * rij  : vec3(0);
+    return (r2 < h2) ? (-945 / (32* PI * pow(h,9))) * (h2-r2)*(h2-r2)  : 0;
 }
 
 // -----------------------------------------------------------------------------------------------------
