@@ -32,8 +32,8 @@ layout(binding=PARTICLE_SMLENGTH_BUFFER_BINDING,std430) buffer ParticleSmlength
 layout(local_size_x=WGSIZE,local_size_y=1,local_size_z=1) in;
 
 uniform float eps_factor2;
-uniform float a; // entropy of the fluid
 uniform float alpha; // controle viscosity
+#define SPRINGEL_CORRECTION
 
 shared vec4 pos[gl_WorkGroupSize.x];
 shared vec4 hyd[gl_WorkGroupSize.x];
@@ -98,14 +98,19 @@ void main()
             const vec3 gradi = WspikyGrad(rij,dist,hi,hiSpikyGradFactor);
             const vec3 gradj = WspikyGrad(rij,dist,hj);
 
-#ifdef SPRINGEL_CORRECTION
-            const float fdi = 1.0/(1.0+ ((hi/(3*hydroi.DENSITY)) * sum.DRHO_DH));
-            const float fdj = 1.0/(1.0+ ((hi/(3*hydroi.DENSITY)) * sum.DRHO_DH));
-#else
+//#ifdef SPRINGEL_CORRECTION
+//             float fdi = 1.0/(1.0+ ((hi/(3*hydroi.DENSITY)) * hydroi.DRHO_DH));
+//             float fdj = 1.0/(1.0+ ((hj/(3*hydroj.DENSITY)) * hydroj.DRHO_DH));
+//#else
             const float fdi = 1;
             const float fdj = 1;
-#endif
-            acc -= posj.w * (hydroi.w*pod2i* gradi + hydroj.w*pod2j* gradj);
+//#endif
+//            if(fdi > 2)
+//                fdi = 1;
+//            if(fdj > 2)
+//                fdj = 1;
+
+            acc -= posj.MASS * (fdi*pod2i* gradi + fdj*pod2j* gradj);
 
             // viscosity
             float wij = dot(veli.VELOCITY - velj.VELOCITY, rij)/dist;
@@ -115,7 +120,7 @@ void main()
             const float II = -alpha * 0.5 * vsig * wij / rhoij;
 
             maxVsig = max(maxVsig,vsig);
-            acc -=  posj.w  * II * (gradi+gradj)*0.5f;
+            acc -=  posj.MASS  * II * (gradi+gradj)*0.5f;
         }
 
         memoryBarrierShared();

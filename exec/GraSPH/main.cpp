@@ -38,12 +38,12 @@ int main()
     spawner.setBuffer(pb);
     spawner.spawnParticlesSphere(TOTAL_MASS,SPAWN_RADIUS, INITIAL_H);
 
-    spawner.addMultiFrequencyCurl( {
-                                           {{0.9},{0.1}},
-                                           {{0.6},{0.3}},
-                                           {{0.4},{0.3}},
-                                           {{0.3},{0.6}},
-                                   },1612,HMIN,HMAX,TOTAL_MASS / NUM_PARTICLES);
+//    spawner.addMultiFrequencyCurl( {
+//                                           {{0.9},{0.1}},
+//                                           {{0.6},{0.3}},
+//                                           {{0.4},{0.3}},
+//                                           {{0.3},{0.6}},
+//                                   },1612,HMIN,HMAX,TOTAL_MASS / NUM_PARTICLES);
     spawner.addAngularVelocity({0,0.12f,0});
 
 
@@ -98,7 +98,6 @@ int main()
                                            });
     pressureShader.uniform1f("alpha",VISC);
     pressureShader.uniform1f("eps_factor2",EPS_FACTOR*EPS_FACTOR);
-    pressureShader.uniform1f("a",A);
 
     mpu::gph::ShaderProgram integrator({{PROJECT_SHADER_PATH"Simulation/integrateLeapfrog.comp"}},
                                       {

@@ -13,6 +13,8 @@ uniform float a;
 uniform float ac1;
 uniform float ac2;
 uniform float frag_limit;
+#define D_RHO_D_H
+#define ARTIFICIAL_TEMPERATURE
 
 layout(local_size_variable) in;
 
@@ -23,7 +25,7 @@ void main()
     for(uint i=0; i < HYDROS_PER_PARTICLE; i++)
     {
         const vec4 hydroi = hydro[NUM_PARTICLES * i + gl_GlobalInvocationID.x];
-        sum = vec4(sum.xyz + hydroi.xyz, hydroi.z);
+        sum = vec4(sum.xyz + hydroi.xyz, hydroi.w);
     }
 
 #ifdef D_RHO_D_H // calculate partial derivative of density with respect to kernel radius
@@ -39,8 +41,8 @@ void main()
 #endif
 
     // calculate pressure and sound speed
-    const float pressure = a * pow(sum.y,ac);
+    const float pressure = a * pow(sum.DENSITY,ac);
     float ci = sqrt(ac*pressure/sum.DENSITY);
 
-    hydro[gl_GlobalInvocationID.x] = vec4(sum.x, pressure, ci, drhodh);
+    hydro[gl_GlobalInvocationID.x] = vec4(sum.DENSITY, pressure, ci, drhodh);
 }

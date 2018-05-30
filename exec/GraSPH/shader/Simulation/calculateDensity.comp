@@ -4,8 +4,6 @@
 #include "common.glsl"
 #include "kernel.glsl"
 
-#define D_RHO_D_H
-
 layout(binding=PARTICLE_POSITION_BUFFER_BINDING,std430) buffer ParticlePositions
 {
     vec4 positions[];
@@ -24,6 +22,7 @@ layout(binding=PARTICLE_SMLENGTH_BUFFER_BINDING,std430) buffer ParticleSmlength
 layout(local_size_x=WGSIZE,local_size_y=1,local_size_z=1) in;
 
 uniform float heps_factor = 0.1;
+#define D_RHO_D_H
 
 shared vec4 pos[gl_WorkGroupSize.x];
 
@@ -53,6 +52,8 @@ void main()
     const float hime2 = hime*hime;
     const float hipePoly6Factor = poly6Factor(hipe);
     const float himePoly6Factor = poly6Factor(hime);
+#else
+    const float eps = 0;
 #endif
 
     // loop over tiles in a row for as many tiles one thread is configured to calculate
@@ -78,8 +79,8 @@ void main()
             density +=  posj.w * (Wpoly6(r2, hiPoly6Factor, hi2));
 
 #ifdef D_RHO_D_H
-            densityPlus +=  posj.w * (Wpoly6(r2, hipePoly6Factor, hipe2));
-            densityMinus +=  posj.w * (Wpoly6(r2, himePoly6Factor, hime2));
+            densityPlus +=  posj.MASS * (Wpoly6(r2, hipePoly6Factor, hipe2));
+            densityMinus +=  posj.MASS * (Wpoly6(r2, himePoly6Factor, hime2));
 #endif
 
         }
