@@ -63,7 +63,7 @@ void main()
         for(uint j=0; j<gl_WorkGroupSize.x; j++)
         {
             const vec4 posj = pos[j];
-            const vec3 rij = posi.xyz - posj.xyz;
+            const vec3 rij = posi.POSITION - posj.POSITION;
             const float r2 = dot(rij,rij);
 
             // kernel functions

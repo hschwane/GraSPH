@@ -34,13 +34,13 @@ void main()
 
 #ifdef DH_DENSITY_CORRECTION // calculate the correction factor for pressure based on springel and hernquist 2002
     const float hi = smlength[gl_GlobalInvocationID.x];
-    const float dhDensFac = 1.0/(1.0+ ((hi/(3*sum.x)) * sum.w));
+    const float dhDensFac = 1.0/(1.0+ hi * sum.w /(3*sum.DENSITY));
 #else
     const float dhDensFac = 1;
 #endif
 
 #ifdef ARTIFICIAL_TEMPERATURE // change adibatic constant based on density to mimic change in temperature
-    const float ac = (sum.x<frag_limit) ? ac1 : ac2;
+    const float ac = (sum.DENSITY < frag_limit) ? ac1 : ac2;
 #else
     const float ac = ac1;
 #endif
