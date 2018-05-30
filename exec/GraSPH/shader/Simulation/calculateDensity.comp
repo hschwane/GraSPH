@@ -4,6 +4,9 @@
 #include "common.glsl"
 #include "kernel.glsl"
 
+#define D_RHO_D_H
+//#define BALSARA_SWITCH
+
 layout(binding=PARTICLE_POSITION_BUFFER_BINDING,std430) buffer ParticlePositions
 {
     vec4 positions[];
@@ -19,12 +22,21 @@ layout(binding=PARTICLE_SMLENGTH_BUFFER_BINDING,std430) buffer ParticleSmlength
     float smlength[];
 };
 
+#ifdef BALSARA_SWITCH
+layout(binding=PARTICLE_VELOCITY_BUFFER_BINDING,std430) buffer ParticleVelocity
+{
+    float velocity[];
+};
+#endif
+
 layout(local_size_x=WGSIZE,local_size_y=1,local_size_z=1) in;
 
 uniform float heps_factor = 0.1;
-#define D_RHO_D_H
 
 shared vec4 pos[gl_WorkGroupSize.x];
+#ifdef BALSARA_SWITCH
+shared vec3 vel[gl_WorkGroupSize.x];
+#endif
 
 // This shader updates a particles density by interacting with all other particles,
 // using shared memory to speed up memory access
@@ -36,8 +48,14 @@ void main()
     const vec4 posi = positions[idxi];
     const float hi =  smlength[idxi];
 
+#ifdef BALSARA_SWITCH
+    const vec3 veli = velocity[idx].VELOCIY;
+#endif
+
     float density =0; // lets sum up the density here
     float drhodh =0; // partial derivative of density with respect to h
+    float divergence =0; // the velocity divergence
+    vec3 vorticity = vec3(0,0,0); // curl of the velocity
 
     // cache those values since we will always use the same h
     const float hi2 = hi*hi;
@@ -55,6 +73,9 @@ void main()
         // fill fields in shared memory
         uint idx = gl_WorkGroupSize.x * (startTile + tile) + gl_LocalInvocationID.x;
         pos[gl_LocalInvocationID.x] = positions[idx];
+#ifdef BALSARA_SWITCH
+        vel[gl_LocalInvocationID.x] = velocity[idx];
+#endif
 
         memoryBarrierShared();
         barrier();
@@ -66,21 +87,23 @@ void main()
             const vec3 rij = posi.POSITION - posj.POSITION;
             const float r2 = dot(rij,rij);
 
-            // kernel functions
+            // calculate the density
             const float w = Wpoly6(r2, hiPoly6Factor, hi2);
+            density +=  posj.MASS * w;
 
 #if defined(D_RHO_D_H) || defined(BALSARA_SWITCH)
             const float dw = dWpoly6(r2, hidPoly6Factor, hi2);
 #endif
-
-            // calculate the density
-            density +=  posj.MASS * w;
-
 #ifdef D_RHO_D_H
-            drhodh += -posj.MASS * ( 3.0/hi * w + 2.0*sqrt(r2)/(2.0*hi) * dw); // some mathematical trickery to get the partial derivative with respect to h
-                                                                          // need to be changed when using different kernel
+            drhodh += -posj.MASS * ( 3.0/hi * w + 2.0*r2/(2.0*hi) * dw); // some mathematical trickery to get the partial derivative with respect to h
+                                                                         // need to be changed when using different kernel
 #endif
-
+#ifdef BALSARA_SWITCH
+            const vec3 velj = vel[j];
+            const vec3 velij = veli - velj;
+            divergence += posj.MASS * dot(velij,rij) * dw;
+            vorticity += posj.MASS * cross(velij,rij) * dw;
+#endif
         }
 
         memoryBarrierShared();

@@ -37,6 +37,7 @@ float Wpoly6(float r2, float h)
 
 // the partial deriviative of the poly 6 kernel with respect to r
 // the vector posi - posj must be manually multiplied to the result to obtain the gradient
+// or multiply by r if you need a one dimensional result
 // r2 the quared distance of the two particles
 // factor is the result of the function poly6GradFactor below
 // h2 is the square of h
@@ -54,6 +55,7 @@ float dpoly6Factor(float h)
 // the partial deriviative of the poly 6 kernel with respect to r
 // h2 and the factor will be computed internally
 // the vector posi - posj must be manually multiplied to the result to obtain the gradient
+// or multiply by r if you need a one dimensional result
 // hint: use this function if a gradient is only computed once for each value of h
 //       if not use the above functions to reuse h2 and the factor
 // r2 the quared distance of the two particles
