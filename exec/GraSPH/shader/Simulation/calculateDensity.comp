@@ -44,7 +44,7 @@ void main()
     const float hiPoly6Factor = poly6Factor(hi);
 
 #if defined(D_RHO_D_H) || defined(BALSARA_SWITCH)
-    const float hiPolyGrad6Factor = poly6GradFactor(hi);
+    const float hidPoly6Factor = dpoly6Factor(hi);
 #endif
 
     // loop over tiles in a row for as many tiles one thread is configured to calculate
@@ -70,7 +70,7 @@ void main()
             const float w = Wpoly6(r2, hiPoly6Factor, hi2);
 
 #if defined(D_RHO_D_H) || defined(BALSARA_SWITCH)
-            const float dw = Wpoly6Grad(r2, hiPolyGrad6Factor, hi2);
+            const float dw = dWpoly6(r2, hidPoly6Factor, hi2);
 #endif
 
             // calculate the density
