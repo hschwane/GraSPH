@@ -43,7 +43,7 @@ void main()
     const uint idxi = gl_GlobalInvocationID.x % NUM_PARTICLES;
     const vec4 posi = positions[idxi];
     const float hi =  smlength[idxi];
-    const vec3 noisei = accelerations[idxi].xyz;
+    const vec3 noisei = accelerations[idxi].ACCEL;
 
     vec3 curl =vec3(0);
 
@@ -64,19 +64,19 @@ void main()
         {
             const vec4 posj = pos[j];
             const vec3 noisej = noise[j];
-            const vec3 rij = posi.xyz - posj.xyz;
+            const vec3 rij = posi.POSITION - posj.POSITION;
             const float dist = length(rij);
 
             // calculate vorticity and divergence of the velocity
             vec3 gradi = WspikyGrad(rij,dist,hi);
             vec3 nij = noisei - noisej;
-            curl +=  posj.w * cross(nij, gradi);
+            curl +=  posj.MASS * cross(nij, gradi);
         }
         // sync
         memoryBarrierShared();
         barrier();
     }
 
-    curl /= hydro[gl_GlobalInvocationID.x].y;
+    curl /= hydro[gl_GlobalInvocationID.x].DENSITY;
     velocities[gl_GlobalInvocationID.x] += vec4(curl,0);
 }

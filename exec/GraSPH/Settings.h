@@ -51,8 +51,8 @@ constexpr float PARTICLE_BRIGHTNESS     = 1; // radius of a particle
 const glm::vec4 PARTICLE_COLOR          = glm::vec4(0.9,0.3,0.1,1); // color of the particel
 
 // threads and workgroups
-constexpr unsigned int DENSITY_THREADS_PER_PARTICLE = 8;
-constexpr unsigned int ACCEL_THREADS_PER_PARTICLE   = 8;
+constexpr unsigned int DENSITY_THREADS_PER_PARTICLE = 1;
+constexpr unsigned int ACCEL_THREADS_PER_PARTICLE   = 1;
 constexpr unsigned int DENSITY_WGSIZE               = 256;
 constexpr unsigned int PRESSURE_WGSIZE              = 256;
 

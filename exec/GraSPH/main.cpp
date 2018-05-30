@@ -38,12 +38,12 @@ int main()
     spawner.setBuffer(pb);
     spawner.spawnParticlesSphere(TOTAL_MASS,SPAWN_RADIUS, INITIAL_H);
 
-//    spawner.addMultiFrequencyCurl( {
-//                                           {{0.9},{0.1}},
-//                                           {{0.6},{0.3}},
-//                                           {{0.4},{0.3}},
-//                                           {{0.3},{0.6}},
-//                                   },1612,HMIN,HMAX,TOTAL_MASS / NUM_PARTICLES);
+    spawner.addMultiFrequencyCurl( {
+                                           {{0.9},{0.1}},
+                                           {{0.6},{0.3}},
+                                           {{0.4},{0.3}},
+                                           {{0.3},{0.6}},
+                                   },1612,HMIN,HMAX,TOTAL_MASS / NUM_PARTICLES);
     spawner.addAngularVelocity({0,0.12f,0});
 
 

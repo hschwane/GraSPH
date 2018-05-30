@@ -29,6 +29,12 @@ layout(binding=PARTICLE_SMLENGTH_BUFFER_BINDING,std430) buffer ParticleSmlength
     float smlength[];
 };
 
+layout(binding=PARTICLE_TIMESTEP_BUFFER_BINDING,std430) buffer ParticleTimestep
+{
+    float timestep[];
+};
+
+
 layout(local_size_variable) in;
 
 uniform vec3 center;
@@ -54,6 +60,7 @@ void main()
     // set all the attributes
     velocities[gl_GlobalInvocationID.x+particle_offset] = vec4(0,0,0,0);
     smlength[gl_GlobalInvocationID.x] = initial_smlength;
+    timestep[gl_GlobalInvocationID.x] = 0;
 
     for(uint i=0; i<accMulti; i++ )
         accelerations[gl_GlobalInvocationID.x+particle_offset + i*num_of_particles] = vec4(0,0,0,0);
