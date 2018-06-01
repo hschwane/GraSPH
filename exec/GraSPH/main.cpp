@@ -79,7 +79,6 @@ int main()
                                           });
     densityShader.uniform1f("heps_factor",HEPS_FACTOR);
 
-    uint32_t wgSize=calcWorkgroupSize(NUM_PARTICLES);
     mpu::gph::ShaderProgram hydroAccum({{PROJECT_SHADER_PATH"Simulation/densityAccumulator.comp"}},
                                   {
                                    {"NUM_PARTICLES",{mpu::toString(NUM_PARTICLES)}},
@@ -114,51 +113,50 @@ int main()
 
 
     // group shader dispatches into useful functions
-    auto findSml = [densityShader,hydroAccum,adjustH,wgSize](int iterations)
+    auto findSml = [densityShader,hydroAccum,adjustH](int iterations)
     {
         for(int i=0; i<iterations; i++)
         {
             glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
             densityShader.dispatch(NUM_PARTICLES*DENSITY_THREADS_PER_PARTICLE/DENSITY_WGSIZE);
             glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-            hydroAccum.dispatch(NUM_PARTICLES,wgSize);
+            hydroAccum.dispatch(NUM_PARTICLES,GENERAL_WGSIZE);
             glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-            adjustH.dispatch(NUM_PARTICLES,wgSize);
+            adjustH.dispatch(NUM_PARTICLES,GENERAL_WGSIZE);
         }
     };
 
-    auto startSimulation = [densityShader,pressureShader,wgSize,hydroAccum,integrator,adjustH]()
+    auto startSimulation = [densityShader,pressureShader,hydroAccum,integrator,adjustH]()
     {
 
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
         densityShader.dispatch(NUM_PARTICLES*DENSITY_THREADS_PER_PARTICLE/DENSITY_WGSIZE);
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-        hydroAccum.dispatch(NUM_PARTICLES,wgSize);
+        hydroAccum.dispatch(NUM_PARTICLES,GENERAL_WGSIZE);
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
         pressureShader.dispatch(NUM_PARTICLES*ACCEL_THREADS_PER_PARTICLE/PRESSURE_WGSIZE);
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
         integrator.uniform1f("not_first_step",1);
-        integrator.dispatch(NUM_PARTICLES,wgSize);
+        integrator.dispatch(NUM_PARTICLES,GENERAL_WGSIZE);
         integrator.uniform1f("not_first_step",1);
     };
 
-    auto simulate = [densityShader,pressureShader,wgSize,hydroAccum,integrator,adjustH]()
+    auto simulate = [densityShader,pressureShader,hydroAccum,integrator,adjustH]()
     {
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-        adjustH.dispatch(NUM_PARTICLES,wgSize);
+        adjustH.dispatch(NUM_PARTICLES,GENERAL_WGSIZE);
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
         densityShader.dispatch(NUM_PARTICLES*DENSITY_THREADS_PER_PARTICLE/DENSITY_WGSIZE);
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-        hydroAccum.dispatch(NUM_PARTICLES,wgSize);
+        hydroAccum.dispatch(NUM_PARTICLES,GENERAL_WGSIZE);
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
         pressureShader.dispatch(NUM_PARTICLES*ACCEL_THREADS_PER_PARTICLE/PRESSURE_WGSIZE);
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-        integrator.dispatch(NUM_PARTICLES,wgSize);
+        integrator.dispatch(NUM_PARTICLES,GENERAL_WGSIZE);
     };
 
     findSml(20);
     startSimulation();
-//    simulate();
 
     float brightness=PARTICLE_BRIGHTNESS;
     float size=PARTICLE_RENDER_SIZE;

@@ -62,7 +62,7 @@ void ParticleSpawner::spawnParticlesCube(const float totalMass, const glm::vec3 
     m_cubeSpawnShader.uniform1ui("num_of_particles", m_particleBuffer.size());
     m_cubeSpawnShader.uniform1ui("accMulti", m_particleBuffer.accPerParticle());
     m_cubeSpawnShader.uniform1ui("hydMulti", m_particleBuffer.hydPerParticle());
-    m_cubeSpawnShader.dispatch(m_particleBuffer.size(),calcWorkgroupSize(m_particleBuffer.size()));
+    m_cubeSpawnShader.dispatch(m_particleBuffer.size(),GENERAL_WGSIZE);
 }
 
 void ParticleSpawner::spawnParticlesSphere(const float totalMass, const float radius, const float initialSmlength, const glm::vec3 &center)
@@ -97,7 +97,7 @@ void ParticleSpawner::spawnParticlesSphere(const float totalMass, const float ra
     m_sphereSpawnShader.uniform1ui("num_of_particles", m_particleBuffer.size());
     m_sphereSpawnShader.uniform1ui("accMulti", m_particleBuffer.accPerParticle());
     m_sphereSpawnShader.uniform1ui("hydMulti", m_particleBuffer.hydPerParticle());
-    m_sphereSpawnShader.dispatch(m_particleBuffer.size(),calcWorkgroupSize(m_particleBuffer.size()));
+    m_sphereSpawnShader.dispatch(m_particleBuffer.size(),GENERAL_WGSIZE);
 }
 
 void ParticleSpawner::spawnParticlesMultiSphere(const float totalMass, const std::vector<Sphere> spheres, const float initialSmlength)
@@ -132,7 +132,7 @@ void ParticleSpawner::spawnParticlesMultiSphere(const float totalMass, const std
         m_sphereSpawnShader.uniform1ui("particle_offset", writtenParticles);
         m_sphereSpawnShader.uniform1ui("accMulti", m_particleBuffer.accPerParticle());
         m_sphereSpawnShader.uniform1ui("hydMulti", m_particleBuffer.hydPerParticle());
-        m_sphereSpawnShader.dispatch(particles, calcWorkgroupSize(particles));
+        m_sphereSpawnShader.dispatch(particles, GENERAL_WGSIZE);
         writtenParticles += particles;
     }
 
@@ -142,7 +142,7 @@ void ParticleSpawner::spawnParticlesMultiSphere(const float totalMass, const std
         logWARNING("Spawner") << "Sphere ratios do not sum up to 1. Particles spawned: " << writtenParticles
                               << " desired amount: " << m_particleBuffer.size();
         m_sphereSpawnShader.uniform1ui("particle_offset", writtenParticles);
-        m_sphereSpawnShader.dispatch(m_particleBuffer.size()-writtenParticles, calcWorkgroupSize(m_particleBuffer.size()-writtenParticles));
+        m_sphereSpawnShader.dispatch(m_particleBuffer.size()-writtenParticles, GENERAL_WGSIZE);
     }
 }
 
@@ -153,7 +153,7 @@ void ParticleSpawner::addSimplexVelocityField(float frequency, float scale, int 
     m_initialVelocitySimplexShader.uniform1f("frequency", frequency);
     m_initialVelocitySimplexShader.uniform1f("scale", scale);
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-    m_initialVelocitySimplexShader.dispatch(m_particleBuffer.size(),calcWorkgroupSize(m_particleBuffer.size()));
+    m_initialVelocitySimplexShader.dispatch(m_particleBuffer.size(),GENERAL_WGSIZE);
 }
 
 void ParticleSpawner::addCurlVelocityField(float frequency, float scale, int seed)
@@ -163,7 +163,7 @@ void ParticleSpawner::addCurlVelocityField(float frequency, float scale, int see
     m_initialVelocityCurlShader.uniform1f("frequency", frequency);
     m_initialVelocityCurlShader.uniform1f("scale", scale);
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-    m_initialVelocityCurlShader.dispatch(m_particleBuffer.size(),calcWorkgroupSize(m_particleBuffer.size()));
+    m_initialVelocityCurlShader.dispatch(m_particleBuffer.size(),GENERAL_WGSIZE);
 }
 
 void ParticleSpawner::addMultiFrequencyCurl(std::vector<std::pair<float, float>> freq, int seed, float hmin, float hmax, float massPerParticle)
@@ -171,16 +171,16 @@ void ParticleSpawner::addMultiFrequencyCurl(std::vector<std::pair<float, float>>
     m_particleBuffer.bindAll(PARTICLE_BUFFER_BINDING, GL_SHADER_STORAGE_BUFFER);
     mpu::gph::ShaderProgram doCurlShader({{PROJECT_SHADER_PATH"ParticleSpawner/doSPHCurl.comp"}},
                                          {
-                                                 {"WGSIZE",{mpu::toString(calcWorkgroupSize(m_particleBuffer.size()))}},
+                                                 {"WGSIZE",{mpu::toString(GENERAL_WGSIZE)}},
                                                  {"NUM_PARTICLES",{mpu::toString(m_particleBuffer.size())}},
-                                                 {"TILES_PER_THREAD",{mpu::toString(m_particleBuffer.size() / calcWorkgroupSize(m_particleBuffer.size()) / 1)}}
+                                                 {"TILES_PER_THREAD",{mpu::toString(m_particleBuffer.size() / GENERAL_WGSIZE / 1)}}
                                          });
 
     mpu::gph::ShaderProgram densityShader({{PROJECT_SHADER_PATH"Simulation/calculateDensity.comp"}},
                                           {
-                                                  {"WGSIZE",{mpu::toString(calcWorkgroupSize(m_particleBuffer.size()))}},
+                                                  {"WGSIZE",{mpu::toString(GENERAL_WGSIZE)}},
                                                   {"NUM_PARTICLES",{mpu::toString(m_particleBuffer.size())}},
-                                                  {"TILES_PER_THREAD",{mpu::toString(m_particleBuffer.size() / calcWorkgroupSize(m_particleBuffer.size()) / 1)}}
+                                                  {"TILES_PER_THREAD",{mpu::toString(m_particleBuffer.size() / GENERAL_WGSIZE / 1)}}
                                           });
 
     mpu::gph::ShaderProgram adjustH({{PROJECT_SHADER_PATH"Simulation/calculateH.comp"}});
@@ -198,26 +198,26 @@ void ParticleSpawner::addMultiFrequencyCurl(std::vector<std::pair<float, float>>
         m_addSimplexShader.uniform1f("frequency", item.first);
         m_addSimplexShader.uniform1f("scale", item.second);
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-        m_addSimplexShader.dispatch(m_particleBuffer.size(),calcWorkgroupSize(m_particleBuffer.size()));
+        m_addSimplexShader.dispatch(m_particleBuffer.size(),GENERAL_WGSIZE);
     }
 
     // adjust the smoothing length to something usefull
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-    densityShader.dispatch(m_particleBuffer.size()*1/calcWorkgroupSize(m_particleBuffer.size()));
+    densityShader.dispatch(m_particleBuffer.size()*1/GENERAL_WGSIZE);
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-    adjustH.dispatch(m_particleBuffer.size(),calcWorkgroupSize(m_particleBuffer.size()));
+    adjustH.dispatch(m_particleBuffer.size(),GENERAL_WGSIZE);
 
     // another iteration
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-    densityShader.dispatch(m_particleBuffer.size()*1/calcWorkgroupSize(m_particleBuffer.size()));
+    densityShader.dispatch(m_particleBuffer.size()*1/GENERAL_WGSIZE);
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-    adjustH.dispatch(m_particleBuffer.size(),calcWorkgroupSize(m_particleBuffer.size()));
+    adjustH.dispatch(m_particleBuffer.size(),GENERAL_WGSIZE);
 
     // now calculate the curl
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-    densityShader.dispatch(m_particleBuffer.size()*1/calcWorkgroupSize(m_particleBuffer.size()));
+    densityShader.dispatch(m_particleBuffer.size()*1/GENERAL_WGSIZE);
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-    doCurlShader.dispatch(m_particleBuffer.size()*1/calcWorkgroupSize(m_particleBuffer.size()));
+    doCurlShader.dispatch(m_particleBuffer.size()*1/GENERAL_WGSIZE);
 }
 
 void ParticleSpawner::addAngularVelocity(glm::vec3 axis)
@@ -225,5 +225,5 @@ void ParticleSpawner::addAngularVelocity(glm::vec3 axis)
     m_particleBuffer.bindAll(PARTICLE_BUFFER_BINDING, GL_SHADER_STORAGE_BUFFER);
     m_angVelShader.uniform3f("axis", axis);
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-    m_angVelShader.dispatch(m_particleBuffer.size(),calcWorkgroupSize(m_particleBuffer.size()));
+    m_angVelShader.dispatch(m_particleBuffer.size(),GENERAL_WGSIZE);
 }

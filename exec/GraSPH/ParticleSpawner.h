@@ -19,6 +19,7 @@
 #include <Graphics/Graphics.h>
 #include <Log/Log.h>
 #include "Common.h"
+#include "ParticleBuffer.h"
 //--------------------
 
 //-------------------------------------------------------------------

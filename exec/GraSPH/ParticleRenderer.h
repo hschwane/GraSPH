@@ -20,6 +20,7 @@
 //--------------------
 #include <Graphics/Graphics.h>
 #include "Common.h"
+#include "ParticleBuffer.h"
 //--------------------
 
 enum class Falloff

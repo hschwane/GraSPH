@@ -51,6 +51,9 @@ uniform uint random_seed;
 
 void main()
 {
+    if(gl_GlobalInvocationID.x > num_of_particles)
+        return;
+
     // generate a random position
     uint seed = random_seed*gl_GlobalInvocationID.x;
     vec2 hammersley = genHammersleySet(seed, num_of_particles);
