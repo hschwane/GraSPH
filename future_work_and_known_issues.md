@@ -4,12 +4,11 @@
 - finding the new timestep has brobably issues
 - gravitational softening needs to be improved
 - find more stable way to adjust smoothing length
-- some error with velocity curl and divergence used for Balsara-Switch
 
 ## physics / accuracy
 - option to use 64bit floating point numbers
 - fix energy/entropy conservation
-- thermal energy
+- thermal energy / radiation
 - viscous heating
 - magnetic fields
 - star feedback and model for internal evolution of the star (probably add plugin interface)
@@ -19,8 +18,8 @@
 ## performance
 - enable pre-simulated simulation
 - add datastructure / tree code
-- have a list of neigtbours for each particle
-- indivdual timesteps
+- have a list of neighbors for each particle
+- individual timesteps
 - allow for particles to merge (maybe even split)
 - multi-GPU simulation
 - have the CPU also do some work
@@ -28,7 +27,7 @@
 
 ## output and visualisation and interpretation
 - find stars
-- output information abaout stars
+- output information about stars
 - make star visualisation better
 - make gas visualisation better
 - have the camera follow a star/structure
@@ -42,6 +41,5 @@
 
 ## other
 - some classes for managing simulation settings, shader compillation and shader dispatch
-- restructure code to make shades more adaptible
 - add gpu stopwatch for shader profiling
 - 2D mode
