@@ -98,6 +98,7 @@ int main()
                                            });
     pressureShader.uniform1f("alpha",VISC);
     pressureShader.uniform1f("eps_factor2",EPS_FACTOR*EPS_FACTOR);
+    pressureShader.uniform1f("balsara_strength",BALSARA_STRENGTH);
 
     mpu::gph::ShaderProgram integrator({{PROJECT_SHADER_PATH"Simulation/integrateLeapfrog.comp"}},
                                       {

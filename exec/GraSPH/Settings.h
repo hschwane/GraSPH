@@ -33,8 +33,9 @@ constexpr float INITIAL_H               = 0.3; // initial kernel radius
 constexpr float EPS_FACTOR  = 0.2; // a particle behaves like a plummer sphere with a radius equal to its smoothing length multiplied by this factor
 
 // sph
-constexpr float A       = 0.06; // function of specific entropy
-constexpr float VISC    = 1; // strength of artificial viscosity
+constexpr float A                   = 0.06; // function of specific entropy
+constexpr float VISC                = 1; // strength of artificial viscosity
+constexpr float BALSARA_STRENGTH    = 0.8; // how much the balsara switch will influence the viscosity
 
 constexpr float AC1      = 1; // adiabatic constant when rho is below FRAG_LIMIT
 constexpr float AC2      = 7.0f/5.0f; // adiabatic constant when rho is above FRAG_LIMIT
