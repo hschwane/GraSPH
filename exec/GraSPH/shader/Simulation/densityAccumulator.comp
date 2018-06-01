@@ -56,7 +56,7 @@ void main()
     const float pressure = a * pow(sumh.DENSITY,ac);
     float ci = sqrt(ac*pressure/sumh.DENSITY);
 
-#if defined(BALSARA_SWITCH) || defined(DH_DENSITY_CORRECTION)
+#if defined(DH_DENSITY_CORRECTION) || defined(BALSARA_SWITCH)
     const float hi = smlength[gl_GlobalInvocationID.x];
 #endif
 
