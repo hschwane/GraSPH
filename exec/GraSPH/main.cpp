@@ -38,12 +38,12 @@ int main()
     spawner.setBuffer(pb);
     spawner.spawnParticlesSphere(TOTAL_MASS,SPAWN_RADIUS, INITIAL_H);
 
-    spawner.addMultiFrequencyCurl( {
-                                           {{0.9},{0.1}},
-                                           {{0.6},{0.3}},
-                                           {{0.4},{0.3}},
-                                           {{0.3},{0.6}},
-                                   },1612,HMIN,HMAX,TOTAL_MASS / NUM_PARTICLES);
+//    spawner.addMultiFrequencyCurl( {
+//                                           {{0.9},{0.1}},
+//                                           {{0.6},{0.3}},
+//                                           {{0.4},{0.3}},
+//                                           {{0.3},{0.6}},
+//                                   },1612,HMIN,HMAX,TOTAL_MASS / NUM_PARTICLES);
     spawner.addAngularVelocity({0,0.12f,0});
 
 
@@ -159,6 +159,7 @@ int main()
     double newDT = DT;
 
     bool runSim = false;
+    bool readyToPrint=true;
     while( window.update())
     {
         dt = timer.getDeltaTime();
@@ -186,6 +187,25 @@ int main()
             runSim = true;
         else if(window.getKey(GLFW_KEY_2) == GLFW_PRESS)
             runSim = false;
+
+        if(window.getKey(GLFW_KEY_P) == GLFW_PRESS && readyToPrint)
+        {
+            readyToPrint = false;
+            auto nbs = pb.balsaraBuffer.read<glm::vec4>(pb.size(),0);
+
+            int i = 0;
+            float mean = 0;
+            while(i<pb.size())
+            {
+                logINFO("debug_print") << "balsara switch of paticle " << i  << " is " << nbs[i].x;
+                mean += nbs[i].x;
+                i++;
+            }
+            mean = mean / pb.size();
+            logINFO("debug_print") << "mean balsara switch: " << mean;
+        }
+        else if(window.getKey(GLFW_KEY_P) == GLFW_RELEASE)
+            readyToPrint=true;
 
         mpu::gph::Buffer temp;
         temp.allocate<float>(pb.size(),GL_MAP_READ_BIT | GL_MAP_PERSISTENT_BIT);

@@ -62,7 +62,7 @@ void main()
     const float hi2 = hi*hi;
     const float hiPoly6Factor = poly6Factor(hi);
 
-#if defined(D_RHO_D_H) || defined(BALSARA_SWITCH)
+#if defined(BALSARA_SWITCH) || defined(D_RHO_D_H)
     const float hidPoly6Factor = dpoly6Factor(hi);
 #endif
 
@@ -92,7 +92,7 @@ void main()
             const float w = Wpoly6(r2, hiPoly6Factor, hi2);
             density +=  posj.MASS * w;
 
-#if defined(D_RHO_D_H) || defined(BALSARA_SWITCH)
+#if defined(BALSARA_SWITCH) || defined(D_RHO_D_H)
             const float dw = dWpoly6(r2, hidPoly6Factor, hi2);
 #endif
 #ifdef D_RHO_D_H

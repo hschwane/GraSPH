@@ -72,7 +72,7 @@ float dWpoly6(float r2, float h)
 vec3 WspikyGrad(vec3 rij, float dist, float h, float factor)
 {
     float hdist = h-dist;
-    return (dist < h && dist != 0) ? factor * hdist*hdist * rij/dist : vec3(0,0,0);
+    return (dist < h) ? factor * hdist*hdist * rij/dist : vec3(0,0,0);
 }
 
 // calculate the factor for use in the spiky gradient
@@ -88,7 +88,7 @@ float spikyGradFactor(float h)
 vec3 WspikyGrad(vec3 rij, float dist  ,float h)
 {
     float hdist = h-dist;
-    return (dist < h && dist != 0) ? (-45 / (PI * pow(h,6))) * hdist*hdist * rij/dist : vec3(0,0,0);
+    return (dist < h) ? (-45 / (PI * pow(h,6))) * hdist*hdist * rij/dist : vec3(0,0,0);
 }
 
 // -----------------------------------------------------------------------------------------------------

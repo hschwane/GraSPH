@@ -61,7 +61,7 @@ void main()
     const float hi = smlength[idxi];
     const vec4 veli = velocities[idxi];
 #ifdef BALSARA_SWITCH
-    const float balsarai = balsara[idxi].BASWITCH;
+    const float balsi = balsara[idxi].BASWITCH;
 #endif
 
     vec3 acc = vec3(0); // lets sum up the acceleration here
@@ -100,33 +100,44 @@ void main()
 
             const vec3 rij = posi.POSITION - posj.POSITION; // vector from i to j
             const float r2 = dot(rij,rij);
-            const float dist = sqrt(r2); // distance from i to j
+            const float r = sqrt(r2); // distance from i to j
 
-            // gravity
-            acc +=  posj.MASS * -rij / sqrt(pow(r2+(hi*hj*eps_factor2),3));
+            if(r > 0) // stop calculation here if the particles are the same
+            {
+                // gravity
+                acc +=  posj.MASS * -rij / sqrt(pow(r2+(hi*hj*eps_factor2),3));
 
-            // pressure
-            const float pod2j = hydroj.PRESSURE / (hydroj.DENSITY * hydroj.DENSITY);
+                // pressure
+                const float pod2j = hydroj.PRESSURE / (hydroj.DENSITY * hydroj.DENSITY);
 
-            const vec3 gradi = WspikyGrad(rij,dist,hi,hiSpikyGradFactor);
-            const vec3 gradj = WspikyGrad(rij,dist,hj);
+                const vec3 gradi = WspikyGrad(rij,r,hi,hiSpikyGradFactor);
+                const vec3 gradj = WspikyGrad(rij,r,hj);
 
-            acc -= posj.MASS * (hydroi.DH_DENSITY_FACTOR*pod2i* gradi + hydroj.DH_DENSITY_FACTOR*pod2j* gradj);
+                acc -= posj.MASS * (hydroi.DH_DENSITY_FACTOR*pod2i* gradi + hydroj.DH_DENSITY_FACTOR*pod2j* gradj);
 
-            // viscosity
-            float wij = dot(veli.VELOCITY - velj.VELOCITY, rij)/dist;
-            wij = (wij <0) ? wij : 0;
-            const float vsig = hydroi.SPEED_OF_SOUND + hydroj.SPEED_OF_SOUND - 3.0*wij;
-            const float rhoij = (hydroi.DENSITY + hydroj.DENSITY)*0.5;
+                // viscosity
+                const float wij = dot(rij, veli.VELOCITY - velj.VELOCITY)/r;
+                if(wij < 0)
+                {
+                    const float vsig = hydroi.SPEED_OF_SOUND + hydroj.SPEED_OF_SOUND - 3.0*wij;
+                    const float rhoij = (hydroi.DENSITY + hydroj.DENSITY)*0.5;
 
-             const float II = -alpha
 #ifdef BALSARA_SWITCH
-            * bals[j]
+                    const float fij = ((bals[j]+balsi)*0.5);
+#else
+                    const float fij = 1;
 #endif
-            * 0.5 * vsig * wij / rhoij;
 
-            maxVsig = max(maxVsig,vsig);
-            acc -=  posj.MASS  * II * (gradi+gradj)*0.5f;
+                    const float II = -0.5 * fij* alpha * wij * vsig / rhoij;
+
+                    maxVsig = max(maxVsig,vsig);
+                    acc -=  posj.MASS  * II * (gradi+gradj)*0.5f;
+                }
+                else
+                {
+                    maxVsig = max(maxVsig,hydroi.SPEED_OF_SOUND + hydroj.SPEED_OF_SOUND);
+                }
+            }
         }
 
         memoryBarrierShared();

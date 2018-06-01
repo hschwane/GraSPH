@@ -67,10 +67,13 @@ void main()
             const vec3 rij = posi.POSITION - posj.POSITION;
             const float dist = length(rij);
 
-            // calculate vorticity and divergence of the velocity
-            vec3 gradi = WspikyGrad(rij,dist,hi);
-            vec3 nij = noisei - noisej;
-            curl +=  posj.MASS * cross(nij, gradi);
+            if(dist > 0)
+            {
+                // calculate vorticity and divergence of the velocity
+                vec3 gradi = WspikyGrad(rij,dist,hi);
+                vec3 nij = noisei - noisej;
+                curl +=  posj.MASS * cross(nij, gradi);
+            }
         }
         // sync
         memoryBarrierShared();

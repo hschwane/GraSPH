@@ -56,9 +56,12 @@ void main()
     const float pressure = a * pow(sumh.DENSITY,ac);
     float ci = sqrt(ac*pressure/sumh.DENSITY);
 
+#if defined(BALSARA_SWITCH) || defined(DH_DENSITY_CORRECTION)
+    const float hi = smlength[gl_GlobalInvocationID.x];
+#endif
+
 // calculate the correction factor for pressure based on springel and hernquist 2002
 #ifdef DH_DENSITY_CORRECTION
-    const float hi = smlength[gl_GlobalInvocationID.x];
     const float dhDensFac = 1.0/(1.0+ hi * sumh.DH_DENSITY_FACTOR /(3*sumh.DENSITY));
 #else
     const float dhDensFac = 1;
