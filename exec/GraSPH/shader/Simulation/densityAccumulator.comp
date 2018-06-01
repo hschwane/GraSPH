@@ -14,6 +14,11 @@ layout(binding=PARTICLE_SMLENGTH_BUFFER_BINDING,std430) buffer ParticleSmlength
     float smlength[];
 };
 
+layout(binding=PARTICLE_VELOCITY_BUFFER_BINDING,std430) buffer ParticleVelocities
+{
+    vec4 velocities[];
+};
+
 #ifdef BALSARA_SWITCH
 layout(binding=PARTICLE_BALSARA_BUFFER_BINDING,std430) buffer ParticleBalsaraValues
 {
@@ -72,8 +77,11 @@ void main()
     const float vort = length(sumb.CURL) / sumh.DENSITY;
     const float div = abs( sumb.DIV / sumh.DENSITY );
     const float baSwitch = div / ( div + vort + 0.0001*ci/hi);
-    balsara[gl_GlobalInvocationID.x].x = baSwitch;
+#else
+    const float baSwitch = 1;
 #endif
 
-    hydro[gl_GlobalInvocationID.x] = vec4(sumh.DENSITY, pressure, ci, dhDensFac);
+
+    hydro[gl_GlobalInvocationID.x] = vec4(sumh.DENSITY, pressure, baSwitch, dhDensFac);
+    velocities[gl_GlobalInvocationID.x].SPEED_OF_SOUND = ci;
 }

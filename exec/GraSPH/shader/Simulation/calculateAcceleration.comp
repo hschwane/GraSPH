@@ -29,13 +29,6 @@ layout(binding=PARTICLE_SMLENGTH_BUFFER_BINDING,std430) buffer ParticleSmlength
     float smlength[];
 };
 
-#ifdef BALSARA_SWITCH
-layout(binding=PARTICLE_BALSARA_BUFFER_BINDING,std430) buffer ParticleBalsaraValues
-{
-    vec4 balsara[];
-};
-#endif
-
 layout(local_size_x=WGSIZE,local_size_y=1,local_size_z=1) in;
 
 uniform float eps_factor2;
@@ -45,8 +38,7 @@ uniform float balsara_strength;
 shared vec4 pos[gl_WorkGroupSize.x];
 shared vec4 hyd[gl_WorkGroupSize.x];
 shared float h[gl_WorkGroupSize.x];
-shared vec3 vel[gl_WorkGroupSize.x];
-shared float bals[gl_WorkGroupSize.x];
+shared vec4 vel[gl_WorkGroupSize.x];
 
 // This shader updates a particles acceleration by interacting with all other particles,
 // using shared memory to speed up memory access
@@ -61,9 +53,6 @@ void main()
     const vec4 posi = positions[idxi];
     const float hi = smlength[idxi];
     const vec4 veli = velocities[idxi];
-#ifdef BALSARA_SWITCH
-    const float balsi = balsara[idxi].BASWITCH;
-#endif
 
     vec3 acc = vec3(0); // lets sum up the acceleration here
     float maxVsig = 0; // needed for the timestep criterion
@@ -83,10 +72,7 @@ void main()
         pos[gl_LocalInvocationID.x] = positions[idx];
         hyd[gl_LocalInvocationID.x] = hydro[idx];
         h[gl_LocalInvocationID.x] = smlength[idx];
-        vel[gl_LocalInvocationID.x] = velocities[idx].VELOCITY;
-#ifdef BALSARA_SWITCH
-        bals[gl_LocalInvocationID.x] = balsara[idx].BASWITCH;
-#endif
+        vel[gl_LocalInvocationID.x] = velocities[idx];
 
         memoryBarrierShared();
         barrier();
@@ -97,7 +83,7 @@ void main()
             const vec4 posj = pos[j];
             const float hj = h[j];
             const vec4 hydroj = hyd[j];
-            const vec3 velj = vel[j];
+            const vec4 velj = vel[j];
 
             const vec3 rij = posi.POSITION - posj.POSITION; // vector from i to j
             const float r2 = dot(rij,rij);
@@ -120,15 +106,9 @@ void main()
                 const float wij = dot(rij, veli.VELOCITY - velj.VELOCITY)/r;
                 if(wij < 0)
                 {
-                    const float vsig = hydroi.SPEED_OF_SOUND + hydroj.SPEED_OF_SOUND - 3.0*wij;
+                    const float vsig = veli.SPEED_OF_SOUND + velj.SPEED_OF_SOUND - 3.0*wij;
                     const float rhoij = (hydroi.DENSITY + hydroj.DENSITY)*0.5;
-
-#ifdef BALSARA_SWITCH // compute the blsara switch if it is activated
-                    const float fij = 1- balsara_strength*( 1-( 0.5*( bals[j]+balsi)));
-#else
-                    const float fij = 1;
-#endif
-
+                    const float fij = 1- balsara_strength*( 1-( 0.5*( hydroi.BASWITCH+hydroj.BASWITCH)));
                     const float II = -0.5 * fij* alpha * wij * vsig / rhoij;
 
                     maxVsig = max(maxVsig,vsig);
@@ -136,7 +116,7 @@ void main()
                 }
                 else
                 {
-                    maxVsig = max(maxVsig,hydroi.SPEED_OF_SOUND + hydroj.SPEED_OF_SOUND);
+                    maxVsig = max(maxVsig,veli.SPEED_OF_SOUND + velj.SPEED_OF_SOUND);
                 }
             }
         }

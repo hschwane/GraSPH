@@ -34,6 +34,7 @@
 
 // velocity buffer
 #define VELOCITY xyz
+#define SPEED_OF_SOUND w
 
 // acceleration buffer
 #define ACCEL xyz
@@ -42,11 +43,10 @@
 // hydro buffer
 #define DENSITY x
 #define PRESSURE y
-#define SPEED_OF_SOUND z
+#define BASWITCH z
 #define DH_DENSITY_FACTOR w
 
 // balsara buffer
 #define CURL xyz
 #define DIV w
-#define BASWITCH x
 
