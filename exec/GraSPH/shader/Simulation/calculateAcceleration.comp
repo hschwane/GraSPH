@@ -29,6 +29,11 @@ layout(binding=PARTICLE_SMLENGTH_BUFFER_BINDING,std430) buffer ParticleSmlength
     float smlength[];
 };
 
+layout(binding=PARTICLE_STRESS_BUFFER_BINDING,std430) buffer ParticleStress
+{
+    float stress[];
+};
+
 layout(local_size_x=WGSIZE,local_size_y=1,local_size_z=1) in;
 
 uniform float eps_factor2;
@@ -39,6 +44,7 @@ shared vec4 pos[gl_WorkGroupSize.x];
 shared vec4 hyd[gl_WorkGroupSize.x];
 shared float h[gl_WorkGroupSize.x];
 shared vec4 vel[gl_WorkGroupSize.x];
+shared mat3 s[gl_WorkGroupSize.x];
 
 // This shader updates a particles acceleration by interacting with all other particles,
 // using shared memory to speed up memory access
@@ -53,12 +59,16 @@ void main()
     const vec4 posi = positions[idxi];
     const float hi = smlength[idxi];
     const vec4 veli = velocities[idxi];
+    const mat3 stressi = stress[idxi];
 
     vec3 acc = vec3(0); // lets sum up the acceleration here
     float maxVsig = 0; // needed for the timestep criterion
+    mat3 edot = mat3(0); // sum up edot here
+    mat3 rdot = mat3(0); // sum up rdot here
 
     // calculate some values that are the same for all loop iterations
-    const float pod2i = (hydroi.PRESSURE / (hydroi.DENSITY * hydroi.DENSITY));
+    const mat3 sigmai = mat3(hydroi.PRESSURE) - stressi;
+    const mat3 sod2i = sigmai / (hydroi.DENSITY * hydroi.DENSITY);
     const float hiSpikyGradFactor = spikyGradFactor(hi);
 
     // loop over tiles in a row for as many tiles one thread is configured to calculate
@@ -73,6 +83,7 @@ void main()
         hyd[gl_LocalInvocationID.x] = hydro[idx];
         h[gl_LocalInvocationID.x] = smlength[idx];
         vel[gl_LocalInvocationID.x] = velocities[idx];
+        s[gl_LocalInvocationID.x] = stress[idx];
 
         memoryBarrierShared();
         barrier();
@@ -84,6 +95,7 @@ void main()
             const float hj = h[j];
             const vec4 hydroj = hyd[j];
             const vec4 velj = vel[j];
+            const mat3 stressj = s[j];
 
             const vec3 rij = posi.POSITION - posj.POSITION; // vector from i to j
             const float r2 = dot(rij,rij);
@@ -94,16 +106,17 @@ void main()
                 // gravity
                 acc +=  posj.MASS * -rij / sqrt(pow(r2+(hi*hj*eps_factor2),3));
 
-                // pressure
-                const float pod2j = hydroj.PRESSURE / (hydroj.DENSITY * hydroj.DENSITY);
-
+                // kernel gradients
                 const vec3 gradi = WspikyGrad(rij,r,hi,hiSpikyGradFactor);
                 const vec3 gradj = WspikyGrad(rij,r,hj);
 
-                acc -= posj.MASS * (hydroi.DH_DENSITY_FACTOR*pod2i* gradi + hydroj.DH_DENSITY_FACTOR*pod2j* gradj);
+                // pressure if using solids
+                const mat3 sigmaj = mat3(hydroj.PRESSURE) - stressj;
+                const mat3 sod2j = sigmaj / (hydroj.DENSITY * hydroj.DENSITY);
+                acc -= posj.MASS * (hydroi.DH_DENSITY_FACTOR * sod2i * gradi + hydroj.DH_DENSITY_FACTOR* sod2j * gradj);
 
                 // viscosity
-                const float wij = dot(rij, veli.VELOCITY - velj.VELOCITY)/r;
+                const float wij = dot(rij, velij)/r;
                 if(wij < 0)
                 {
                     const float vsig = veli.SPEED_OF_SOUND + velj.SPEED_OF_SOUND - 3.0*wij;
