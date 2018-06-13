@@ -29,6 +29,26 @@ layout(binding=PARTICLE_TIMESTEP_BUFFER_BINDING,std430) buffer ParticleTimestep
     float timestep[];
 };
 
+layout(binding=PARTICLE_HYDRO_BUFFER_BINDING,std430) buffer ParticleHydro
+{
+    vec4 hydro[];
+};
+
+layout(binding=PARTICLE_STRESS_BUFFER_BINDING,std430) buffer ParticleStress
+{
+    mat3 stress[];
+};
+
+layout(binding=PARTICLE_EDOT_BUFFER_BINDING,std430) buffer ParticleEdot
+{
+    mat3 edot[];
+};
+
+layout(binding=PARTICLE_RDOT_BUFFER_BINDING,std430) buffer ParticleRdot
+{
+    mat3 rdot[];
+};
+
 layout(local_size_variable) in;
 
 uniform float dt;
@@ -37,6 +57,7 @@ uniform float not_first_step; // set to 0 for the first step, to 1 for all other
 uniform float eps_factor;
 uniform float gravity_accuracy;
 uniform float courant_number;
+uniform float shear; // the shear modulus
 
 // for the first step (not_first_step = 0) we get:
 // calculate the total acceleration a_0( r_0, v_0)
@@ -56,13 +77,26 @@ void main()
 {
     // calculate the total acceleration a_t
     vec3 acc = vec3(0);
+    mat3 srtensor = mat3(0);
+    mat3 rrtensor = mat3(0);
     float maxVsig=0;
     for(uint i=0; i < ACCELERATIONS_PER_PARTICLE; i++)
     {
-        const vec4 a = accelerations[NUM_PARTICLES * i + gl_GlobalInvocationID.x];
+        const uint idx = NUM_PARTICLES * i + gl_GlobalInvocationID.x;
+        srtensor += edot[idx];
+        rrtensor += rdot[idx];
+        const vec4 a = accelerations[idx];
         acc = acc + a.ACCEL;
         maxVsig = max(maxVsig,a.MAXVSIG);
     }
+
+    // calculate dS/dt
+    float density = hydro[gl_GlobalInvocationID.x].DENSITY;
+    mat3 stressi = stress[gl_GlobalInvocationID.x];
+    srtensor *= 0.5 / hydroi.DENSITY;
+    rrtensor *= 0.5 / hydroi.DENSITY;
+    const mat3 edotOverThree = mat3((srtensor[0][0] + srtensor[1][1] + srtensor[2][2])/3.0);
+    dSdt = 2*shear*( srtensor - edotOverThree) + stressi * rrtensor + rrtensor * stressi;
 
     // calculate velocity a_t
     const vec3 vel_t = velocities[gl_GlobalInvocationID.x].xyz + acc.xyz * (dt*0.5f);
@@ -76,7 +110,11 @@ void main()
     // calculate position r_t+1
     positions[gl_GlobalInvocationID.x].xyz += vel_t_12 * next_dt;
 
+    // calculate stress for t+1
+    stress[gl_GlobalInvocationID.x] += dSdt * next_dt;
+
     // calculate a timestep for this particle based on the criterion
     const float hi = smlength[gl_GlobalInvocationID.x];
+
     timestep[gl_GlobalInvocationID.x] = min(courant_number * hi / maxVsig, sqrt(2*gravity_accuracy * hi*eps_factor / length(acc)));
 }
