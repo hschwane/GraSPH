@@ -93,10 +93,10 @@ void main()
     // calculate dS/dt
     float density = hydro[gl_GlobalInvocationID.x].DENSITY;
     mat3 stressi = stress[gl_GlobalInvocationID.x];
-    srtensor *= 0.5 / hydroi.DENSITY;
-    rrtensor *= 0.5 / hydroi.DENSITY;
+    srtensor *= 0.5 / density;
+    rrtensor *= 0.5 / density;
     const mat3 edotOverThree = mat3((srtensor[0][0] + srtensor[1][1] + srtensor[2][2])/3.0);
-    dSdt = 2*shear*( srtensor - edotOverThree) + stressi * rrtensor + rrtensor * stressi;
+    const mat3 dSdt = 2*shear*( srtensor - edotOverThree) + stressi * rrtensor + rrtensor * stressi;
 
     // calculate velocity a_t
     const vec3 vel_t = velocities[gl_GlobalInvocationID.x].xyz + acc.xyz * (dt*0.5f);

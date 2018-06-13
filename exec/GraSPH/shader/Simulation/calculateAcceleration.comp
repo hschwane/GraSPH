@@ -126,7 +126,8 @@ void main()
                 acc -= posj.MASS * (hydroi.DH_DENSITY_FACTOR * sod2i * gradi + hydroj.DH_DENSITY_FACTOR* sod2j * gradj);
 
                 // viscosity
-                const float velij = veli.VELOCITY - velj.VELOCITY;
+                const vec3 velij = veli.VELOCITY - velj.VELOCITY;
+                const vec3 gradij =  (gradi+gradj)*0.5f;
                 const float wij = dot(rij, velij)/r;
                 if(wij < 0)
                 {
@@ -136,7 +137,7 @@ void main()
                     const float II = -0.5 * fij* alpha * wij * vsig / rhoij;
 
                     maxVsig = max(maxVsig,vsig);
-                    acc -=  posj.MASS  * II * (gradi+gradj)*0.5f;
+                    acc -=  posj.MASS  * II * gradij;
                 }
                 else
                 {
@@ -148,9 +149,9 @@ void main()
                 const mat3 velijMat =  mat3(0,0,0,
                                             velij.x, velij.y, velij.z,
                                             0,0,0);
-                const mat3 dwMat = mat3(0,dw.x,0,
-                                        0,dw.y,0,
-                                        0,dw.z,0);
+                const mat3 dwMat = mat3(0,gradij.x,0,
+                                        0,gradij.y,0,
+                                        0,gradij.z,0);
 
                 const mat3 alphaBeta = velijMat * dwMat;
                 const mat3 betaAlpha = transpose(alphaBeta);
