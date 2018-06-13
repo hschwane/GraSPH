@@ -25,6 +25,9 @@ constexpr unsigned int PARTICLE_HYDRO_BUFFER_BINDING = 5;
 constexpr unsigned int PARTICLE_SMLENGTH_BUFFER_BINDING = 6;
 constexpr unsigned int PARTICLE_TIMESTEP_BUFFER_BINDING = 7;
 constexpr unsigned int PARTICLE_BALSARA_BUFFER_BINDING = 8;
+constexpr unsigned int PARTICLE_STRESS_BUFFER_BINDING =9;
+constexpr unsigned int PARTICLE_EDOT_BUFFER_BINDING =10;
+constexpr unsigned int PARTICLE_RDOT_BUFFER_BINDING =11;
 
 constexpr unsigned int RENDERER_POSITION_ARRAY = 0;
 constexpr unsigned int RENDERER_MASS_ARRAY = 1;

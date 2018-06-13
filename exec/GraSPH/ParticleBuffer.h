@@ -29,7 +29,6 @@
 class ParticleBuffer
 {
 public:
-
     typedef glm::vec4 posType; // w is mass for gravity
     typedef glm::vec4 velType; // w is the speed of sound
     typedef glm::vec4 accType; // w is max(vsig) over all neighbours of the particle (used for timestep criterion)
@@ -56,6 +55,10 @@ public:
     mpu::gph::Buffer smlengthBuffer;
     mpu::gph::Buffer timestepBuffer;
     mpu::gph::Buffer balsaraBuffer;
+    mpu::gph::Buffer stressBuffer;
+    mpu::gph::Buffer edotBuffer;
+    mpu::gph::Buffer rdotBuffer;
+
 private:
     uint32_t m_numberOfParticles;
     uint32_t m_accMulti;

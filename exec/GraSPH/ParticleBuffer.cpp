@@ -40,6 +40,13 @@ void ParticleBuffer::reallocateAll(uint32_t numParticles, uint32_t accMulti, uin
     timestepBuffer.recreate();
     timestepBuffer.allocate<timestepType>(numParticles,flags);
 
+    stressBuffer.recreate();
+    stressBuffer.allocate<glm::mat3>(numParticles*accMulti,flags);
+    edotBuffer.recreate();
+    edotBuffer.allocate<glm::mat3>(numParticles*accMulti,flags);
+    rdotBuffer.recreate();
+    rdotBuffer.allocate<glm::mat3>(numParticles*accMulti,flags);
+
     if(balsara)
     {
         balsaraBuffer.recreate();
@@ -61,4 +68,7 @@ void ParticleBuffer::bindAll(uint32_t binding, GLenum target)
     smlengthBuffer.bindBase(binding+4,target);
     timestepBuffer.bindBase(binding+5,target);
     balsaraBuffer.bindBase(binding+6,target);
+    stressBuffer.bindBase(binding+7,target);
+    edotBuffer.bindBase(binding+8,target);
+    rdotBuffer.bindBase(binding+9,target);
 }
