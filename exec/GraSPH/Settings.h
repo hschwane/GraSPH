@@ -19,12 +19,12 @@
 // time
 constexpr double INITIAL_DT = 0.002; // initial timestep
 constexpr double MAX_DT = 0.045; // biggest timestep
-constexpr double MIN_DT = 0.00001; // smallest timestep
+constexpr double MIN_DT = 0.001; // smallest timestep
 constexpr float GRAV_ACCURACY = 0.05; // the bigger this number the larger timesteps are allowed based on the acceleration criterion
 constexpr float COURANT_NUMBER = 0.4; // the bigger this number the larger timesteps are allowed based on the sph criterion
 
 // particles
-constexpr float TOTAL_MASS              = 20; // total mass of all particles
+constexpr float TOTAL_MASS              = 4; // total mass of all particles
 constexpr unsigned int NUM_PARTICLES    = 16384; // total number of particles, use power of 2 for convenience
 constexpr float SPAWN_RADIUS            = 6; // radius of the initial cloud
 constexpr float INITIAL_H               = 0.3; // initial kernel radius

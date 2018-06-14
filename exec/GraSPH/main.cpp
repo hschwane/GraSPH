@@ -36,7 +36,10 @@ int main()
     ParticleBuffer pb(NUM_PARTICLES,ACCEL_THREADS_PER_PARTICLE,DENSITY_THREADS_PER_PARTICLE);
     ParticleSpawner spawner;
     spawner.setBuffer(pb);
-    spawner.spawnParticlesSphere(TOTAL_MASS,SPAWN_RADIUS, INITIAL_H);
+//    spawner.spawnParticlesSphere(TOTAL_MASS,SPAWN_RADIUS, INITIAL_H);
+
+    spawner.spawnParticlesMultiSphere(TOTAL_MASS, {{1,{3,0,0},0.5},{1,{-3,0,0},0.5}}, INITIAL_H);
+    spawner.addVelocityToPoint({0,0,0},5);
 
 //    spawner.addMultiFrequencyCurl( {
 //                                           {{0.9},{0.1}},
@@ -44,8 +47,7 @@ int main()
 //                                           {{0.4},{0.3}},
 //                                           {{0.3},{0.6}},
 //                                   },1612,HMIN,HMAX,TOTAL_MASS / NUM_PARTICLES);
-    spawner.addAngularVelocity({0,0.12f,0});
-
+//    spawner.addAngularVelocity({0,0.12f,0});
 
     // create a renderer
     ParticleRenderer renderer;

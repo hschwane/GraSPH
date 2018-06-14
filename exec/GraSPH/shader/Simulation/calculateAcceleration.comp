@@ -114,7 +114,7 @@ void main()
             if(r > 0) // stop calculation here if the particles are the same
             {
                 // gravity
-                acc +=  posj.MASS * -rij / sqrt(pow(r2+(hi*hj*eps_factor2),3));
+//                acc +=  posj.MASS * -rij / sqrt(pow(r2+(hi*hj*eps_factor2),3));
 
                 // kernel gradients
                 const vec3 gradi = WspikyGrad(rij,r,hi,hiSpikyGradFactor);

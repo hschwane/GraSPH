@@ -25,7 +25,8 @@ ParticleSpawner::ParticleSpawner()
           m_initialVelocityCurlShader({{PROJECT_SHADER_PATH"ParticleSpawner/initialVelocityCurl.comp"}}),
           m_addSimplexShader({{PROJECT_SHADER_PATH"ParticleSpawner/addPotential.comp"}}),
           m_angVelShader({{PROJECT_SHADER_PATH"ParticleSpawner/angVel.comp"}}),
-          m_sphereSpawnShader({{PROJECT_SHADER_PATH"ParticleSpawner/sphereSpawn.comp"}})
+          m_sphereSpawnShader({{PROJECT_SHADER_PATH"ParticleSpawner/sphereSpawn.comp"}}),
+          m_pointVelShader({{PROJECT_SHADER_PATH"ParticleSpawner/pointVel.comp"}})
 {
 }
 
@@ -226,4 +227,13 @@ void ParticleSpawner::addAngularVelocity(glm::vec3 axis)
     m_angVelShader.uniform3f("axis", axis);
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
     m_angVelShader.dispatch(m_particleBuffer.size(),GENERAL_WGSIZE);
+}
+
+void ParticleSpawner::addVelocityToPoint(glm::vec3 point, float strength)
+{
+    m_particleBuffer.bindAll(PARTICLE_BUFFER_BINDING, GL_SHADER_STORAGE_BUFFER);
+    m_pointVelShader.uniform3f("point", point);
+    m_pointVelShader.uniform1f("strength", strength);
+    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+    m_pointVelShader.dispatch(m_particleBuffer.size(),GENERAL_WGSIZE);
 }
