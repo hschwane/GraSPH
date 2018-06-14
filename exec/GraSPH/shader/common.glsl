@@ -1,7 +1,7 @@
 #pragma once
 
 // feature options
-//#define BALSARA_SWITCH
+#define BALSARA_SWITCH
 //#define DH_DENSITY_CORRECTION
 //#define ARTIFICIAL_HEATING
 

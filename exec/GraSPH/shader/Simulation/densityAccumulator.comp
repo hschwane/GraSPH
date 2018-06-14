@@ -62,13 +62,13 @@ void main()
 //    float ci = sqrt(ac*pressure/sumh.DENSITY);
 
     const float restDensity = 0.5;
-    const float bulkModulus = 3.0;
-    const float nm = 6.0;
+    const float bulkModulus = 1.0;
+    const float nm = 1.0;
 
     const float pressure = (pow(sumh.DENSITY/restDensity,nm) -1) * bulkModulus / nm;
     const float ci = sqrt(bulkModulus / restDensity);
 
-#if defined(DH_DENSITY_CORRECTION) || defined(BALSARA_SWITCH)
+#if defined(BALSARA_SWITCH) || defined(DH_DENSITY_CORRECTION)
     const float hi = smlength[gl_GlobalInvocationID.x];
 #endif
 

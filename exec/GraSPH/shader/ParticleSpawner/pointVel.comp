@@ -23,5 +23,5 @@ void main()
 {
 
     vec3 velocity =  normalize(point - positions[gl_GlobalInvocationID.x].xyz) * strength;
-    velocities[gl_GlobalInvocationID.x] += vec4(velocity,0);
+    velocities[gl_GlobalInvocationID.x] += vec4(velocity.x,0,0,0);
 }
