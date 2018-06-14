@@ -58,8 +58,15 @@ void main()
 #endif
 
     // calculate pressure and sound speed
-    const float pressure = a * pow(sumh.DENSITY,ac);
-    float ci = sqrt(ac*pressure/sumh.DENSITY);
+//    const float pressure = a * pow(sumh.DENSITY,ac);
+//    float ci = sqrt(ac*pressure/sumh.DENSITY);
+
+    const float restDensity = 0.1;
+    const float bulkModulus = 1.0;
+    const float nm = 1.0;
+
+    const float pressure = (pow(sumh.DENSITY/restDensity,nm) -1) * bulkModulus / nm;
+    const float ci = sqrt(bulkModulus / restDensity);
 
 #if defined(DH_DENSITY_CORRECTION) || defined(BALSARA_SWITCH)
     const float hi = smlength[gl_GlobalInvocationID.x];

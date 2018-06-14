@@ -57,7 +57,7 @@ uniform float not_first_step; // set to 0 for the first step, to 1 for all other
 uniform float eps_factor;
 uniform float gravity_accuracy;
 uniform float courant_number;
-uniform float shear; // the shear modulus
+uniform float shear=0.22; // the shear modulus
 
 // for the first step (not_first_step = 0) we get:
 // calculate the total acceleration a_0( r_0, v_0)
