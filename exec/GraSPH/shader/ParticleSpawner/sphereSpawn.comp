@@ -34,6 +34,21 @@ layout(binding=PARTICLE_TIMESTEP_BUFFER_BINDING,std430) buffer ParticleTimestep
     float timestep[];
 };
 
+layout(binding=PARTICLE_STRESS_BUFFER_BINDING,std430) buffer ParticleStress
+{
+    mat3 stress[];
+};
+
+layout(binding=PARTICLE_EDOT_BUFFER_BINDING,std430) buffer ParticleEdot
+{
+    mat3 edot[];
+};
+
+layout(binding=PARTICLE_RDOT_BUFFER_BINDING,std430) buffer ParticleRdot
+{
+    mat3 rdot[];
+};
+
 
 layout(local_size_variable) in;
 
@@ -64,6 +79,9 @@ void main()
     velocities[gl_GlobalInvocationID.x+particle_offset] = vec4(0,0,0,0);
     smlength[gl_GlobalInvocationID.x] = initial_smlength;
     timestep[gl_GlobalInvocationID.x] = 0;
+    stress[gl_GlobalInvocationID.x] = mat3(0);
+    edot[gl_GlobalInvocationID.x] = mat3(0);
+    rdot[gl_GlobalInvocationID.x] = mat3(0);
 
     for(uint i=0; i<accMulti; i++ )
         accelerations[gl_GlobalInvocationID.x+particle_offset + i*num_of_particles] = vec4(0,0,0,0);
