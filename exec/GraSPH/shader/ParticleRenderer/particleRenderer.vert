@@ -3,37 +3,34 @@
 #include "common.glsl"
 
 layout(location=RENDERER_POSITION_ARRAY) in vec4 input_position;
-layout(location=RENDERER_MASS_ARRAY) in float mass;
 
 uniform mat4 model_view_projection;
 uniform mat4 projection;
 uniform vec2 viewport_size;
 uniform float render_size;
-uniform float mass_thres;
+uniform vec4 color;
 
 out vec2 center;
 out float radius;
-flat out int isSink;
+flat out vec4 particle_color;
 
 void main()
 {
 	gl_Position = model_view_projection * input_position;
 
     float size;
-//    if(mass > mass_thres)
-//    {
-//         size = render_size* 4;
-//        isSink =1;
-//    } else {
-//    isSink =0;
     size = render_size;
-//    }
 
 #ifdef PARTICLES_PERSPECTIVE
 	gl_PointSize = viewport_size.y * projection[1][1] * size / gl_Position.w;
 #else
     gl_PointSize = size;
 #endif
+
+    if(gl_VertexID >= 8192)
+        particle_color = vec4(0.2,0.4,0.9,1);
+    else
+        particle_color = color;
 
 	center = (0.5 * gl_Position.xy/gl_Position.w +0.5) * viewport_size;
 	radius = gl_PointSize / 2;

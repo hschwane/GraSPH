@@ -38,7 +38,7 @@ int main()
     spawner.setBuffer(pb);
 //    spawner.spawnParticlesSphere(TOTAL_MASS,SPAWN_RADIUS, INITIAL_H);
 
-    spawner.spawnParticlesMultiSphere(TOTAL_MASS, {{1,{3,0,0},0.5},{1,{-3,0,0},0.5}}, INITIAL_H);
+    spawner.spawnParticlesMultiSphere(TOTAL_MASS, {{1,{1,0,0},0.5},{1,{-1,0,0},0.5}}, INITIAL_H);
     spawner.addVelocityToPoint({0,0,0},10);
 
 //    spawner.addMultiFrequencyCurl( {

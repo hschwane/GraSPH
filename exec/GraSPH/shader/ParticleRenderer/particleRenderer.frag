@@ -3,11 +3,10 @@
 in vec2 center;
 in float radius;
 
-uniform vec4 color;
 uniform float brightness;
 
 out vec4 fragment_color;
-flat in int isSink;
+flat in vec4 particle_color;
 
 void main()
 {
@@ -20,11 +19,7 @@ void main()
         discard;
 #endif
 
-//    if(isSink>0)
-//    {
-//        fragment_color = vec4(0,0,50,1);
-//        return;
-//    }
+    vec4 color = particle_color;
 
     vec4 falloffColor;
     PARTICLE_FALLOFF(); // this is defined via preprocessor macros when compiling
