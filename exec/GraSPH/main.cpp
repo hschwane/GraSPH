@@ -263,6 +263,8 @@ int main()
     bool runSim = false;
     bool readyToPrint=true;
     bool readyToChangeRef=true;
+    glm::vec3 refCubePos{0,0,0};
+    float refCubeSpeed = 0.2;
     while( window.update())
     {
         dt = timer.getDeltaTime();
@@ -293,6 +295,25 @@ int main()
         }
         else if(window.getKey(GLFW_KEY_C) == GLFW_RELEASE)
             readyToChangeRef = true;
+
+        if(window.getKey(GLFW_KEY_L))
+            refCubePos.x += dt * refCubeSpeed;
+        if(window.getKey(GLFW_KEY_J))
+            refCubePos.x -= dt * refCubeSpeed;
+        if(window.getKey(GLFW_KEY_I))
+            refCubePos.z += dt * refCubeSpeed;
+        if(window.getKey(GLFW_KEY_K))
+            refCubePos.z -= dt * refCubeSpeed;
+        if(window.getKey(GLFW_KEY_O))
+            refCubePos.y += dt * refCubeSpeed;
+        if(window.getKey(GLFW_KEY_U))
+            refCubePos.y -= dt * refCubeSpeed;
+        if(window.getKey(GLFW_KEY_Z))
+            refCubePos = {0,0,0};
+        if(window.getKey(GLFW_KEY_M))
+            refCubeSpeed += dt * refCubeSpeed;
+        if(window.getKey(GLFW_KEY_N))
+            refCubeSpeed -= dt * refCubeSpeed;
 
         // run the simulation
         if(window.getKey(GLFW_KEY_1) == GLFW_PRESS && window.getKey(GLFW_KEY_2) == GLFW_RELEASE)
@@ -347,7 +368,7 @@ int main()
         // render the reference cube
         refCube.bind();
         cubeRefShader.use();
-        cubeRefShader.uniformMat4("model_view_projection", renderer.getViewProjection() * glm::scale(glm::mat4(),glm::vec3(referenceCubeSize)));
+        cubeRefShader.uniformMat4("model_view_projection", renderer.getViewProjection() * glm::translate(glm::scale(glm::mat4(),glm::vec3(referenceCubeSize)), refCubePos));
         glDrawArrays(GL_LINES, 0, cube.size());
 
         // performance display
