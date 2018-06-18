@@ -12,6 +12,26 @@
 
 double DT = INITIAL_DT;
 
+long double timeUnitInYears(const long double time)
+{
+    return sqrtl(powl(LENGTH_UNIT,3) / (MASS_UNIT * 6.674e-11l)) / (31556925.261) * time;
+}
+
+void printSimulationInfo()
+{
+    logINFO("Simulation") << "Simulating Gas cloud with mass of "
+                          << MASS_UNIT * TOTAL_MASS / Ms
+                          << " solar masses and diameter of "
+                          << 2.0l * LENGTH_UNIT * SPAWN_RADIUS / au
+                          << " AU. Total Volume: "
+                          << 4.0l / 3.0l * M_PI * powl(LENGTH_UNIT * SPAWN_RADIUS, 3)
+                          << " m^3. Initial density: "
+                          << (MASS_UNIT * TOTAL_MASS) / (4.0l / 3.0l * M_PI * powl(LENGTH_UNIT * SPAWN_RADIUS, 3))
+                          << " kg/(m^3). One time unit is "
+                          << timeUnitInYears(1)
+                          << " years.";
+}
+
 int main()
 {
     // initialise log
@@ -154,6 +174,8 @@ int main()
     findSml(20);
     startSimulation();
 
+    printSimulationInfo();
+
     float brightness=PARTICLE_BRIGHTNESS;
     float size=PARTICLE_RENDER_SIZE;
 
@@ -247,7 +269,15 @@ int main()
         elapsedPerT += dt;
         if(elapsedPerT >= 2.0)
         {
-            printf("%f ms/frame -- %f fps -- %f simSpeed -- %f simTime -- %f average dt\n", 1000.0*elapsedPerT/double(nbframes), nbframes/elapsedPerT, lag/elapsedPerT, simulationTime, lag/nbframes);
+            std::cout << 1000.0*elapsedPerT/double(nbframes) << " ms/frame -- "
+                      << nbframes/elapsedPerT << " fps -- "
+                      << timeUnitInYears(simulationTime) << " simulated years -- "
+                      << timeUnitInYears(lag)/elapsedPerT << " years/second -- "
+                      << timeUnitInYears(lag)/nbframes << " years/frame -- "
+                      << simulationTime << " internal time -- "
+                      << lag/elapsedPerT << " speed -- "
+                      << lag/nbframes << " average dt"
+                      << std::endl;
             nbframes = 0;
             elapsedPerT = 0;
             lag = 0;
