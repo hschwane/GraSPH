@@ -63,6 +63,8 @@ constexpr int WIDTH     = 800;
 constexpr float PARTICLE_RENDER_SIZE    = 0.008; // radius of a particle
 constexpr float PARTICLE_BRIGHTNESS     = 1; // radius of a particle
 const glm::vec4 PARTICLE_COLOR          = glm::vec4(0.9,0.3,0.1,1); // color of the particle
+const glm::vec4 REFBOX_COLOR          = glm::vec4(0.8,0.8,0.8,1); // color of the reference box
+constexpr float PERFORMANCE_DISPLAY_INT = 4.0f; // sekonds between performance display is updated
 
 // threads and workgroups
 constexpr unsigned int DENSITY_THREADS_PER_PARTICLE = 1;

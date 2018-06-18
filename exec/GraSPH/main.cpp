@@ -32,6 +32,67 @@ void printSimulationInfo()
                           << " years.";
 }
 
+float getNextRefCubeSize()
+{
+    static struct
+    {
+        std::vector<std::pair<std::string, float>> sizes =
+                {
+                        {"Initial Cloud Size", 2*SPAWN_RADIUS},
+                        {"1 pc", pc / LENGTH_UNIT},
+                        {"100 000 AU", 100000 * au / LENGTH_UNIT},
+                        {"10 000 AU", 10000 * au / LENGTH_UNIT},
+                        {"1000 AU", 1000 * au / LENGTH_UNIT},
+                        {"100 AU", 100 * au / LENGTH_UNIT},
+                        {"10 AU", 10 * au / LENGTH_UNIT},
+                        {"1 AU", au / LENGTH_UNIT},
+                        {"1 internal unit",1},
+                        {"invisible",0}
+                };
+
+        unsigned current{0};
+    } refCubeSizes;
+
+    refCubeSizes.current = (refCubeSizes.current +1) % refCubeSizes.sizes.size();
+
+    float size = refCubeSizes.sizes[refCubeSizes.current].second;
+    logINFO("Reference") << "Reference cube set to " << refCubeSizes.sizes[refCubeSizes.current].first << " (" << LENGTH_UNIT * size / au<< " AU, " << LENGTH_UNIT * size << " m, " << size << " internal units)";
+    return size;
+}
+
+static const std::vector<GLfloat> cube =
+{
+        -0.5f,-0.5f,-0.5f,
+         0.5f,-0.5f,-0.5f,
+        -0.5f,-0.5f,-0.5f,
+        -0.5f, 0.5f,-0.5f,
+        -0.5f,-0.5f,-0.5f,
+        -0.5f,-0.5f, 0.5f,
+
+        0.5f,0.5f,0.5f,
+        0.5f,0.5f,-0.5f,
+        0.5f,0.5f,0.5f,
+        0.5f,-0.5f,0.5f,
+        0.5f,0.5f,0.5f,
+        -0.5f,0.5f, 0.5f,
+
+        0.5f,-0.5f,-0.5f,
+        0.5f,0.5f,-0.5f,
+        0.5f,-0.5f,-0.5f,
+        0.5f,-0.5f,0.5f,
+
+        -0.5f,-0.5f,0.5f,
+        0.5f,-0.5f,0.5f,
+
+        -0.5f,0.5f,-0.5f,
+         0.5f,0.5f,-0.5f,
+
+        -0.5f,0.5f,0.5f,
+        -0.5f,-0.5f,0.5f,
+        -0.5f,0.5f,0.5f,
+        -0.5f,0.5f,-0.5f,
+};
+
 int main()
 {
     // initialise log
@@ -48,6 +109,14 @@ int main()
     glClearColor(0, 0, 0, 1);
     glClearDepth(1.f);
     mpu::gph::enableVsync(false);
+
+    // set up a reference cube
+    mpu::gph::Buffer refCubeVert(cube);
+    mpu::gph::VertexArray refCube;
+    refCube.addAttributeBufferArray(0,refCubeVert,0,3*sizeof(GLfloat),3,0);
+    mpu::gph::ShaderProgram cubeRefShader({ {LIB_SHADER_PATH"simple.frag"},
+                                        {LIB_SHADER_PATH"simple.vert"} });
+    cubeRefShader.uniform4f("color",REFBOX_COLOR);
 
     // generate some particles
     ParticleBuffer pb(NUM_PARTICLES,ACCEL_THREADS_PER_PARTICLE,DENSITY_THREADS_PER_PARTICLE);
@@ -78,7 +147,7 @@ int main()
     // create camera
     mpu::gph::Camera camera(std::make_shared<mpu::gph::SimpleWASDController>(&window,10,4));
     camera.setMVP(&renderer);
-    camera.setClip(0.01,200);
+    camera.setClip(0.0001,200);
 
 
     // compile and confiure all the shader
@@ -178,6 +247,7 @@ int main()
 
     float brightness=PARTICLE_BRIGHTNESS;
     float size=PARTICLE_RENDER_SIZE;
+    float referenceCubeSize=2*SPAWN_RADIUS;
 
     // timing
     mpu::DeltaTimer timer;
@@ -192,6 +262,7 @@ int main()
 
     bool runSim = false;
     bool readyToPrint=true;
+    bool readyToChangeRef=true;
     while( window.update())
     {
         dt = timer.getDeltaTime();
@@ -213,6 +284,15 @@ int main()
         if(window.getKey(GLFW_KEY_KP_9) == GLFW_PRESS)
             size -= size *0.5*dt;
         renderer.setSize(size);
+
+        // change refernce cube size
+        if(window.getKey(GLFW_KEY_C) == GLFW_PRESS && readyToChangeRef)
+        {
+            readyToChangeRef = false;
+            referenceCubeSize = getNextRefCubeSize();
+        }
+        else if(window.getKey(GLFW_KEY_C) == GLFW_RELEASE)
+            readyToChangeRef = true;
 
         // run the simulation
         if(window.getKey(GLFW_KEY_1) == GLFW_PRESS && window.getKey(GLFW_KEY_2) == GLFW_RELEASE)
@@ -264,10 +344,16 @@ int main()
         glMemoryBarrier(GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT);
         renderer.draw();
 
+        // render the reference cube
+        refCube.bind();
+        cubeRefShader.use();
+        cubeRefShader.uniformMat4("model_view_projection", renderer.getViewProjection() * glm::scale(glm::mat4(),glm::vec3(referenceCubeSize)));
+        glDrawArrays(GL_LINES, 0, cube.size());
+
         // performance display
         nbframes++;
         elapsedPerT += dt;
-        if(elapsedPerT >= 2.0)
+        if(elapsedPerT >= PERFORMANCE_DISPLAY_INT)
         {
             std::cout << 1000.0*elapsedPerT/double(nbframes) << " ms/frame -- "
                       << nbframes/elapsedPerT << " fps -- "
