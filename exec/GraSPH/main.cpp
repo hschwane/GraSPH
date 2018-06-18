@@ -248,6 +248,8 @@ int main()
     float brightness=PARTICLE_BRIGHTNESS;
     float size=PARTICLE_RENDER_SIZE;
     float referenceCubeSize=2*SPAWN_RADIUS;
+    glm::vec3 refCubePos{0,0,0};
+    float refCubeSpeed = 0.2;
 
     // timing
     mpu::DeltaTimer timer;
@@ -263,8 +265,7 @@ int main()
     bool runSim = false;
     bool readyToPrint=true;
     bool readyToChangeRef=true;
-    glm::vec3 refCubePos{0,0,0};
-    float refCubeSpeed = 0.2;
+    bool printRefcubeSize=false;
     while( window.update())
     {
         dt = timer.getDeltaTime();
@@ -301,15 +302,32 @@ int main()
         if(window.getKey(GLFW_KEY_J))
             refCubePos.x -= dt * refCubeSpeed;
         if(window.getKey(GLFW_KEY_I))
-            refCubePos.z += dt * refCubeSpeed;
-        if(window.getKey(GLFW_KEY_K))
             refCubePos.z -= dt * refCubeSpeed;
+        if(window.getKey(GLFW_KEY_K))
+            refCubePos.z += dt * refCubeSpeed;
         if(window.getKey(GLFW_KEY_O))
             refCubePos.y += dt * refCubeSpeed;
         if(window.getKey(GLFW_KEY_U))
             refCubePos.y -= dt * refCubeSpeed;
-        if(window.getKey(GLFW_KEY_Z))
+        if(window.getKey(GLFW_KEY_B))
             refCubePos = {0,0,0};
+
+        if(window.getKey(GLFW_KEY_Y))
+        {
+            referenceCubeSize += dt * referenceCubeSize * refCubeSpeed;
+            printRefcubeSize = true;
+        }
+        else if(window.getKey(GLFW_KEY_H))
+        {
+            referenceCubeSize -= dt * referenceCubeSize * refCubeSpeed;
+            printRefcubeSize = true;
+        }
+        else if(printRefcubeSize)
+        {
+            logINFO("Reference") << "Reference cube set to " << referenceCubeSize * LENGTH_UNIT / au << " AU";
+            printRefcubeSize = false;
+        }
+
         if(window.getKey(GLFW_KEY_M))
             refCubeSpeed += dt * refCubeSpeed;
         if(window.getKey(GLFW_KEY_N))
@@ -368,7 +386,7 @@ int main()
         // render the reference cube
         refCube.bind();
         cubeRefShader.use();
-        cubeRefShader.uniformMat4("model_view_projection", renderer.getViewProjection() * glm::translate(glm::scale(glm::mat4(),glm::vec3(referenceCubeSize)), refCubePos));
+        cubeRefShader.uniformMat4("model_view_projection", renderer.getViewProjection() * glm::scale(glm::translate(glm::mat4(),refCubePos),glm::vec3(referenceCubeSize)));
         glDrawArrays(GL_LINES, 0, cube.size());
 
         // performance display
