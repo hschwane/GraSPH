@@ -60,8 +60,8 @@ constexpr float HMAX            = 3; // biggest kernel radius
 // visuals
 constexpr int HEIGHT    = 800; // window size in px
 constexpr int WIDTH     = 800;
-constexpr float PARTICLE_RENDER_SIZE    = 0.008; // radius of a particle
-constexpr float PARTICLE_BRIGHTNESS     = 1; // radius of a particle
+constexpr float PARTICLE_RENDER_SIZE    = 0.08; // radius of a particle
+constexpr float PARTICLE_BRIGHTNESS     = 0.9; // radius of a particle
 const glm::vec4 PARTICLE_COLOR          = glm::vec4(0.9,0.3,0.1,1); // color of the particle
 const glm::vec4 REFBOX_COLOR          = glm::vec4(0.5,0.9,0.5,1); // color of the reference box
 constexpr float PERFORMANCE_DISPLAY_INT = 4.0f; // seconds between performance display is updated

@@ -81,6 +81,9 @@ public:
     glm::mat4 viewMatrix() const;   //!< returns the viewMatrix
     glm::mat4 projectionMatrix() const; //!< returns the projection matrix
 
+    void setPosition(glm::vec3 p) {m_transform.position = p;}
+    glm::vec3 getPosition() const {return m_transform.position;}
+
 private:
     Transform m_transform; //!< the transform object describing the cameras position and rotation
     float m_fov = glm::radians(80.f); //!< the vield of view of the camera

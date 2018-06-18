@@ -148,6 +148,7 @@ int main()
     mpu::gph::Camera camera(std::make_shared<mpu::gph::SimpleWASDController>(&window,10,4));
     camera.setMVP(&renderer);
     camera.setClip(0.0001,200);
+    camera.setPosition({0,0, 2.5 * SPAWN_RADIUS});
 
 
     // compile and confiure all the shader
