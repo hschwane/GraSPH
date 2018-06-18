@@ -10,9 +10,6 @@
 #include "ParticleRenderer.h"
 #include "Settings.h"
 
-constexpr int HEIGHT = 800;
-constexpr int WIDTH = 800;
-
 double DT = INITIAL_DT;
 
 int main()
@@ -77,7 +74,6 @@ int main()
                                             {"NUM_PARTICLES",{mpu::toString(NUM_PARTICLES)}},
                                             {"TILES_PER_THREAD",{mpu::toString(NUM_PARTICLES / DENSITY_WGSIZE / DENSITY_THREADS_PER_PARTICLE)}}
                                           });
-    densityShader.uniform1f("heps_factor",HEPS_FACTOR);
 
     mpu::gph::ShaderProgram hydroAccum({{PROJECT_SHADER_PATH"Simulation/densityAccumulator.comp"}},
                                   {

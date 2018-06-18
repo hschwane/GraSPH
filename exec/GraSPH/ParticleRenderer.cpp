@@ -51,7 +51,7 @@ void ParticleRenderer::setParticleBuffer(ParticleBuffer buffer)
     m_vao.addBinding(RENDERER_MASS_ARRAY, RENDERER_POSITION_BUFFER_BINDING);
     m_numOfParticles = buffer.size();
 
-    logINFO("Renderer") << "Set buffer for rendering and reconfigured vertex arrays. Buffer containing " << m_numOfParticles << " Particles.";
+    logDEBUG("Renderer") << "Set buffer for rendering and reconfigured vertex arrays. Buffer containing " << m_numOfParticles << " Particles.";
 }
 
 void ParticleRenderer::setViewportSize(glm::uvec2 viewport)

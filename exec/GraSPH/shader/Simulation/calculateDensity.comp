@@ -32,8 +32,6 @@ layout(binding=PARTICLE_BALSARA_BUFFER_BINDING,std430) buffer ParticleBalsaraVal
 
 layout(local_size_x=WGSIZE,local_size_y=1,local_size_z=1) in;
 
-uniform float heps_factor = 0.1;
-
 shared vec4 pos[gl_WorkGroupSize.x];
 #ifdef BALSARA_SWITCH
 shared vec3 vel[gl_WorkGroupSize.x];

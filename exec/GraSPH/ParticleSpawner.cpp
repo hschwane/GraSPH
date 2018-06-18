@@ -31,7 +31,7 @@ ParticleSpawner::ParticleSpawner()
 
 void ParticleSpawner::spawnParticlesCube(const float totalMass, const glm::vec3 &upperBound, const glm::vec3 &lowerBound, const float initialSmlength)
 {
-    logINFO("Spawner") << "Spawning " << m_particleBuffer.size() << " in a cube volume from " << glm::to_string(lowerBound)
+    logDEBUG("Spawner") << "Spawning " << m_particleBuffer.size() << " in a cube volume from " << glm::to_string(lowerBound)
                        << " to " << glm::to_string(upperBound);
 
     // generate a particle buffer
@@ -48,9 +48,9 @@ void ParticleSpawner::spawnParticlesCube(const float totalMass, const glm::vec3 
     m_particleVolume = m_totalVolume / m_particleBuffer.size();
     m_particleDensity = m_particleMass / m_particleVolume;
 
-    logINFO("Spawner") << "Total volume: " << m_totalVolume;
+    logDEBUG("Spawner") << "Total volume: " << m_totalVolume;
 
-    logINFO("Spawner") << "Particle attributes: mass=" << m_particleMass << "; volume=" << m_particleVolume
+    logDEBUG("Spawner") << "Particle attributes: mass=" << m_particleMass << "; volume=" << m_particleVolume
                        << " density=" << m_particleDensity;
 
     // call the shader to do the work
@@ -67,7 +67,7 @@ void ParticleSpawner::spawnParticlesCube(const float totalMass, const glm::vec3 
 
 void ParticleSpawner::spawnParticlesSphere(const float totalMass, const float radius, const float initialSmlength, const glm::vec3 &center)
 {
-    logINFO("Spawner") << "Spawning " << m_particleBuffer.size() << " in a sphere volume at position " << glm::to_string(center)
+    logDEBUG("Spawner") << "Spawning " << m_particleBuffer.size() << " in a sphere volume at position " << glm::to_string(center)
                        << " with radius " << radius;
 
     // generate a particle buffer
@@ -83,9 +83,9 @@ void ParticleSpawner::spawnParticlesSphere(const float totalMass, const float ra
     m_particleVolume = m_totalVolume / m_particleBuffer.size();
     m_particleDensity = m_particleMass / m_particleVolume;
 
-    logINFO("Spawner") << "Total volume: " << m_totalVolume;
+    logDEBUG("Spawner") << "Total volume: " << m_totalVolume;
 
-    logINFO("Spawner") << "Particle attributes: mass=" << m_particleMass << "; volume=" << m_particleVolume
+    logDEBUG("Spawner") << "Particle attributes: mass=" << m_particleMass << "; volume=" << m_particleVolume
                        << "; density=" << m_particleDensity;
 
     // call the shader to do the work
@@ -102,7 +102,7 @@ void ParticleSpawner::spawnParticlesSphere(const float totalMass, const float ra
 
 void ParticleSpawner::spawnParticlesMultiSphere(const float totalMass, const std::vector<Sphere> spheres, const float initialSmlength)
 {
-    logINFO("Spawner") << "Spawning " << m_particleBuffer.size() << " in " << spheres.size() << " Spheres.";
+    logDEBUG("Spawner") << "Spawning " << m_particleBuffer.size() << " in " << spheres.size() << " Spheres.";
 
     // bind the particle buffer
     m_particleBuffer.bindAll(PARTICLE_BUFFER_BINDING, GL_SHADER_STORAGE_BUFFER);
@@ -114,14 +114,14 @@ void ParticleSpawner::spawnParticlesMultiSphere(const float totalMass, const std
     // calculate particle attributes
     m_particleMass = m_totalMass / m_particleBuffer.size();
 
-    logINFO("Spawner") << "Particle attributes: mass=" << m_particleMass;
+    logDEBUG("Spawner") << "Particle attributes: mass=" << m_particleMass;
 
     uint32_t writtenParticles = 0;
     // spawn all the spheres
     for(auto &&s : spheres)
     {
         uint32_t particles = static_cast<uint32_t>(m_particleBuffer.size() * s.frac);
-        logINFO("Spawner") << "Spawning " << particles << " particles in a sphere with radius=" << s.radius << " at "
+        logDEBUG("Spawner") << "Spawning " << particles << " particles in a sphere with radius=" << s.radius << " at "
                            << glm::to_string(s.center);
         m_sphereSpawnShader.uniform3f("center", s.center);
         m_sphereSpawnShader.uniform1f("radius", s.radius);
@@ -136,7 +136,7 @@ void ParticleSpawner::spawnParticlesMultiSphere(const float totalMass, const std
         writtenParticles += particles;
     }
 
-    logINFO("Spawner") << "Spawned a total of " << writtenParticles << " particles.";
+    logDEBUG("Spawner") << "Spawned a total of " << writtenParticles << " particles.";
     if(writtenParticles != m_particleBuffer.size())
     {
         logWARNING("Spawner") << "Sphere ratios do not sum up to 1. Particles spawned: " << writtenParticles
