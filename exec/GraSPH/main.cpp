@@ -40,11 +40,11 @@ float getNextRefCubeSize()
                 {
                         {"Initial Cloud Size", 2*SPAWN_RADIUS},
                         {"1 pc", pc / LENGTH_UNIT},
-                        {"100 000 AU", 100000 * au / LENGTH_UNIT},
-                        {"10 000 AU", 10000 * au / LENGTH_UNIT},
-                        {"1000 AU", 1000 * au / LENGTH_UNIT},
-                        {"100 AU", 100 * au / LENGTH_UNIT},
-                        {"10 AU", 10 * au / LENGTH_UNIT},
+                        {"100 000 AU", 100000.0 * au / LENGTH_UNIT},
+                        {"10 000 AU", 10000.0 * au / LENGTH_UNIT},
+                        {"1000 AU", 1000.0 * au / LENGTH_UNIT},
+                        {"100 AU", 100.0 * au / LENGTH_UNIT},
+                        {"10 AU", 10.0 * au / LENGTH_UNIT},
                         {"1 AU", au / LENGTH_UNIT},
                         {"1 internal unit",1},
                         {"invisible",0}
@@ -184,6 +184,8 @@ int main()
     pressureShader.uniform1f("alpha",VISC);
     pressureShader.uniform1f("eps_factor2",EPS_FACTOR*EPS_FACTOR);
     pressureShader.uniform1f("balsara_strength",BALSARA_STRENGTH);
+    pressureShader.uniform1f("adaptive_balsara_lowth",ADBALS_LOWTH);
+    pressureShader.uniform1f("adaptive_balsara_highth",ADBALS_HIGHTH);
 
     mpu::gph::ShaderProgram integrator({{PROJECT_SHADER_PATH"Simulation/integrateLeapfrog.comp"}},
                                       {
@@ -315,12 +317,12 @@ int main()
 
         if(window.getKey(GLFW_KEY_Y))
         {
-            referenceCubeSize += dt * referenceCubeSize * refCubeSpeed;
+            referenceCubeSize += dt * referenceCubeSize;
             printRefcubeSize = true;
         }
         else if(window.getKey(GLFW_KEY_H))
         {
-            referenceCubeSize -= dt * referenceCubeSize * refCubeSpeed;
+            referenceCubeSize -= dt * referenceCubeSize;
             printRefcubeSize = true;
         }
         else if(printRefcubeSize)
@@ -343,18 +345,18 @@ int main()
         if(window.getKey(GLFW_KEY_P) == GLFW_PRESS && readyToPrint)
         {
             readyToPrint = false;
-            auto nbs = pb.balsaraBuffer.read<glm::vec4>(pb.size(),0);
+            auto nbs = pb.hydrodynamicsBuffer.read<glm::vec4>(pb.size(),0);
 
             int i = 0;
             float mean = 0;
             while(i<pb.size())
             {
-                logINFO("debug_print") << "balsara switch of paticle " << i  << " is " << nbs[i].x;
+                logINFO("debug_print") << "desity of particle " << i  << " is " << nbs[i].x;
                 mean += nbs[i].x;
                 i++;
             }
             mean = mean / pb.size();
-            logINFO("debug_print") << "mean balsara switch: " << mean;
+            logINFO("debug_print") << "mean density: " << mean;
         }
         else if(window.getKey(GLFW_KEY_P) == GLFW_RELEASE)
             readyToPrint=true;

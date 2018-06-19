@@ -2,6 +2,7 @@
 
 // feature options
 #define BALSARA_SWITCH
+#define ADAPTIVE_BALSARA
 #define DH_DENSITY_CORRECTION
 #define ARTIFICIAL_HEATING
 

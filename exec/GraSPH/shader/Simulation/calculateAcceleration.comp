@@ -34,6 +34,8 @@ layout(local_size_x=WGSIZE,local_size_y=1,local_size_z=1) in;
 uniform float eps_factor2;
 uniform float alpha; // controle viscosity
 uniform float balsara_strength;
+uniform float adaptive_balsara_lowth;
+uniform float adaptive_balsara_highth;
 
 shared vec4 pos[gl_WorkGroupSize.x];
 shared vec4 hyd[gl_WorkGroupSize.x];
@@ -108,7 +110,12 @@ void main()
                 {
                     const float vsig = veli.SPEED_OF_SOUND + velj.SPEED_OF_SOUND - 3.0*wij;
                     const float rhoij = (hydroi.DENSITY + hydroj.DENSITY)*0.5;
+#ifdef ADAPTIVE_BALSARA
+                    const float bs = 1-smoothstep( adaptive_balsara_lowth, adaptive_balsara_highth,hydroi.DENSITY);
+                    const float fij = 1- bs *( 1-( 0.5*( hydroi.BASWITCH+hydroj.BASWITCH)));
+#else
                     const float fij = 1- balsara_strength*( 1-( 0.5*( hydroi.BASWITCH+hydroj.BASWITCH)));
+#endif
                     const float II = -0.5 * fij* alpha * wij * vsig / rhoij;
 
                     maxVsig = max(maxVsig,vsig);
