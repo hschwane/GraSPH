@@ -141,6 +141,7 @@ Window::Window(const int width, const int height, const std::string &title, GLFW
     glDebugMessageCallback(&glDebugCallback, nullptr);
     glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, nullptr, false);
     glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_LOW, 0, nullptr, false);
+    glDebugMessageControl(GL_DEBUG_SOURCE_API,  GL_DEBUG_TYPE_PERFORMANCE, GL_DEBUG_SEVERITY_MEDIUM, 0, nullptr, false);
 }
 
 Window::operator GLFWwindow*() const

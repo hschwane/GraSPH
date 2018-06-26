@@ -27,7 +27,6 @@
 
 ## output and visualisation and interpretation
 - find stars
-- output information about stars
 - make star visualisation better
 - make gas visualisation better
 - have the camera follow a star/structure

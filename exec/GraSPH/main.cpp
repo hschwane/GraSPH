@@ -124,12 +124,12 @@ int main()
     spawner.setBuffer(pb);
     spawner.spawnParticlesSphere(TOTAL_MASS,SPAWN_RADIUS, INITIAL_H);
 
-//    spawner.addMultiFrequencyCurl( {
-//                                           {{0.9},{0.1}},
-//                                           {{0.6},{0.3}},
-//                                           {{0.4},{0.3}},
-//                                           {{0.3},{0.6}},
-//                                   },1612,HMIN,HMAX,TOTAL_MASS / NUM_PARTICLES);
+    spawner.addMultiFrequencyCurl( {
+                                           {{0.9},{0.1}},
+                                           {{0.6},{0.3}},
+                                           {{0.4},{0.3}},
+                                           {{0.3},{0.6}},
+                                   },1612,HMIN,HMAX,TOTAL_MASS / NUM_PARTICLES);
     spawner.addAngularVelocity({0,0.12f,0});
 
 
@@ -199,6 +199,9 @@ int main()
     integrator.uniform1f("gravity_accuracy",GRAV_ACCURACY);
     integrator.uniform1f("courant_number",COURANT_NUMBER);
 
+    mpu::gph::ShaderProgram mm({{PROJECT_SHADER_PATH"Simulation/measureMass.comp"}});
+    mpu::gph::Buffer mmb(sizeof(float),GL_DYNAMIC_STORAGE_BIT);
+    mmb.bindBase(MM_BUFFER_BINDING,GL_SHADER_STORAGE_BUFFER);
 
     // group shader dispatches into useful functions
     auto findSml = [densityShader,hydroAccum,adjustH](int iterations)
@@ -344,19 +347,18 @@ int main()
 
         if(window.getKey(GLFW_KEY_P) == GLFW_PRESS && readyToPrint)
         {
-            readyToPrint = false;
-            auto nbs = pb.hydrodynamicsBuffer.read<glm::vec4>(pb.size(),0);
-
-            int i = 0;
-            float mean = 0;
-            while(i<pb.size())
-            {
-                logINFO("debug_print") << "desity of particle " << i  << " is " << nbs[i].x;
-                mean += nbs[i].x;
-                i++;
-            }
-            mean = mean / pb.size();
-            logINFO("debug_print") << "mean density: " << mean;
+            readyToPrint=false;
+            // figure out what the total mass inside of the box is
+            mmb.write(std::vector<float>({0.0f}));
+            glm::mat4 refcubeTransform = glm::scale(glm::translate(glm::mat4(),refCubePos),glm::vec3(referenceCubeSize));
+            mm.uniform4f("lower",refcubeTransform*glm::vec4(-0.5f,-0.5f,-0.5f,1.0f));
+            mm.uniform4f("upper",refcubeTransform*glm::vec4(0.5f,0.5f,0.5f,1.0f));
+            glMemoryBarrier(GL_ALL_BARRIER_BITS);
+            mm.dispatch(NUM_PARTICLES,GENERAL_WGSIZE);
+            glFinish();
+            glMemoryBarrier(GL_ALL_BARRIER_BITS);
+            auto a = mmb.read<float>(1);
+            logINFO("Reference") << "Mass inside of reference cube " << a[0] * MASS_UNIT / Ms << " solar masses.";
         }
         else if(window.getKey(GLFW_KEY_P) == GLFW_RELEASE)
             readyToPrint=true;

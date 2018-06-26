@@ -1,0 +1,31 @@
+#version 450 core
+#extension GL_ARB_compute_variable_group_size : require
+#extension GL_NV_shader_atomic_float : require
+
+#include "common.glsl"
+#include "mathConst.glsl"
+
+layout(binding=PARTICLE_POSITION_BUFFER_BINDING,std430) buffer ParticlePositions
+{
+    vec4 positions[];
+};
+
+layout(binding=MM_BUFFER_BINDING,std430) buffer MassSum
+{
+    float massSum;
+};
+
+uniform vec4 upper;
+uniform vec4 lower;
+
+layout(local_size_variable) in;
+
+void main()
+{
+    vec4 pos=positions[gl_GlobalInvocationID.x];
+
+    if( all(greaterThan(pos.xyz,lower.xyz)) && all(lessThan(pos.xyz,upper.xyz)) )
+    {
+        atomicAdd(massSum, pos.w);
+    }
+}
