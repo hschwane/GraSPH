@@ -130,7 +130,7 @@ int main()
                                            {{0.4},{0.3}},
                                            {{0.3},{0.6}},
                                    },1612,HMIN,HMAX,TOTAL_MASS / NUM_PARTICLES);
-    spawner.addAngularVelocity({0,0.12f,0});
+    spawner.addAngularVelocity({0,0.15f,0});
 
 
     // create a renderer

@@ -52,7 +52,7 @@ constexpr float ADBALS_HIGHTH    = 32768; // density threshold where balsara is 
 
 constexpr float AC1         = 1; // adiabatic constant when rho is below FRAG_LIMIT
 constexpr float AC2         = 7.0f/5.0f; // adiabatic constant when rho is above FRAG_LIMIT
-constexpr float FRAG_LIMIT  = 1024;
+constexpr float FRAG_LIMIT  = 2048;
 
 constexpr float NUM_NEIGHBOURS  = 50; // the desired number of interaction partners
 constexpr float INITIAL_H       = 0.3; // initial kernel radius
