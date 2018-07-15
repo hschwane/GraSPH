@@ -9,8 +9,7 @@
 set(GLM_ROOT_ENV $ENV{GLM_ROOT})
 
 FIND_PATH(GLM_INCLUDE_PATH glm/glm.hpp
-	${GLM_ROOT_ENV}
-	${GLM_ROOT_ENV}/include
+	PATHS ${GLM_ROOT_ENV} ${GLM_ROOT_ENV}/include /usr/include /usr/local/include ~/local/include
 )
 
 SET(GLM_FOUND "NO")

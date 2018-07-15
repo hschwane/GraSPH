@@ -23,6 +23,7 @@ add_definitions(-DLIB_RESOURCE_PATH="${LIB_RESOURCE_PATH}/")
 add_definitions(-DMPU_LIB_VERSION="${VERSION_SHORT}")
 add_definitions(-DGLFW_INCLUDE_GLCOREARB)
 add_definitions(-DGLEW_NO_GLU)
+add_definitions(-DGLM_ENABLE_EXPERIMENTAL)
 
 # find packages
 # --------------------
@@ -63,6 +64,7 @@ target_link_libraries( mpUtils
         ${GLFW3_LIBRARIES}
         ${GLEW_LIBRARIES}
         ${OPENGL_LIBRARY}
+        Xrandr Xinerama Xcursor Xxf86vm
         )
 
 # set install options

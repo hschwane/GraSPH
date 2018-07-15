@@ -61,9 +61,12 @@ ELSEIF(APPLE)
     )
 
 ELSE()
-	FIND_PATH(GLFW3_INCLUDE_PATH GLFW/glfw3.h)
+	FIND_PATH(GLFW3_INCLUDE_PATH GLFW/glfw3.h
+	PATHS ${GLFW3_ROOT_ENV}/include /usr/include /usr/local/include ~/local/include
+	)
 	FIND_LIBRARY(GLFW3_LIBRARY
         NAMES glfw3 glfw
+        PATHS ${GLFW3_ROOT_ENV}/lib /usr/lib /usr/local/lib ~/local/lib
 	PATH_SUFFIXES dynamic) 
 ENDIF ()
 

@@ -35,9 +35,12 @@ ELSEIF(APPLE)
 	)
 
 ELSE()
-	FIND_PATH(GLEW_INCLUDE_PATH GL/glew.h)
+	FIND_PATH(GLEW_INCLUDE_PATH GL/glew.h
+	PATHS $ENV{GLEW_ROOT_ENV}/include /usr/include /usr/local/include ~/local/include)
 	FIND_LIBRARY(GLEW_LIBRARY
-	NAMES GLEW glew32 glew glew32s PATH_SUFFIXES lib64)
+	NAMES GLEW glew32 glew glew32s 
+	PATHS $ENV{GLEW_ROOT_ENV}/lib /usr/lib /usr/local/lib ~/local/lib
+	PATH_SUFFIXES dynamic)
 ENDIF()
     
 
