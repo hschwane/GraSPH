@@ -382,6 +382,9 @@ int main()
                 DT = newDT;
                 integrator.uniform1f("dt",DT);
             }
+        } else
+        {
+            mpu::sleep_ms(12);
         }
 
         // render the particles
@@ -391,7 +394,7 @@ int main()
         // render the reference cube
         refCube.bind();
         cubeRefShader.use();
-        cubeRefShader.uniformMat4("model_view_projection", renderer.getViewProjection() * glm::scale(glm::translate(glm::mat4(),refCubePos),glm::vec3(referenceCubeSize)));
+        cubeRefShader.uniformMat4("model_view_projection", renderer.getViewProjection() * glm::scale(glm::translate(glm::mat4(1),refCubePos),glm::vec3(referenceCubeSize)));
         glDrawArrays(GL_LINES, 0, cube.size());
 
         // performance display

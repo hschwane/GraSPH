@@ -30,10 +30,10 @@ const long double MASS_UNIT = Ms; // the length unit of mass in kg
 
 // time
 constexpr double INITIAL_DT     = 0.002; // initial timestep
-constexpr double MAX_DT         = 0.045; // biggest timestep
-constexpr double MIN_DT         = 0.00001; // smallest timestep
-constexpr float GRAV_ACCURACY   = 0.05; // the bigger this number the larger timesteps are allowed based on the acceleration criterion
-constexpr float COURANT_NUMBER  = 0.4; // the bigger this number the larger timesteps are allowed based on the sph criterion
+constexpr double MAX_DT         = 0.04; // biggest timestep
+constexpr double MIN_DT         = 0.000005; // smallest timestep
+constexpr float GRAV_ACCURACY   = 0.04; // the bigger this number the larger timesteps are allowed based on the acceleration criterion
+constexpr float COURANT_NUMBER  = 0.3; // the bigger this number the larger timesteps are allowed based on the sph criterion
 
 // particles
 constexpr float TOTAL_MASS              = 20; // total mass of all particles
@@ -56,12 +56,12 @@ constexpr float FRAG_LIMIT  = 2048;
 
 constexpr float NUM_NEIGHBOURS  = 50; // the desired number of interaction partners
 constexpr float INITIAL_H       = 0.3; // initial kernel radius
-constexpr float HMIN            = 0.05; // smallest kernel radius
+constexpr float HMIN            = 0.025; // smallest kernel radius
 constexpr float HMAX            = 2; // biggest kernel radius
 
 // visuals
-constexpr int HEIGHT    = 800; // window size in px
-constexpr int WIDTH     = 800;
+constexpr int HEIGHT    = 1024; // window size in px
+constexpr int WIDTH     = 1024;
 constexpr float PARTICLE_RENDER_SIZE    = 0.08; // radius of a particle
 constexpr float PARTICLE_BRIGHTNESS     = 0.9; // radius of a particle
 const glm::vec4 PARTICLE_COLOR          = glm::vec4(0.9,0.3,0.1,1); // color of the particle
