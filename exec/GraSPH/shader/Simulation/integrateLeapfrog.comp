@@ -64,6 +64,11 @@ void main()
         maxVsig = max(maxVsig,a.MAXVSIG);
     }
 
+    // central star gravity
+    const vec3 rij = positions[gl_GlobalInvocationID.x].xyz; // vector from i to j
+    const float r2 = dot(rij,rij);
+    acc +=  200 * -rij / sqrt(pow(r2+(0.4),3));
+
     // calculate velocity a_t
     const vec3 vel_t = velocities[gl_GlobalInvocationID.x].xyz + acc.xyz * (dt*0.5f);
 

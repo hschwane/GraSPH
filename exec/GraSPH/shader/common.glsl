@@ -2,9 +2,9 @@
 
 // feature options
 #define BALSARA_SWITCH
-#define ADAPTIVE_BALSARA
+//#define ADAPTIVE_BALSARA
 #define DH_DENSITY_CORRECTION
-#define ARTIFICIAL_HEATING
+//#define ARTIFICIAL_HEATING
 
 // handle some dependencys between features
 #ifdef DH_DENSITY_CORRECTION

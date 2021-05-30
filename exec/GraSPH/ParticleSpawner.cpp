@@ -25,7 +25,8 @@ ParticleSpawner::ParticleSpawner()
           m_initialVelocityCurlShader({{PROJECT_SHADER_PATH"ParticleSpawner/initialVelocityCurl.comp"}}),
           m_addSimplexShader({{PROJECT_SHADER_PATH"ParticleSpawner/addPotential.comp"}}),
           m_angVelShader({{PROJECT_SHADER_PATH"ParticleSpawner/angVel.comp"}}),
-          m_sphereSpawnShader({{PROJECT_SHADER_PATH"ParticleSpawner/sphereSpawn.comp"}})
+          m_sphereSpawnShader({{PROJECT_SHADER_PATH"ParticleSpawner/sphereSpawn.comp"}}),
+          m_kepVelShader({{PROJECT_SHADER_PATH"ParticleSpawner/kepVel.comp"}})
 {
 }
 
@@ -226,4 +227,12 @@ void ParticleSpawner::addAngularVelocity(glm::vec3 axis)
     m_angVelShader.uniform3f("axis", axis);
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
     m_angVelShader.dispatch(m_particleBuffer.size(),GENERAL_WGSIZE);
+}
+
+void ParticleSpawner::addKeplerVelocity(float mass)
+{
+    m_particleBuffer.bindAll(PARTICLE_BUFFER_BINDING, GL_SHADER_STORAGE_BUFFER);
+    m_kepVelShader.uniform1f("mass", mass);
+    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+    m_kepVelShader.dispatch(m_particleBuffer.size(),GENERAL_WGSIZE);
 }

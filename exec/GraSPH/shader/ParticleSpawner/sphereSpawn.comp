@@ -58,6 +58,14 @@ void main()
     uint seed = random_seed*gl_GlobalInvocationID.x;
     vec2 hammersley = genHammersleySet(seed, num_of_particles);
     vec3 randomPos = randSphere( hammersley.x, hammersley.y,rand(seed),radius);
+
+    int i = 1;
+    while(length(randomPos) < 3 || randomPos.y > 0.5 || randomPos.y < -0.5)
+    {
+        vec2 hammersley = genHammersleySet(seed+i, num_of_particles);
+        randomPos = randSphere( hammersley.x, hammersley.y,rand(seed),radius);
+        i++;
+    }
     positions[gl_GlobalInvocationID.x+particle_offset] = vec4(randomPos + center, mass);
 
     // set all the attributes

@@ -60,6 +60,8 @@ public:
     void addCurlVelocityField(float frequency, float scale, int seed); //!< adds a initial random velocity fiels based on curl noise to the particles
     void addMultiFrequencyCurl(std::vector<std::pair<float, float>> freq, int seed, float hmin, float hmax, float massPerParticle); //!< add multiple frequencies of simplex noise and calculate the curl using sph methods (him and max are parameters for the adjust-H-shader)
     void addAngularVelocity(glm::vec3 axis); //!< adds a angular velocity around the axis "Axis" speed depends on the length of axis
+    void addKeplerVelocity(float mass);
+
 
     // getter
     ParticleBuffer getParticleBuffer()const{return m_particleBuffer;} //!< returns the particle buffer for use by rendering and simulation classes
@@ -78,6 +80,7 @@ private:
     mpu::gph::ShaderProgram m_initialVelocityCurlShader; //!< shader for adding initial velocity
     mpu::gph::ShaderProgram m_addSimplexShader; //!< shader for adding simplex noise to the particles acceleration field
     mpu::gph::ShaderProgram m_angVelShader; //!< shader for adding rotational velocity
+    mpu::gph::ShaderProgram m_kepVelShader;
 
     ParticleBuffer m_particleBuffer; //!< the buffer where the particles are stored
 

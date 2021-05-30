@@ -37,6 +37,8 @@ uniform float balsara_strength;
 uniform float adaptive_balsara_lowth;
 uniform float adaptive_balsara_highth;
 
+uniform bool enableSelfGravity;
+
 shared vec4 pos[gl_WorkGroupSize.x];
 shared vec4 hyd[gl_WorkGroupSize.x];
 shared float h[gl_WorkGroupSize.x];
@@ -94,7 +96,8 @@ void main()
             if(r > 0) // stop calculation here if the particles are the same
             {
                 // gravity
-                acc +=  posj.MASS * -rij / sqrt(pow(r2+(hi*hj*eps_factor2),3));
+                if(enableSelfGravity)
+                    acc += posj.MASS * -rij / sqrt(pow(r2+(hi*hj*eps_factor2),3));
 
                 // pressure
                 const float pod2j = hydroj.PRESSURE / (hydroj.DENSITY * hydroj.DENSITY);

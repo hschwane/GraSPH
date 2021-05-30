@@ -130,7 +130,8 @@ int main()
                                            {{0.4},{0.3}},
                                            {{0.3},{0.6}},
                                    },1612,HMIN,HMAX,TOTAL_MASS / NUM_PARTICLES);
-    spawner.addAngularVelocity({0,0.15f,0});
+//    spawner.addAngularVelocity({0,1.5f,0});
+    spawner.addKeplerVelocity(200);
 
 
     // create a renderer
@@ -232,8 +233,10 @@ int main()
         integrator.uniform1f("not_first_step",1);
     };
 
-    auto simulate = [densityShader,pressureShader,hydroAccum,integrator,adjustH]()
+    auto simulate = [densityShader,pressureShader,hydroAccum,integrator,adjustH](bool selfGravity=true)
     {
+        pressureShader.uniform1b("enableGravity",selfGravity);
+
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
         adjustH.dispatch(NUM_PARTICLES,GENERAL_WGSIZE);
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
@@ -272,6 +275,9 @@ int main()
     bool readyToPrint=true;
     bool readyToChangeRef=true;
     bool printRefcubeSize=false;
+
+    bool selfGravity= true;
+
     while( window.update())
     {
         dt = timer.getDeltaTime();
@@ -345,6 +351,18 @@ int main()
         else if(window.getKey(GLFW_KEY_2) == GLFW_PRESS)
             runSim = false;
 
+        // toggle self gravity
+        if(window.getKey(GLFW_KEY_G) == GLFW_PRESS)
+        {
+            selfGravity = false;
+            logINFO("Gravity") << "gravity on";
+        }
+        else if(window.getKey(GLFW_KEY_H) == GLFW_PRESS)
+        {
+            selfGravity = true;
+            logINFO("Gravity") << "gravity off";
+        }
+
         if(window.getKey(GLFW_KEY_P) == GLFW_PRESS && readyToPrint)
         {
             readyToPrint=false;
@@ -374,7 +392,7 @@ int main()
 
         if(runSim)
         {
-            simulate();
+            simulate(selfGravity);
             lag += DT;
             simulationTime += DT;
             if(newDT != DT)

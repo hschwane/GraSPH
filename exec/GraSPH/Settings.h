@@ -36,9 +36,9 @@ constexpr float GRAV_ACCURACY   = 0.04; // the bigger this number the larger tim
 constexpr float COURANT_NUMBER  = 0.3; // the bigger this number the larger timesteps are allowed based on the sph criterion
 
 // particles
-constexpr float TOTAL_MASS              = 20; // total mass of all particles
-constexpr float SPAWN_RADIUS            = 6; // radius of the initial cloud
-constexpr unsigned int NUM_PARTICLES    = 16384; // total number of particles, use power of 2 for convenience
+constexpr float TOTAL_MASS              = 10; // total mass of all particles
+constexpr float SPAWN_RADIUS            = 12; // radius of the initial cloud
+constexpr unsigned int NUM_PARTICLES    = 16384*2; // total number of particles, use power of 2 for convenience
 
 // gravity
 constexpr float EPS_FACTOR  = 0.2; // a particle behaves like a plummer sphere with a radius equal to its smoothing length multiplied by this factor
@@ -50,7 +50,7 @@ constexpr float BALSARA_STRENGTH    = 1; // how much the balsara switch will inf
 constexpr float ADBALS_LOWTH    = 8192; // density threshold where balsara starts turning off
 constexpr float ADBALS_HIGHTH    = 32768; // density threshold where balsara is completely turning off
 
-constexpr float AC1         = 1; // adiabatic constant when rho is below FRAG_LIMIT
+constexpr float AC1         = 7.0f/5.0f; // adiabatic constant when rho is below FRAG_LIMIT
 constexpr float AC2         = 7.0f/5.0f; // adiabatic constant when rho is above FRAG_LIMIT
 constexpr float FRAG_LIMIT  = 2048;
 
